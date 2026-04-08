@@ -13,12 +13,18 @@ export default function HomePage() {
   const [visitCount, setVisitCount] = useState<number | null>(null);
 
   useEffect(() => {
-    // 방문 기록 + 카운트 조회
     async function recordAndCount() {
-      await supabase.from('page_views').insert({ path: '/' });
-      const { count } = await supabase
+      // 방문 기록
+      const { error: insertErr } = await supabase
+        .from('page_views')
+        .insert({ path: '/' });
+      if (insertErr) console.error('page_views insert:', insertErr.message);
+
+      // 카운트 조회 (insert 실패해도 시도)
+      const { count, error: countErr } = await supabase
         .from('page_views')
         .select('*', { count: 'exact', head: true });
+      if (countErr) console.error('page_views count:', countErr.message);
       if (count !== null) setVisitCount(count);
     }
     recordAndCount();
@@ -156,18 +162,18 @@ export default function HomePage() {
         </div>
 
         {/* Visit counter + Feedback link */}
-        <div className="mt-8 text-center space-y-2">
-          {visitCount !== null && (
-            <p className="text-sm text-gray-500">
-              지금까지 {visitCount.toLocaleString()}명이 Music Spot을 방문했어요
-            </p>
-          )}
+        <div className="mt-8 text-center space-y-3">
           <Link
             href="/feedback"
-            className="text-xs text-gray-500 hover:text-brand-red transition-colors"
+            className="text-sm text-[#E84040] hover:text-[#ff6060] underline underline-offset-4 transition-colors"
           >
             건의사항 남기기 →
           </Link>
+          {visitCount !== null && (
+            <p className="text-sm text-white">
+              지금까지 {visitCount.toLocaleString()}명이 방문했어요 🎸
+            </p>
+          )}
         </div>
       </div>
     </div>
