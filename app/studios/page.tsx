@@ -7,7 +7,7 @@ import { Studio, StudioFilters } from '@/types/studio';
 import StudioCard from '@/components/StudioCard';
 import StudioFilter from '@/components/StudioFilter';
 import { expandRegion } from '@/lib/region-alias';
-import { sortByDistanceAndQuality, sortByQuality } from '@/lib/sort';
+import { sortByDistanceAndQuality } from '@/lib/sort';
 
 const PAGE_SIZE = 20;
 
@@ -35,6 +35,7 @@ function StudiosContent() {
   const quickFilter = searchParams.get('filter');
 
   const [studios, setStudios] = useState<Studio[]>([]);
+  const [allGpsResults, setAllGpsResults] = useState<Studio[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<StudioFilters>(() => {
     const initial: StudioFilters = {
@@ -48,13 +49,57 @@ function StudiosContent() {
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState(region);
 
-  const fetchStudios = useCallback(async (pageNum: number, reset = false) => {
+  const isGpsSearch = !!(lat && lng);
+
+  // GPS 검색: 반경 내 전체를 한번에 가져와서 프론트 정렬 후 slice
+  const fetchGpsStudios = useCallback(async () => {
     setLoading(true);
 
     let query = supabase
       .from('studios')
       .select('*')
       .eq('is_published', true)
+      .limit(5000);
+
+    if (filters.room_type) {
+      query = query.or(`room_type.eq.${filters.room_type},room_type.eq.both`);
+    }
+    if (filters.has_drum) {
+      query = query.eq('has_drum', true);
+    }
+    if (filters.max_price) {
+      query = query.lte('price_per_hour', filters.max_price);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Fetch error:', error);
+      setLoading(false);
+      return;
+    }
+
+    const all = (data ?? []) as Studio[];
+    const withCoords = all.filter((s) => s.lat != null && s.lng != null);
+    const radius = filters.radius ?? 3;
+    const sorted = sortByDistanceAndQuality(withCoords, lat!, lng!);
+    const filtered = sorted.filter((s) => s.distance <= radius);
+
+    setAllGpsResults(filtered);
+    setStudios(filtered.slice(0, PAGE_SIZE));
+    setHasMore(filtered.length > PAGE_SIZE);
+    setPage(0);
+    setLoading(false);
+  }, [lat, lng, filters]);
+
+  // 텍스트 검색: 서버에서 완성도순 정렬 + 페이지네이션
+  const fetchTextStudios = useCallback(async (pageNum: number, reset = false) => {
+    setLoading(true);
+
+    let query = supabase
+      .from('studios')
+      .select('*')
+      .eq('is_published', true)
+      .order('data_quality_score', { ascending: false })
       .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
 
     if (filters.room_type) {
@@ -66,7 +111,7 @@ function StudiosContent() {
     if (filters.max_price) {
       query = query.lte('price_per_hour', filters.max_price);
     }
-    // 텍스트 검색: region 파라미터 또는 GPS 검색의 region 폴백
+
     const searchRegion = region || '';
     if (searchRegion) {
       const terms = expandRegion(searchRegion);
@@ -77,27 +122,13 @@ function StudiosContent() {
     }
 
     const { data, error } = await query;
-
     if (error) {
       console.error('Fetch error:', error);
       setLoading(false);
       return;
     }
 
-    let results = (data ?? []) as Studio[];
-
-    // 정렬: GPS 검색은 거리구간+완성도, 텍스트 검색은 완성도순
-    if (lat && lng) {
-      const withCoords = results.filter((s) => s.lat != null && s.lng != null);
-      if (withCoords.length > 0) {
-        const radius = filters.radius ?? 3;
-        const sorted = sortByDistanceAndQuality(withCoords, lat, lng);
-        results = sorted.filter((s) => s.distance <= radius);
-      }
-    } else {
-      results = sortByQuality(results);
-    }
-
+    const results = (data ?? []) as Studio[];
     setHasMore(results.length === PAGE_SIZE);
 
     if (reset) {
@@ -106,12 +137,16 @@ function StudiosContent() {
       setStudios((prev) => [...prev, ...results]);
     }
     setLoading(false);
-  }, [lat, lng, region, filters]);
+  }, [region, filters]);
 
   useEffect(() => {
-    setPage(0);
-    fetchStudios(0, true);
-  }, [fetchStudios]);
+    if (isGpsSearch) {
+      fetchGpsStudios();
+    } else {
+      setPage(0);
+      fetchTextStudios(0, true);
+    }
+  }, [isGpsSearch, fetchGpsStudios, fetchTextStudios]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -178,7 +213,15 @@ function StudiosContent() {
                 onClick={() => {
                   const next = page + 1;
                   setPage(next);
-                  fetchStudios(next);
+                  if (isGpsSearch) {
+                    // GPS: 이미 정렬된 전체 배열에서 slice
+                    const end = (next + 1) * PAGE_SIZE;
+                    setStudios(allGpsResults.slice(0, end));
+                    setHasMore(end < allGpsResults.length);
+                  } else {
+                    // 텍스트: 서버 페이지네이션
+                    fetchTextStudios(next);
+                  }
                 }}
                 disabled={loading}
                 className="w-full mt-4 py-3 text-sm text-brand-muted border border-brand-border rounded-xl disabled:opacity-50"
