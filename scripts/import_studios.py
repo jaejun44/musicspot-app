@@ -124,6 +124,16 @@ def main():
     m_count = (combined["room_type"] == "M").sum()
     print(f"룸타입 분류: T룸 {t_count}건 / M룸 {m_count}건")
 
+    # 2.6. has_drum 자동 분류 (name, options 키워드 기반)
+    def detect_drum(row):
+        name = str(row.get("name", "") or "")
+        options = str(row.get("options", "") or "")
+        return "드럼" in name or "드럼" in options
+
+    combined["has_drum"] = combined.apply(detect_drum, axis=1)
+    drum_count = combined["has_drum"].sum()
+    print(f"드럼 가능: {drum_count}건")
+
     # 3. Geocoding 건너뜀 — lat/lng = None
     combined["lat"] = None
     combined["lng"] = None

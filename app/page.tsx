@@ -1,13 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 import { trackSearch } from '@/lib/analytics';
 
 export default function HomePage() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [visitCount, setVisitCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    // 방문 기록 + 카운트 조회
+    async function recordAndCount() {
+      await supabase.from('page_views').insert({ path: '/' });
+      const { count } = await supabase
+        .from('page_views')
+        .select('*', { count: 'exact', head: true });
+      if (count !== null) setVisitCount(count);
+    }
+    recordAndCount();
+  }, []);
 
   async function handleGPS() {
     setLoading(true);
@@ -138,6 +153,21 @@ export default function HomePage() {
               {chip.label}
             </button>
           ))}
+        </div>
+
+        {/* Visit counter + Feedback link */}
+        <div className="mt-8 text-center space-y-2">
+          {visitCount !== null && (
+            <p className="text-sm text-gray-500">
+              지금까지 {visitCount.toLocaleString()}명이 Music Spot을 방문했어요
+            </p>
+          )}
+          <Link
+            href="/feedback"
+            className="text-xs text-gray-500 hover:text-brand-red transition-colors"
+          >
+            건의사항 남기기 →
+          </Link>
         </div>
       </div>
     </div>

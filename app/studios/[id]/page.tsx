@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 import { trackStudioView } from '@/lib/analytics';
@@ -199,6 +200,16 @@ export default function StudioDetailPage() {
             <KakaoMap lat={studio.lat} lng={studio.lng} name={studio.name} />
           </div>
         )}
+
+        {/* Feedback link */}
+        <div className="text-center pt-2">
+          <Link
+            href="/feedback"
+            className="text-xs text-gray-500 hover:text-brand-red transition-colors"
+          >
+            건의사항 남기기 →
+          </Link>
+        </div>
       </div>
 
       {/* CTA */}
