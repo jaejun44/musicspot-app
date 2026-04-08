@@ -25,6 +25,22 @@ export default function RootLayout({
       <body className="min-h-screen bg-brand-bg text-brand-text font-pretendard">
         {children}
 
+        <Script
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+          strategy="afterInteractive"
+        />
+        <Script id="kakao-init" strategy="afterInteractive">
+          {`
+            (function checkKakao() {
+              if (window.Kakao && !window.Kakao.isInitialized()) {
+                window.Kakao.init('ccad65d2509199874591b68d6cd8ca6b');
+              } else if (!window.Kakao) {
+                setTimeout(checkKakao, 100);
+              }
+            })();
+          `}
+        </Script>
+
         {GA_ID && (
           <>
             <Script

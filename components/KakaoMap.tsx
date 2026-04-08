@@ -9,11 +9,6 @@ interface Props {
   name: string;
 }
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
 
 export default function KakaoMap({ lat, lng, name }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
