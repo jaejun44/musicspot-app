@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { trackSearch } from '@/lib/analytics';
+import FavoriteSection from '@/components/FavoriteSection';
 
 export default function HomePage() {
   const router = useRouter();
@@ -160,6 +161,9 @@ export default function HomePage() {
             </button>
           ))}
         </div>
+
+        {/* Favorites */}
+        <FavoriteSection />
 
         {/* Visit counter + Feedback link */}
         <div className="mt-8 text-center space-y-3">

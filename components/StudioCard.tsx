@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Studio } from '@/types/studio';
 import { getDistanceKm } from '@/lib/distance';
+import FavoriteButton from './FavoriteButton';
 
 interface Props {
   studio: Studio;
@@ -54,6 +55,10 @@ export default function StudioCard({ studio, userLat, userLng }: Props) {
               </svg>
             </div>
           )}
+          {/* Favorite */}
+          <div className="absolute top-1 right-1">
+            <FavoriteButton studioId={studio.id} studioName={studio.name} />
+          </div>
           {/* Badges */}
           <div className="absolute top-2 left-2 flex gap-1">
             {roomLabel && (

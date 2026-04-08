@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 import { trackStudioView } from '@/lib/analytics';
+import FavoriteButton from '@/components/FavoriteButton';
 import PhotoGallery from '@/components/PhotoGallery';
 import KakaoMap from '@/components/KakaoMap';
 import ContactButtons from '@/components/ContactButtons';
@@ -91,13 +92,14 @@ export default function StudioDetailPage() {
       <div className="px-4 mt-4 space-y-5">
         {/* Title */}
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">{studio.name}</h1>
+          <div className="flex items-center gap-1">
+            <h1 className="text-xl font-bold flex-1">{studio.name}</h1>
             {roomLabel && (
-              <span className="px-2 py-0.5 bg-brand-red text-white text-xs font-semibold rounded">
+              <span className="px-2 py-0.5 bg-brand-red text-white text-xs font-semibold rounded shrink-0">
                 {roomLabel}
               </span>
             )}
+            <FavoriteButton studioId={studio.id} studioName={studio.name} size="md" />
           </div>
           {studio.rating && (
             <p className="text-sm text-brand-muted mt-1">⭐ {studio.rating}</p>
