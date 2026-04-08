@@ -3,11 +3,11 @@
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { getDistanceKm } from '@/lib/distance';
 import { Studio, StudioFilters } from '@/types/studio';
 import StudioCard from '@/components/StudioCard';
 import StudioFilter from '@/components/StudioFilter';
 import { expandRegion } from '@/lib/region-alias';
+import { sortByDistanceAndQuality, sortByQuality } from '@/lib/sort';
 
 const PAGE_SIZE = 20;
 
@@ -86,22 +86,16 @@ function StudiosContent() {
 
     let results = (data ?? []) as Studio[];
 
-    // 거리 필터 & 정렬: lat/lng가 있는 데이터만 대상
+    // 정렬: GPS 검색은 거리구간+완성도, 텍스트 검색은 완성도순
     if (lat && lng) {
       const withCoords = results.filter((s) => s.lat != null && s.lng != null);
-
       if (withCoords.length > 0) {
-        // Geocoding된 데이터가 있으면 반경 필터 적용
         const radius = filters.radius ?? 3;
-        results = withCoords
-          .filter((s) => getDistanceKm(lat, lng, s.lat!, s.lng!) <= radius)
-          .sort((a, b) => {
-            const da = getDistanceKm(lat, lng, a.lat!, a.lng!);
-            const db = getDistanceKm(lat, lng, b.lat!, b.lng!);
-            return da - db;
-          });
+        const sorted = sortByDistanceAndQuality(withCoords, lat, lng);
+        results = sorted.filter((s) => s.distance <= radius);
       }
-      // Geocoding 안 된 경우: 필터 없이 전체 결과 반환 (폴백)
+    } else {
+      results = sortByQuality(results);
     }
 
     setHasMore(results.length === PAGE_SIZE);

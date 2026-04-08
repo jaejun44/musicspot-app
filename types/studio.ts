@@ -24,6 +24,7 @@ export interface Studio {
   naver_place_url: string | null;
   photos: string[] | null;
   notes: string | null;
+  data_quality_score: number;
   is_published: boolean;
   created_at: string;
   updated_at: string;
