@@ -15,6 +15,9 @@ interface Feedback {
 }
 
 export default function AdminPage() {
+  const [authed, setAuthed] = useState(false);
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
   const [tab, setTab] = useState<'studios' | 'feedbacks'>('studios');
   const [studios, setStudios] = useState<Studio[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
@@ -23,9 +26,57 @@ export default function AdminPage() {
   const [publishedFilter, setPublishedFilter] = useState<'all' | 'true' | 'false'>('all');
 
   useEffect(() => {
-    fetchStudios();
-    fetchFeedbacks();
+    if (localStorage.getItem('admin_auth') === 'true') {
+      setAuthed(true);
+    }
   }, []);
+
+  useEffect(() => {
+    if (authed) {
+      fetchStudios();
+      fetchFeedbacks();
+    }
+  }, [authed]);
+
+  function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+      localStorage.setItem('admin_auth', 'true');
+      setAuthed(true);
+      setAuthError('');
+    } else {
+      setAuthError('비밀번호가 틀렸습니다');
+    }
+  }
+
+  if (!authed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
+          <h1 className="text-xl font-bold text-center">
+            Music <span className="text-brand-red">Spot</span> 관리자
+          </h1>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="비밀번호 입력"
+            autoFocus
+            className="w-full px-4 py-3 bg-brand-card border border-brand-border rounded-xl text-sm placeholder:text-brand-muted focus:outline-none focus:border-brand-red"
+          />
+          {authError && (
+            <p className="text-brand-red text-xs text-center">{authError}</p>
+          )}
+          <button
+            type="submit"
+            className="w-full py-3 bg-brand-red text-white font-semibold rounded-xl"
+          >
+            확인
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   async function fetchStudios() {
     setLoading(true);

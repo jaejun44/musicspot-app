@@ -14,6 +14,10 @@ export default function AdminEditPage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    if (localStorage.getItem('admin_auth') !== 'true') {
+      router.replace('/admin');
+      return;
+    }
     async function load() {
       const { data } = await supabase.from('studios').select('*').eq('id', id).single();
       if (data) setStudio(data as Studio);
