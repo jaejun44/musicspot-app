@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { trackSearch } from '@/lib/analytics';
 import FavoriteSection from '@/components/FavoriteSection';
 import QuickPresets from '@/components/QuickPresets';
+import RecentlyViewedSection from '@/components/RecentlyViewedSection';
 
 export default function HomePage() {
   const router = useRouter();
@@ -146,6 +147,9 @@ export default function HomePage() {
         <div className="w-full mt-5">
           <QuickPresets />
         </div>
+
+        {/* Recently Viewed */}
+        <RecentlyViewedSection />
 
         {/* Favorites */}
         <FavoriteSection />

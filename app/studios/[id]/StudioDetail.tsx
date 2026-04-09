@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 import { trackStudioView } from '@/lib/analytics';
+import { addRecentlyViewed } from '@/lib/recentlyViewed';
 import FavoriteButton from '@/components/FavoriteButton';
 import PhotoGallery from '@/components/PhotoGallery';
 import KakaoMap from '@/components/KakaoMap';
@@ -35,6 +36,7 @@ export default function StudioDetail() {
 
       setStudio(data as Studio);
       trackStudioView(data.id, data.name);
+      addRecentlyViewed(data.id);
       setLoading(false);
     }
     load();
