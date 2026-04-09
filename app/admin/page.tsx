@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
+import { StudioReport } from '@/types/report';
 
 interface Feedback {
   id: string;
@@ -18,9 +19,10 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
-  const [tab, setTab] = useState<'studios' | 'feedbacks'>('studios');
+  const [tab, setTab] = useState<'studios' | 'feedbacks' | 'reports'>('studios');
   const [studios, setStudios] = useState<Studio[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [reports, setReports] = useState<StudioReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [publishedFilter, setPublishedFilter] = useState<'all' | 'true' | 'false'>('all');
@@ -35,6 +37,7 @@ export default function AdminPage() {
     if (authed) {
       fetchStudios();
       fetchFeedbacks();
+      fetchReports();
     }
   }, [authed]);
 
@@ -104,6 +107,32 @@ export default function AdminPage() {
     }
   }
 
+  async function fetchReports() {
+    const { data } = await supabase
+      .from('studio_reports')
+      .select('*, studios(name)')
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (data) {
+      setReports(data as StudioReport[]);
+    }
+  }
+
+  async function toggleReportStatus(id: string, current: string) {
+    const next = current === 'pending' ? 'resolved' : 'pending';
+    const { error } = await supabase
+      .from('studio_reports')
+      .update({ status: next })
+      .eq('id', id);
+
+    if (!error) {
+      setReports((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: next as 'pending' | 'resolved' } : r))
+      );
+    }
+  }
+
   async function togglePublish(id: string, current: boolean) {
     const { error } = await supabase
       .from('studios')
@@ -157,6 +186,14 @@ export default function AdminPage() {
           }`}
         >
           피드백 ({feedbacks.length})
+        </button>
+        <button
+          onClick={() => setTab('reports')}
+          className={`flex-1 py-2 text-sm rounded-md transition-colors ${
+            tab === 'reports' ? 'bg-brand-red text-white font-semibold' : 'text-brand-muted'
+          }`}
+        >
+          제보 ({reports.length})
         </button>
       </div>
 
@@ -280,6 +317,59 @@ export default function AdminPage() {
                     </td>
                     <td className="py-3 text-brand-muted max-w-[300px]">
                       {fb.content}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {tab === 'reports' && (
+        <div className="overflow-x-auto">
+          {reports.length === 0 ? (
+            <p className="text-center py-20 text-brand-muted">제보가 없습니다</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-brand-border text-brand-muted text-left">
+                  <th className="py-2 pr-4">날짜</th>
+                  <th className="py-2 pr-4">유형</th>
+                  <th className="py-2 pr-4">연습실</th>
+                  <th className="py-2 pr-4">내용</th>
+                  <th className="py-2">상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((r) => (
+                  <tr
+                    key={r.id}
+                    className="border-b border-brand-border/50 hover:bg-brand-card/50"
+                  >
+                    <td className="py-3 pr-4 text-brand-muted whitespace-nowrap">
+                      {new Date(r.created_at).toLocaleDateString('ko-KR')}
+                    </td>
+                    <td className="py-3 pr-4 whitespace-nowrap">
+                      {r.report_type === 'correction' ? '수정' : r.report_type === 'new_studio' ? '신규' : '폐업'}
+                    </td>
+                    <td className="py-3 pr-4 whitespace-nowrap">
+                      {r.studios?.name || '-'}
+                    </td>
+                    <td className="py-3 pr-4 text-brand-muted max-w-[250px] truncate">
+                      {r.content}
+                    </td>
+                    <td className="py-3">
+                      <button
+                        onClick={() => toggleReportStatus(r.id, r.status)}
+                        className={`px-2 py-1 text-xs rounded ${
+                          r.status === 'resolved'
+                            ? 'bg-green-900/30 text-green-400'
+                            : 'bg-yellow-900/30 text-yellow-400'
+                        }`}
+                      >
+                        {r.status === 'resolved' ? '완료' : '대기'}
+                      </button>
                     </td>
                   </tr>
                 ))}

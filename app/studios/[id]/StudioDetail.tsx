@@ -11,12 +11,14 @@ import PhotoGallery from '@/components/PhotoGallery';
 import KakaoMap from '@/components/KakaoMap';
 import ContactButtons from '@/components/ContactButtons';
 import KakaoShareButton from '@/components/KakaoShareButton';
+import ReportModal from '@/components/ReportModal';
 
 export default function StudioDetail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [studio, setStudio] = useState<Studio | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -215,16 +217,30 @@ export default function StudioDetail() {
           />
         </div>
 
-        {/* Feedback link */}
-        <div className="text-center pt-2">
+        {/* Feedback + Report links */}
+        <div className="flex items-center justify-center gap-4 pt-2">
           <Link
             href="/feedback"
             className="text-xs text-gray-500 hover:text-brand-red transition-colors"
           >
             건의사항 남기기 →
           </Link>
+          <button
+            onClick={() => setShowReport(true)}
+            className="text-xs text-gray-500 hover:text-brand-red transition-colors"
+          >
+            정보가 틀린가요?
+          </button>
         </div>
       </div>
+
+      {/* Report Modal */}
+      {showReport && (
+        <ReportModal
+          studioId={studio.id}
+          onClose={() => setShowReport(false)}
+        />
+      )}
 
       {/* CTA */}
       <ContactButtons studio={studio} />
