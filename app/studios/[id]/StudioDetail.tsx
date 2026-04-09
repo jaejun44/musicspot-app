@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 import { trackStudioView } from '@/lib/analytics';
@@ -217,14 +216,8 @@ export default function StudioDetail() {
           />
         </div>
 
-        {/* Feedback + Report links */}
-        <div className="flex items-center justify-center gap-4 pt-2">
-          <Link
-            href="/feedback"
-            className="text-xs text-gray-500 hover:text-brand-red transition-colors"
-          >
-            건의사항 남기기 →
-          </Link>
+        {/* Report link */}
+        <div className="text-center pt-2">
           <button
             onClick={() => setShowReport(true)}
             className="text-xs text-gray-500 hover:text-brand-red transition-colors"
