@@ -8,6 +8,7 @@ import StudioCard from '@/components/StudioCard';
 import StudioFilter from '@/components/StudioFilter';
 import { expandRegion } from '@/lib/region-alias';
 import { sortByDistanceAndQuality } from '@/lib/sort';
+import QuickPresets from '@/components/QuickPresets';
 
 const PAGE_SIZE = 20;
 
@@ -32,6 +33,8 @@ function StudiosContent() {
   const lat = searchParams.get('lat') ? Number(searchParams.get('lat')) : undefined;
   const lng = searchParams.get('lng') ? Number(searchParams.get('lng')) : undefined;
   const region = searchParams.get('region') ?? '';
+  const qRoomType = searchParams.get('room_type') as 'T' | 'M' | null;
+  const qHasDrum = searchParams.get('has_drum') === 'true';
   const quickFilter = searchParams.get('filter');
 
   const [studios, setStudios] = useState<Studio[]>([]);
@@ -41,6 +44,10 @@ function StudiosContent() {
     const initial: StudioFilters = {
       radius: searchParams.get('radius') ? Number(searchParams.get('radius')) : 3,
     };
+    // URL 쿼리 파라미터에서 필터 초기값 설정
+    if (qRoomType) initial.room_type = qRoomType;
+    if (qHasDrum) initial.has_drum = true;
+    // 레거시 filter 파라미터 호환
     if (quickFilter === 'drum') initial.has_drum = true;
     if (quickFilter === 'troom') initial.room_type = 'T';
     return initial;
@@ -175,6 +182,8 @@ function StudiosContent() {
             />
           </form>
         </div>
+
+        <QuickPresets showActive />
 
         <div className="flex items-center justify-between">
           <StudioFilter filters={filters} onChange={setFilters} />

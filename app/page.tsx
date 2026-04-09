@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { trackSearch } from '@/lib/analytics';
 import FavoriteSection from '@/components/FavoriteSection';
+import QuickPresets from '@/components/QuickPresets';
 
 export default function HomePage() {
   const router = useRouter();
@@ -81,10 +82,6 @@ export default function HomePage() {
     }
   }
 
-  function handleChip(filter: string) {
-    router.push(`/studios?filter=${filter}`);
-  }
-
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-end px-6 pb-16 overflow-hidden">
       {/* Background Image */}
@@ -145,21 +142,9 @@ export default function HomePage() {
           </button>
         </form>
 
-        {/* Quick Filters */}
-        <div className="flex gap-2 mt-5">
-          {[
-            { label: '🥁 드럼 가능', filter: 'drum' },
-            { label: '🎸 합주실', filter: 'ensemble' },
-            { label: '🎧 T룸만', filter: 'troom' },
-          ].map((chip) => (
-            <button
-              key={chip.filter}
-              onClick={() => handleChip(chip.filter)}
-              className="px-4 py-2 bg-brand-card/60 backdrop-blur border border-brand-border rounded-full text-xs text-brand-muted hover:border-brand-red/50 transition-colors"
-            >
-              {chip.label}
-            </button>
-          ))}
+        {/* Quick Presets */}
+        <div className="w-full mt-5">
+          <QuickPresets />
         </div>
 
         {/* Favorites */}
