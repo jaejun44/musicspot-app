@@ -86,7 +86,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col overflow-hidden">
       {/* Hero — background image area */}
-      <div className="relative flex-1 min-h-[40vh]">
+      <div className="relative flex-1 min-h-[45vh]">
         <div
           className="absolute inset-0 bg-cover bg-top bg-no-repeat"
           style={{ backgroundImage: "url('/hero-bg.png')" }}
