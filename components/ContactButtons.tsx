@@ -19,9 +19,9 @@ export default function ContactButtons({ studio }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackContactClick('naver', studio.id)}
-          className="flex-1 py-3 bg-[#03C75A] text-white text-sm font-semibold rounded-xl text-center"
+          className="flex-1 py-3 bg-[#FFD6E0] text-gray-900 text-sm font-semibold rounded-xl text-center"
         >
-          네이버 플레이스
+          플레이스 보기
         </a>
       )}
 
