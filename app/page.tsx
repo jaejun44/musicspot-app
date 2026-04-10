@@ -107,7 +107,7 @@ export default function HomePage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="지역 검색 (예: 홍대, 합정)"
+              placeholder="검색 (예: 지역, 상호)"
               className="w-full px-4 py-3.5 bg-brand-card/80 backdrop-blur border border-brand-border rounded-xl text-sm placeholder:text-brand-muted focus:outline-none focus:border-brand-red"
             />
             <button

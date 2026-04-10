@@ -188,7 +188,7 @@ function StudiosContent() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="지역 검색"
+              placeholder="검색 (예: 지역, 상호)"
               className="w-full px-3 py-2 bg-brand-card border border-brand-border rounded-lg text-sm placeholder:text-brand-muted focus:outline-none focus:border-brand-red"
             />
           </form>
