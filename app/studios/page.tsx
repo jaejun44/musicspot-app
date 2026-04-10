@@ -62,30 +62,41 @@ function StudiosContent() {
   const fetchGpsStudios = useCallback(async () => {
     setLoading(true);
 
-    let query = supabase
-      .from('studios')
-      .select('*')
-      .eq('is_published', true)
-      .limit(5000);
+    // Supabase 1,000건 제한 우회: 배치로 전체 fetch
+    const all: Studio[] = [];
+    let offset = 0;
+    const BATCH = 1000;
+    while (true) {
+      let query = supabase
+        .from('studios')
+        .select('*')
+        .eq('is_published', true)
+        .range(offset, offset + BATCH - 1);
 
-    if (filters.room_type) {
-      query = query.or(`room_type.eq.${filters.room_type},room_type.eq.both`);
-    }
-    if (filters.has_drum) {
-      query = query.eq('has_drum', true);
-    }
-    if (filters.max_price) {
-      query = query.lte('price_per_hour', filters.max_price);
+      if (filters.room_type) {
+        query = query.or(`room_type.eq.${filters.room_type},room_type.eq.both`);
+      }
+      if (filters.has_drum) {
+        query = query.eq('has_drum', true);
+      }
+      if (filters.max_price) {
+        query = query.lte('price_per_hour', filters.max_price);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error('Fetch error:', error);
+        break;
+      }
+      all.push(...((data ?? []) as Studio[]));
+      if ((data ?? []).length < BATCH) break;
+      offset += BATCH;
     }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error('Fetch error:', error);
+    if (all.length === 0) {
       setLoading(false);
       return;
     }
-
-    const all = (data ?? []) as Studio[];
     const withCoords = all.filter((s) => s.lat != null && s.lng != null);
     const radius = filters.radius ?? 3;
     const sorted = sortByDistanceAndQuality(withCoords, lat!, lng!);
