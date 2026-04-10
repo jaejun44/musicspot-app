@@ -95,11 +95,6 @@ export default function HomePage() {
 
       {/* Content — sits above the background */}
       <div className="relative z-10 w-full max-w-md flex flex-col items-center">
-        {/* Tagline — logo is already in the background image */}
-        <p className="text-white/70 text-sm mb-6">
-          내 밴드에 맞는 연습실, 지금 바로 찾기
-        </p>
-
         {/* Search */}
         <form onSubmit={handleTextSearch} className="w-full space-y-3">
           <div className="relative">
