@@ -84,17 +84,18 @@ export default function HomePage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-end px-6 pb-16 overflow-hidden">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-[center_top_30%] bg-no-repeat"
-        style={{ backgroundImage: "url('/hero-bg.png')" }}
-      />
-      {/* Subtle gradient overlay — only at the very bottom for search area */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+    <div className="min-h-screen flex flex-col overflow-hidden">
+      {/* Hero — background image area */}
+      <div className="relative flex-1 min-h-[40vh]">
+        <div
+          className="absolute inset-0 bg-cover bg-top bg-no-repeat"
+          style={{ backgroundImage: "url('/hero-bg.png')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-brand-bg" />
+      </div>
 
-      {/* Content — sits above the background */}
-      <div className="relative z-10 w-full max-w-md flex flex-col items-center">
+      {/* Content — below the hero */}
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pb-16 -mt-8">
         {/* Search */}
         <form onSubmit={handleTextSearch} className="w-full space-y-3">
           <div className="relative">
