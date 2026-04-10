@@ -152,12 +152,21 @@ export default function HomePage() {
 
         {/* Visit counter + Feedback link */}
         <div className="mt-8 text-center space-y-3">
-          <Link
-            href="/feedback"
-            className="text-sm text-[#E84040] hover:text-[#ff6060] underline underline-offset-4 transition-colors"
-          >
-            건의사항 남기기 →
-          </Link>
+          <div className="flex items-center justify-center gap-4">
+            <Link
+              href="/feedback"
+              className="text-sm text-[#E84040] hover:text-[#ff6060] underline underline-offset-4 transition-colors"
+            >
+              건의사항 남기기 →
+            </Link>
+            <span className="text-brand-border">|</span>
+            <Link
+              href="/register"
+              className="text-sm text-white/70 hover:text-white underline underline-offset-4 transition-colors"
+            >
+              업체 등록 신청 →
+            </Link>
+          </div>
           {visitCount !== null && (
             <p className="text-sm text-white">
               지금까지 {visitCount.toLocaleString()}명이 방문했어요 🎸
