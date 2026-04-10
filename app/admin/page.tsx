@@ -83,15 +83,20 @@ export default function AdminPage() {
 
   async function fetchStudios() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('studios')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5000);
-
-    if (!error && data) {
-      setStudios(data as Studio[]);
+    const all: Studio[] = [];
+    let offset = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from('studios')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + 999);
+      if (error || !data) break;
+      all.push(...(data as Studio[]));
+      if (data.length < 1000) break;
+      offset += 1000;
     }
+    setStudios(all);
     setLoading(false);
   }
 
