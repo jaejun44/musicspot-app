@@ -87,7 +87,7 @@ export default function HomePage() {
     <div className="relative min-h-screen flex flex-col items-center justify-end px-6 pb-16 overflow-hidden">
       {/* Background Image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-[center_top_30%] bg-no-repeat"
         style={{ backgroundImage: "url('/hero-bg.png')" }}
       />
       {/* Subtle gradient overlay — only at the very bottom for search area */}
