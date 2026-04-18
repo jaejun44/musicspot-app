@@ -11,6 +11,26 @@ const nextConfig = {
         protocol: 'https',
         hostname: 't1.kakaocdn.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.mule.co.kr',
+      },
+      {
+        protocol: 'https',
+        hostname: 'nrbe.pstatic.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.edge.naverncp.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'simg.pstatic.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'bub.searchroom.kr',
+      },
     ],
   },
 };
