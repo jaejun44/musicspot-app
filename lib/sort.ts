@@ -34,9 +34,3 @@ export function sortByDistanceAndQuality(
     });
 }
 
-/** 텍스트 검색: 순수 완성도순 */
-export function sortByQuality(studios: Studio[]): Studio[] {
-  return [...studios].sort(
-    (a, b) => (b.data_quality_score || 0) - (a.data_quality_score || 0)
-  );
-}

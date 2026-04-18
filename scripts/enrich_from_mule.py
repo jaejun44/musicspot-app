@@ -51,11 +51,6 @@ def scrape_mule(url):
         if phones:
             data["phone"] = re.sub(r"[-.\s]", "-", phones[0])
 
-        # 장비 태그
-        tags = [kw for kw in ["드럼", "앰프", "마이크", "PA", "믹서", "방음", "주차", "24시", "녹음"] if kw in body]
-        if tags:
-            data["instruments"] = tags
-
         return data if data else None
     except Exception as e:
         print(f"    [에러] {e}")
@@ -108,8 +103,6 @@ def main():
             update["photos"] = scraped["photos"]
         if not s.get("phone") and scraped.get("phone"):
             update["phone"] = scraped["phone"]
-        if scraped.get("instruments"):
-            update["instruments"] = scraped["instruments"]
 
         if update:
             supabase.table("studios").update(update).eq("id", s["id"]).execute()

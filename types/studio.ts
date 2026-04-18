@@ -16,9 +16,6 @@ export interface Studio {
   lng: number | null;
   room_type: 'T' | 'M' | 'both' | null;
   has_drum: boolean;
-  instruments: string[] | null;
-  amp_info: string | null;
-  soundproof_grade: 'A' | 'B' | 'C' | null;
   price_per_hour: number | null;
   kakao_channel: string | null;
   naver_place_url: string | null;

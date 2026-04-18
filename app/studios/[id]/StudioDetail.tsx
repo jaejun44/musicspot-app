@@ -137,9 +137,8 @@ export default function StudioDetail() {
         </div>
 
         {/* Music-specific Info */}
-        <div className="p-4 bg-brand-card rounded-xl border border-brand-border space-y-3">
-          <h2 className="text-sm font-semibold">연습실 특화 정보</h2>
-
+        <div className="p-4 bg-brand-card rounded-xl border border-brand-border">
+          <h2 className="text-sm font-semibold mb-3">연습실 특화 정보</h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-brand-muted text-xs">드럼</span>
@@ -151,35 +150,7 @@ export default function StudioDetail() {
                 <p>{studio.capacity}</p>
               </div>
             )}
-            {studio.soundproof_grade && (
-              <div>
-                <span className="text-brand-muted text-xs">방음 등급</span>
-                <p>{studio.soundproof_grade}등급</p>
-              </div>
-            )}
-            {studio.amp_info && (
-              <div>
-                <span className="text-brand-muted text-xs">앰프</span>
-                <p>{studio.amp_info}</p>
-              </div>
-            )}
           </div>
-
-          {studio.instruments && studio.instruments.length > 0 && (
-            <div>
-              <span className="text-brand-muted text-xs">보유 악기</span>
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {studio.instruments.map((inst) => (
-                  <span
-                    key={inst}
-                    className="px-2 py-0.5 bg-brand-bg border border-brand-border rounded text-xs"
-                  >
-                    {inst}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Options */}

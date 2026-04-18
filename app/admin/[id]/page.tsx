@@ -39,9 +39,6 @@ export default function AdminEditPage() {
         hours: studio.hours,
         room_type: studio.room_type,
         has_drum: studio.has_drum,
-        instruments: studio.instruments,
-        amp_info: studio.amp_info,
-        soundproof_grade: studio.soundproof_grade,
         price_per_hour: studio.price_per_hour,
         kakao_channel: studio.kakao_channel,
         naver_place_url: studio.naver_place_url,
@@ -210,54 +207,6 @@ export default function AdminEditPage() {
               />
               드럼 가능
             </label>
-          </div>
-
-          <div>
-            <label className={labelClass}>보유 악기 (쉼표로 구분)</label>
-            <input
-              type="text"
-              value={(studio.instruments ?? []).join(', ')}
-              onChange={(e) =>
-                updateField(
-                  'instruments',
-                  e.target.value
-                    .split(',')
-                    .map((s) => s.trim())
-                    .filter(Boolean)
-                )
-              }
-              placeholder="기타, 베이스, 드럼"
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className={labelClass}>앰프 정보</label>
-            <input
-              type="text"
-              value={studio.amp_info ?? ''}
-              onChange={(e) => updateField('amp_info', e.target.value)}
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className={labelClass}>방음 등급</label>
-            <select
-              value={studio.soundproof_grade ?? ''}
-              onChange={(e) =>
-                updateField(
-                  'soundproof_grade',
-                  (e.target.value || null) as Studio['soundproof_grade']
-                )
-              }
-              className={inputClass}
-            >
-              <option value="">선택 안함</option>
-              <option value="A">A등급</option>
-              <option value="B">B등급</option>
-              <option value="C">C등급</option>
-            </select>
           </div>
 
           <div>
