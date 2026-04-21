@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const features = [
@@ -35,12 +36,13 @@ const features = [
 
 export default function PowerFeatures() {
   const [showComingSoon, setShowComingSoon] = useState(false);
+  const router = useRouter();
 
   function handleClick(action: string) {
     if (action === 'scroll-search') {
-      document.getElementById('search-bar')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      router.push('/search');
     } else if (action === 'scroll-band') {
-      document.getElementById('band-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      router.push('/band-matching');
     } else if (action === 'coming-soon') {
       setShowComingSoon(true);
     }
@@ -48,7 +50,7 @@ export default function PowerFeatures() {
 
   return (
     <>
-      <section className="py-24 px-8">
+      <section className="relative -mt-16 z-10 py-24 px-8">
         <div className="max-w-[1440px] mx-auto">
           {/* Section Title */}
           <motion.h2
