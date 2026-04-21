@@ -9,7 +9,7 @@ export default function SearchBar() {
   const [location, setLocation] = useState('서울 전체');
 
   return (
-    <div className="relative -mt-20 z-30 px-8">
+    <div id="search-bar" className="relative z-30 px-8 py-12">
       <motion.div
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
