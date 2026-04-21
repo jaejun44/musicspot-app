@@ -24,3 +24,7 @@ export function trackContactClick(
 export function trackFilterApply(filterType: string, value: string) {
   trackEvent('filter_apply', { filter_type: filterType, value });
 }
+
+export function trackComingSoonClick(tabName: 'band_matching' | 'community') {
+  trackEvent('coming_soon_click', { tab_name: tabName });
+}

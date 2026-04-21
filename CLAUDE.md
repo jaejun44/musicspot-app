@@ -1,18 +1,20 @@
 # Music Spot — CLAUDE.md
 
-프로젝트 컨텍스트 파일. 새 세션 시작 시 이 파일부터 읽을 것.
+프로젝트 컨텍스트 파일. **새 세션 시작 시 이 파일부터 반드시 읽을 것.**
 
 ---
 
-## 프로젝트 개요
+## 프로젝트 비전
 
-**Music Spot** — 뮤지션을 위한 합주/연습실 검색 플랫폼 (MVP)
+**Music Spot** — 뮤지션을 위한 합주/연습실 올인원 플랫폼
 
-- **핵심 기능**: GPS 위치 기반 + 텍스트 검색으로 근처 연습실 찾기 → 상세 정보 보기 → 연락
-- **타겟 사용자**: 밴드, 드러머, 보컬리스트 등 연습실이 필요한 뮤지션
-- **데이터**: Supabase `studios` 테이블에 약 1,165개 연습실 데이터 (국내)
+- **목표**: 연습실 검색 → 예약 → 밴드 매칭 → 커뮤니티까지 아우르는 뮤지션 전용 앱
+- **디자인 기준**: Figma Make 파일 (`https://www.figma.com/make/o5UzsSFzgL8h1ZGO2I5Q8D/musicspotMVP`) 의 UI/UX를 100% 충실히 구현
+- **현재 단계**: v1.0 — Figma 디자인 기반 전면 재구축 진행 중
 - **배포**: Vercel (프로덕션), GitHub main 브랜치 연동
-- **현재 상태**: MVP 완성, 프로덕션 운영 중 (v0.5.0 — 업체 등록 신청 기능 추가)
+- **데이터**: Supabase `studios` 테이블 약 1,165개 연습실 (국내)
+
+> ⚠️ **핵심 원칙**: 모든 UI는 Figma 디자인을 그대로 구현한다. 임의 해석이나 커스텀 스타일 추가 금지.
 
 ---
 
@@ -21,184 +23,422 @@
 | 레이어 | 기술 |
 |--------|------|
 | 프레임워크 | Next.js 14 (App Router) + TypeScript |
-| 스타일 | Tailwind CSS (커스텀 토큰: brand-bg, brand-card, brand-red, brand-border, brand-muted) |
+| 스타일 | Tailwind CSS (Figma 디자인 토큰 기반) |
+| 애니메이션 | Framer Motion (이미 설치됨 — `framer-motion: ^12`) |
 | DB/백엔드 | Supabase (PostgreSQL, RLS 비활성화) |
-| 지도 | Kakao Maps API (지도 표시) + Kakao REST API (지오코딩) |
+| 지도 | Kakao Maps API + Kakao REST API (지오코딩) |
 | 공유 | Kakao JS SDK (카카오톡 공유) |
-| 분석 | Google Analytics 4 (trackEvent, trackSearch, trackStudioView, trackContactClick) |
+| 분석 | Google Analytics 4 |
 | 배포 | Vercel |
-| 데이터 수집 | Python 스크립트 (scripts/) — Playwright 크롤링, Google Places API, Naver API |
+| 캐릭터 이미지 | `/public/ms_character/` (5개 치비 캐릭터 이미지) |
 
-### 주요 환경변수 (`.env.local`)
+### 환경변수 (`.env.local`)
 ```
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
-NEXT_PUBLIC_KAKAO_MAP_KEY      # Kakao Maps JS SDK 키
-NEXT_PUBLIC_KAKAO_JS_KEY       # Kakao JS SDK 키 (공유용)
+NEXT_PUBLIC_KAKAO_MAP_KEY      # Kakao Maps JS SDK
+NEXT_PUBLIC_KAKAO_JS_KEY       # Kakao JS SDK (공유용)
 NEXT_PUBLIC_GA_ID              # GA4 측정 ID
 NEXT_PUBLIC_ADMIN_PASSWORD     # 관리자 페이지 비밀번호
 ```
 
 ---
 
-## 현재 진행 상황
+## Figma 디자인 시스템 (반드시 준수)
 
-### ✅ 완료된 기능
-- [x] GPS 위치 기반 연습실 검색 (반경 3km 기본)
-- [x] 텍스트 검색 (지역명, 상호명) + 지역 별칭 매핑 (lib/region-alias.ts)
-- [x] 연습실 목록 페이지 (그리드, 페이지네이션, 필터)
-- [x] 연습실 상세 페이지 (사진, 지도, 가격, 옵션, 연락처 버튼)
-- [x] 스튜디오 필터 (룸타입 T/M, 드럼 가능, 최대 가격)
-- [x] 즐겨찾기 (localStorage, 홈 섹션 표시)
-- [x] 최근 본 연습실 (localStorage, 최대 10개)
-- [x] 퀵 프리셋 (홍대합주룸, 드럼가능, 내근처 등)
-- [x] 카카오톡 공유 버튼 (Web Share API 폴백)
-- [x] 정보 제보 (ReportModal → studio_reports 테이블)
-- [x] 방문자 카운터 (page_views 테이블)
-- [x] 피드백 페이지 (/feedback → feedbacks 테이블)
-- [x] 관리자 페이지 (/admin — 비밀번호 보호, 연습실/피드백/제보 관리)
-- [x] OG 메타데이터 (스튜디오 상세 페이지 카카오/SNS 미리보기)
-- [x] data_quality_score 기반 정렬 (완성도 높은 데이터 우선 노출)
-- [x] Supabase 1,000행 제한 우회 (배치 range 쿼리)
-- [x] 히어로 배경 이미지 레이아웃 (배경과 콘텐츠 영역 분리)
-- [x] GA4 이벤트 트래킹
-- [x] 업체 등록 신청 (/register → studio_requests 테이블 → 관리자 승인)
-- [x] 관리자 "등록신청" 탭 (승인/거절, 노란 뱃지로 대기 건수 표시)
-
-### 🔲 미완료 / 향후 고려
-- [ ] 사용자 리뷰/평점 시스템
-- [ ] 로그인/즐겨찾기 서버 동기화
-- [ ] 지도 뷰 (목록 대신 지도에서 핀 표시)
-- [ ] 모바일 앱 (React Native)
-- [ ] 연습실 직접 예약 연동
-
----
-
-## 코딩 규칙
-
-### 일반
-- 응답은 한국어로
-- 코드 우선, 설명은 필요할 때만
-- MVP 단계 — 과도한 추상화 금지
-- 변경 전 항상 파일 Read 먼저
-
-### 데이터 패턴
-- **GPS 검색**: 전체 DB 배치 fetch → 프론트에서 거리 버킷 + data_quality_score 정렬 (`lib/sort.ts`)
-- **텍스트 검색**: Supabase `.order('data_quality_score', { ascending: false })` 서버 정렬
-- **1,000행 제한 우회**: while 루프 + `.range(offset, offset + BATCH - 1)` 패턴 사용
-
-```typescript
-// 올바른 배치 fetch 패턴
-const all: Studio[] = [];
-let offset = 0;
-while (true) {
-  const { data } = await supabase.from('studios').select('*').range(offset, offset + 999);
-  if (!data || data.length === 0) break;
-  all.push(...data);
-  if (data.length < 1000) break;
-  offset += 1000;
-}
+### 색상 토큰
+```
+Pink:   #FF3D77   (주요 CTA, 강조)
+Yellow: #FFD600   (보조 강조, 뱃지)
+Blue:   #4FC3F7   (정보, 태그)
+Green:  #00D26A   (완료, 긍정)
+Cream:  #FFF8F0   (배경 기본)
+Black:  #0A0A0A   (텍스트, 테두리, 그림자)
+White:  #FFFFFF   (카드, 입력창)
 ```
 
-### 컴포넌트 구조
-- 서버 컴포넌트에서 generateMetadata → 클라이언트 컴포넌트(`StudioDetail.tsx`)로 분리
-- `useSearchParams` 사용 시 반드시 `<Suspense>` 래핑
-- Kakao SDK 초기화: `layout.tsx`의 인라인 `<Script id="kakao-init">` 블록에서 처리
+**Tailwind 토큰 매핑** (`tailwind.config.ts`에 이미 설정됨):
+- `comic-pink`, `comic-yellow`, `comic-blue`, `comic-green`, `comic-cream`, `comic-black`
 
-### 스타일
-- Tailwind 커스텀 토큰: `brand-bg`, `brand-card`, `brand-red`, `brand-border`, `brand-muted`
-- 다크 테마 기본
-- 모바일 퍼스트, max-w-md 중심 레이아웃
+### 폰트
+- **헤드라인**: `font-bungee` (Bungee) — 숫자, 타이틀, 로고
+- **본문**: `font-pretendard` (Pretendard Variable) — 기본 텍스트
+
+### 테두리 & 그림자 (핵심 — 반드시 준수)
+```
+테두리:   border-[3px] border-[#0A0A0A] (또는 border-[4px])
+모서리:   rounded-[12px] ~ rounded-[24px]  ← 반드시 둥글게!
+그림자:   4px 4px 0 #0A0A0A (blur 없음, offset만)
+큰그림자: 6px 6px 0 / 8px 8px 0 / 12px 12px 0
+```
+
+> ❌ `rounded-none` 또는 sharp corner 절대 사용 금지
+> ✅ 항상 `rounded-[12px]` 이상 적용
+
+### 애니메이션 패턴 (Framer Motion)
+```typescript
+// 카드 hover
+whileHover={{ y: -8, rotate: 2, boxShadow: '10px 10px 0 #0A0A0A' }}
+
+// 버튼 press
+whileTap={{ scale: 0.95, x: 2, y: 2 }}
+
+// 페이지 진입
+initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+
+// 카드 회전 variance (-2° ~ +2°)
+rotate: index % 3 === 0 ? -2 : index % 3 === 1 ? 0 : 2
+```
+
+### 캐릭터 이미지 (`/public/ms_character/`)
+```
+trio.jpg        — 3인 치비 록스타 그룹샷 (HeroSection 메인)
+diva.jpg        — 우아한 치비 디바 (개인 캐릭터)
+rocker.jpg      — 장난꾸러기 치비 록커 (개인 캐릭터)
+girl.jpg        — 강인한 치비 걸 (개인 캐릭터)
+guitar.jpg      — 핑크 일렉기타 치비 (포인트용)
+```
+
+> 실제 파일명은 Leonardo_Anime_XL_... 형태. `/public/ms_character/` 폴더에서 직접 참조.
 
 ---
 
-## 주요 파일 구조
+## 화면 아키텍처 (9개 메인 스크린)
+
+| Figma 경로 | Next.js 경로 | 화면명 | 상태 |
+|-----------|-------------|--------|------|
+| `/` | `app/page.tsx` | Landing (홈) | 🔄 재작성 필요 |
+| `/search` | `app/search/page.tsx` | SearchResult | 🔄 신규 생성 |
+| `/room/[id]` | `app/room/[id]/page.tsx` | RoomDetail | 🔄 신규 생성 |
+| `/booking` | `app/booking/page.tsx` | BookingForm | ❌ 없음 |
+| `/payment` | `app/payment/page.tsx` | Payment | ❌ 없음 |
+| `/complete` | `app/complete/page.tsx` | BookingComplete | ❌ 없음 |
+| `/my-bookings` | `app/my-bookings/page.tsx` | MyBookings | ❌ 없음 |
+| `/login` | `app/login/page.tsx` | Login | ❌ 없음 |
+| `/band-matching` | `app/band-matching/page.tsx` | BandMatching | ❌ 없음 |
+| `/community` | `app/community/page.tsx` | CommunityFeed | ❌ 없음 |
+
+> 기존 `/studios`, `/studios/[id]` 경로는 `/search`, `/room/[id]`로 리다이렉트 처리
+
+---
+
+## 화면별 기능 정의
+
+### Navigation (공통 컴포넌트)
+- "MUSIC SPOT" 로고 → `/`
+- 메뉴: 연습실 → `/search` / 밴드찾기 → `/band-matching` / 커뮤니티 → `/community` / 마이 → `/my-bookings`
+- 우측: 로그인 → `/login` / 시작하기(핑크 버튼) → `/search`
+- 스타일: `bg-[#FFF8F0] border-b-[3px]`, 높이 80px, 로고 Bungee 4xl
+
+### Landing (`/`)
+- HeroSection: 트리오 캐릭터 이미지 + "연습실부터 무대까지! 🎸 POW!" 헤드라인
+- "🔥 연습실 찾기" → `/search` (GPS/텍스트 검색 연결)
+- "🎤 밴드 만들기" → `/band-matching`
+- 검색창: 입력 → `/search?q=텍스트`
+- HOT 합주실 섹션: Supabase `studios` 상위 8개 (data_quality_score 기준)
+- 각 카드 하트 → 즐겨찾기 (`lib/favorites.ts`)
+- StatsBar: DB count 표시
+- Footer: 등록신청 → `/register`, 피드백 → `/feedback`
+
+### SearchResult (`/search`)
+- URL params: `?q=텍스트` 또는 `?lat=...&lng=...` (GPS)
+- 검색바: 위치/날짜/시간/인원 입력 (날짜·시간은 UI only, 예약 시스템 연동 전까지)
+- "재검색 💥" → 기존 Supabase 검색 로직 실행
+- 필터 칩: T룸/M룸/드럼가능/가격 → 기존 필터 로직
+- 룸 카드: Supabase `studios` 데이터, 회전 variance (-2/0/+2°)
+- 하트 → `lib/favorites.ts`
+- "예약 💥" → `/booking?roomId={id}`
+- 카드 클릭 → `/room/{id}`
+- 내 위치 버튼 → GPS 획득 → 거리 정렬 (`lib/sort.ts`)
+
+### RoomDetail (`/room/[id]`)
+- 사진 갤러리: 3단 그리드 (60%+40%), `border-b-[4px]`
+- 공유 버튼 → Web Share API / 카카오 공유
+- 하트 → 즐겨찾기
+- 룸 선택 (T룸/M룸): `room_type` 데이터 기반
+- 해시태그: `options`, `instruments` 컬럼
+- 시간 슬롯: UI only (예약 시스템 없을 시 스텁)
+- 인원 +/- 카운터: local state
+- "🔥 지금 예약하기" → `/booking?roomId={id}&time=...`
+- 네이버/카카오/전화 → 기존 ContactButtons 로직
+- "정보가 틀렸어요" → ReportModal
+
+### BookingForm (`/booking`) — UI 중심, 실제 결제 없음
+- URL: `?roomId=...&time=...` 파라미터 수신
+- 예약 정보 표시 (룸명, 날짜, 시간)
+- 밴드명, 대표자 연락처, 인원, 이용목적 입력
+- 이용 규칙 동의 체크
+- "다음 단계 💥" → `/payment` (sessionStorage로 데이터 전달)
+
+### Payment (`/payment`) — 시뮬레이션
+- 결제수단 선택 UI (카드/계좌이체/카카오페이)
+- 쿠폰 입력 UI
+- 주문 요약 (이전 페이지 데이터)
+- "결제하기 💥" → `/complete`
+
+### BookingComplete (`/complete`)
+- 완료 애니메이션 + QR코드 이미지 (정적)
+- "내 예약 보기" → `/my-bookings`
+- "홈으로" → `/`
+
+### MyBookings (`/my-bookings`)
+- 프로필 영역 (미로그인 → 로그인 유도)
+- 탭: 예약현황 (스텁) / 즐겨찾기 (`lib/favorites.ts` 연결) / 최근 본 (`lib/recentlyViewed.ts`)
+
+### Login (`/login`)
+- 카카오/구글/이메일 로그인 버튼 UI
+- Phase 1에서는 UI만, Phase 2에서 Supabase Auth 연동
+
+### BandMatching (`/band-matching`)
+- 뮤지션 카드 목록 (초기: 더미 데이터)
+- 포지션 필터 칩 (보컬/기타/베이스/드럼/건반)
+- "연락하기" → 카카오 채널 또는 stub
+
+### CommunityFeed (`/community`)
+- 게시물 카드 목록 (초기: 더미 데이터)
+- 좋아요 버튼 (localStorage)
+- 글쓰기 버튼 (로그인 필요)
+
+---
+
+## 개발 단계별 계획
+
+### Phase 1 — 핵심 UI 골격 *(현재 진행)*
+1. `ms_character/` → `public/ms_character/` 이미지 복사
+2. `components/Navigation.tsx` 신규 작성 (Figma 기준)
+3. `app/page.tsx` 전면 재작성 (Landing)
+4. `app/search/page.tsx` 신규 (SearchResult + 기존 검색 로직 연결)
+5. `app/studios` → `app/room` 경로 정리 + 리다이렉트
+
+### Phase 2 — 연습실 상세 & 예약 플로우
+6. `app/room/[id]/page.tsx` 신규 (RoomDetail)
+7. `app/booking/page.tsx` 신규
+8. `app/payment/page.tsx` 신규
+9. `app/complete/page.tsx` 신규
+
+### Phase 3 — 마이페이지 & 로그인
+10. `app/my-bookings/page.tsx` (즐겨찾기·최근 본 연결)
+11. `app/login/page.tsx` UI
+12. Supabase Auth 연동 (선택)
+
+### Phase 4 — 신규 기능
+13. `app/band-matching/page.tsx`
+14. `app/community/page.tsx`
+15. 실제 예약 시스템 Supabase 연동
+
+---
+
+## 기존 기능 → 신규 화면 연결 매핑
+
+| 기존 코드/기능 | 연결되는 새 화면 |
+|--------------|----------------|
+| `lib/sort.ts` (GPS 거리 정렬) | SearchResult — 내 위치 검색 |
+| Supabase studios 배치 fetch | SearchResult 카드 목록, Landing HOT 섹션 |
+| `lib/favorites.ts` | 모든 하트 버튼, MyBookings 즐겨찾기 탭 |
+| `lib/recentlyViewed.ts` | MyBookings 최근 본 탭 |
+| `lib/region-alias.ts` | SearchResult 텍스트 검색 |
+| `components/ReportModal.tsx` | RoomDetail "정보 틀렸어요" |
+| `components/KakaoShareButton.tsx` | RoomDetail 공유 버튼 |
+| `components/KakaoMap.tsx` | RoomDetail 지도 영역 |
+| `lib/analytics.ts` (GA4) | 모든 주요 버튼 이벤트 유지 |
+| `app/admin/` | 변경 없음 (별도 진입) |
+| `app/register/` | Landing Footer, Navigation |
+| `app/feedback/` | Landing Footer |
+
+---
+
+## 주요 파일 구조 (목표 상태)
 
 ```
 app/
-  page.tsx                    # 홈 (GPS/텍스트 검색, 즐겨찾기, 최근 본 연습실)
-  studios/
-    page.tsx                  # 목록 페이지 (필터, 페이지네이션)
+  page.tsx                    # Landing (Figma 기준 재작성)
+  search/
+    page.tsx                  # SearchResult (신규)
+  room/
     [id]/
-      page.tsx                # OG 메타데이터 서버 컴포넌트
-      StudioDetail.tsx        # 상세 클라이언트 컴포넌트
-  admin/
-    page.tsx                  # 관리자 (연습실/피드백/제보/등록신청)
-    [id]/page.tsx             # 연습실 수정
-  register/page.tsx           # 업체 등록 신청 폼 (비로그인)
-  feedback/page.tsx           # 피드백 폼
+      page.tsx                # RoomDetail 서버 컴포넌트 (OG meta)
+      RoomDetail.tsx          # 클라이언트 컴포넌트
+  booking/page.tsx            # BookingForm (신규)
+  payment/page.tsx            # Payment (신규)
+  complete/page.tsx           # BookingComplete (신규)
+  my-bookings/page.tsx        # MyBookings (신규)
+  login/page.tsx              # Login (신규)
+  band-matching/page.tsx      # BandMatching (신규)
+  community/page.tsx          # CommunityFeed (신규)
+  admin/                      # 기존 유지
+    page.tsx
+    [id]/page.tsx
+  register/page.tsx           # 기존 유지
+  feedback/page.tsx           # 기존 유지
+  studios/                    # → /search 리다이렉트 처리
+    page.tsx
+    [id]/page.tsx             # → /room/[id] 리다이렉트
 
 components/
-  StudioCard.tsx              # 목록 카드
-  StudioFilter.tsx            # 필터 UI
-  ContactButtons.tsx          # 하단 고정 CTA (네이버플레이스/카카오/전화)
-  QuickPresets.tsx            # 빠른 검색 프리셋
-  FavoriteButton.tsx          # 하트 토글
-  FavoriteSection.tsx         # 홈 즐겨찾기 섹션
-  RecentlyViewedSection.tsx   # 홈 최근 본 섹션
-  KakaoShareButton.tsx        # 카카오톡 공유
-  ReportModal.tsx             # 정보 제보 모달
-  PhotoGallery.tsx            # 사진 갤러리 (스와이프)
-  KakaoMap.tsx                # 지도 컴포넌트
+  Navigation.tsx              # 신규 (Figma 기준)
+  HeroSection.tsx             # 신규
+  RoomCard.tsx                # 신규 (Figma 기준 — 회전, 둥근 모서리)
+  FilterChips.tsx             # 신규
+  TimeSlotPicker.tsx          # 신규
+  BookingWidget.tsx           # 신규 (RoomDetail 사이드바)
+  StudioCard.tsx              # 기존 (단계적 교체)
+  StudioFilter.tsx            # 기존 (단계적 교체)
+  ContactButtons.tsx          # 기존 유지
+  FavoriteButton.tsx          # 기존 유지
+  KakaoShareButton.tsx        # 기존 유지
+  ReportModal.tsx             # 기존 유지
+  PhotoGallery.tsx            # 기존 (RoomDetail에서 재사용)
+  KakaoMap.tsx                # 기존 유지
 
-lib/
-  supabase.ts                 # Supabase 클라이언트
-  favorites.ts                # 즐겨찾기 (localStorage)
-  recentlyViewed.ts           # 최근 본 (localStorage, 최대 10개)
-  sort.ts                     # sortByDistanceAndQuality
-  region-alias.ts             # 지역 별칭 26개 매핑
-  analytics.ts                # GA4 이벤트 헬퍼
+public/
+  ms_character/               # 치비 캐릭터 5종
+    trio.jpg                  # (원본명 Leonardo_Anime_XL_three...)
+    diva.jpg
+    rocker.jpg
+    girl.jpg
+    guitar.jpg
 
-types/
-  studio.ts                   # Studio 인터페이스
-  report.ts                   # StudioReport 인터페이스
-  kakao.d.ts                  # Kakao SDK 타입 선언
-
-scripts/                      # Python 데이터 수집/관리 스크립트
-  import_studios.py
-  update_quality_score.py
-  enrich_from_spacecloud.py
-  update_google_images.py
-  crawl_naver_images.py
-  (기타 enrichment 스크립트)
+lib/                          # 기존 모두 유지
+  supabase.ts
+  favorites.ts
+  recentlyViewed.ts
+  sort.ts
+  region-alias.ts
+  analytics.ts
 ```
 
 ---
 
 ## Supabase 테이블
 
-### studios (주 테이블)
-주요 컬럼: `id`, `name`, `address`, `region`, `lat`, `lng`, `room_type` (T/M/both), `has_drum`, `price_per_hour`, `price_info`, `hours`, `phone`, `naver_place_url`, `kakao_channel`, `photos` (text[]), `instruments` (text[]), `options`, `capacity`, `soundproof_grade`, `amp_info`, `rating`, `data_quality_score`, `is_published`
-
-### 기타 테이블
+### 기존 테이블 (유지)
+- `studios` — 주 연습실 데이터 (id, name, address, region, lat, lng, room_type, has_drum, price_per_hour, price_info, hours, phone, naver_place_url, kakao_channel, photos[], instruments[], options, capacity, data_quality_score, is_published)
 - `page_views` — 방문자 카운터
 - `feedbacks` — 사용자 피드백
-- `studio_reports` — 정보 제보 (report_type: correction/new_studio/closed, status: pending/resolved)
-- `studio_requests` — 업체 등록 신청 (status: pending/approved/rejected, data_quality_score: 30 on approve)
+- `studio_reports` — 정보 제보
+- `studio_requests` — 업체 등록 신청
+
+### 향후 추가 예정
+- `bookings` — 예약 정보 (Phase 4)
+- `musicians` — 밴드매칭 뮤지션 프로필 (Phase 4)
+- `posts` — 커뮤니티 게시물 (Phase 4)
 
 ---
 
-## 주의사항
+## 코딩 규칙
 
-### 알려진 이슈 / 과거 트러블
+### 일반
+- 응답은 **한국어**로
+- Figma 디자인 화면을 항상 기준으로 삼을 것
+- 변경 전 항상 파일 Read 먼저
+- MVP — 필요한 것만, 과도한 추상화 금지
+
+### 데이터 패턴
+```typescript
+// Supabase 1,000행 제한 우회 — 배치 fetch 필수
+const all: Studio[] = [];
+let offset = 0;
+while (true) {
+  const { data } = await supabase
+    .from('studios')
+    .select('*')
+    .eq('is_published', true)
+    .range(offset, offset + 999);
+  if (!data || data.length === 0) break;
+  all.push(...data);
+  if (data.length < 1000) break;
+  offset += 1000;
+}
+
+// GPS 검색: 전체 fetch → 프론트 거리 정렬 (lib/sort.ts)
+// 텍스트 검색: Supabase .order('data_quality_score', { ascending: false })
+```
+
+### 컴포넌트 패턴
+- `useSearchParams` 사용 시 반드시 `<Suspense>` 래핑 (빌드 에러 방지)
+- 서버 컴포넌트에서 `generateMetadata` → 클라이언트 컴포넌트로 분리
+- Kakao SDK 초기화: `layout.tsx` 인라인 `<Script id="kakao-init">` 블록에서만
+
+### Figma → Next.js 변환 규칙
+```typescript
+// Figma (React Router) → Next.js 변환
+import { Link } from 'react-router-dom'  →  import Link from 'next/link'
+<Link to="/search">  →  <Link href="/search">
+useNavigate()  →  useRouter() from 'next/navigation'
+navigate('/room/1')  →  router.push('/room/1')
+```
+
+---
+
+## 주의사항 / 트러블슈팅
+
+### 핵심 원칙 위반 주의
+- **절대 금지**: square corner (rounded-none), 블러 그림자 (shadow-lg 등), 어두운 다크 배경
+- **필수**: 모든 카드/버튼에 `rounded-[12px]` 이상 + offset 그림자
+
+### 알려진 이슈
 - **Supabase 1,000행 제한**: `.limit()` 대신 배치 range 패턴 필수
 - **useSearchParams**: 반드시 Suspense 래핑, 없으면 빌드 에러
-- **Kakao SDK onLoad**: layout.tsx에서 인라인 Script로 초기화 (서버 컴포넌트에서 onLoad 불가)
-- **Window 타입 충돌**: kakao map 타입과 Kakao SDK 타입을 `types/kakao.d.ts`에 통합
-- **빌드 캐시 오염**: 이상한 모듈 에러 시 `rm -rf .next` 후 재빌드
-- **Vercel 캐시**: 배포 후 변경 안 보이면 Vercel 대시보드에서 Redeploy (clear cache)
+- **Kakao SDK onLoad**: layout.tsx에서 인라인 Script로 초기화
+- **kakao 타입 충돌**: `types/kakao.d.ts`에 통합
+- **빌드 캐시 오염**: `rm -rf .next` 후 재빌드
+- **Vercel 캐시**: 배포 후 변경 안 보이면 Redeploy (clear cache)
 
-### Git 태그 (안정 버전)
-- `v0.2.0-stable` — 기본 검색 + 상세 페이지
-- `v0.3.0-stable` — 즐겨찾기, 최근 본, 퀵프리셋
-- `v0.4.0-stable` — 관리자 페이지, 제보, 방문자 카운터
-- `v0.5.0` — 업체 등록 신청 (/register), 관리자 승인/거절, 홈 링크 추가
+### 경로 변경 주의
+- 기존 `/studios` → 새 경로 `/search`로 변경됨
+- 기존 `/studios/[id]` → 새 경로 `/room/[id]`로 변경됨
+- 기존 경로에서 리다이렉트 처리 필요 (`next.config.js` redirects)
+
+---
+
+## 개발 진행 상황
+
+### ✅ Phase 0 — 기존 기능 (보존)
+- [x] GPS + 텍스트 기반 연습실 검색 로직
+- [x] Supabase studios 데이터 (1,165개)
+- [x] 즐겨찾기 / 최근 본 연습실 (localStorage)
+- [x] 정보 제보 (ReportModal)
+- [x] 관리자 페이지 (/admin)
+- [x] 업체 등록 신청 (/register)
+- [x] 피드백 (/feedback)
+- [x] GA4 트래킹
+- [x] Kakao 공유
+
+### 🔄 Phase 1 — 핵심 UI 재구축 *(진행 예정)*
+- [ ] 캐릭터 이미지 public/ms_character/ 복사
+- [ ] Navigation 컴포넌트 (Figma 기준)
+- [ ] Landing 페이지 전면 재작성
+- [ ] SearchResult 페이지 (`/search`)
+- [ ] 경로 리다이렉트 설정
+
+### ❌ Phase 2 — 연습실 상세 & 예약
+- [ ] RoomDetail 페이지 (`/room/[id]`)
+- [ ] BookingForm (`/booking`)
+- [ ] Payment (`/payment`)
+- [ ] BookingComplete (`/complete`)
+
+### ❌ Phase 3 — 마이페이지
+- [ ] MyBookings (`/my-bookings`)
+- [ ] Login (`/login`)
+
+### ❌ Phase 4 — 신규 기능
+- [ ] BandMatching (`/band-matching`)
+- [ ] CommunityFeed (`/community`)
+- [ ] 실제 예약/결제 Supabase 연동
+
+---
+
+## Git 버전 태그
+
+- `v0.5.0` — 업체 등록 신청 기능 추가 (Figma 재구축 이전 마지막 안정 버전)
+- `v1.0.0` — Figma 디자인 기반 전면 재구축 완료 (목표)
 
 ---
 
 ## 작업 방식
 
-1. 이 파일을 먼저 읽어 현재 상태 파악
-2. 작업 후 이 파일의 **현재 진행 상황** 체크박스 업데이트
-3. 새로운 주요 파일/패턴 추가 시 **주요 파일 구조** 섹션 갱신
-4. 트러블슈팅 해결 시 **주의사항** 섹션에 추가
+1. 이 파일을 먼저 읽어 현재 단계 파악
+2. Figma 화면 정의를 기준으로 구현
+3. 작업 완료 후 **개발 진행 상황** 체크박스 업데이트
+4. 새 파일/패턴 추가 시 **주요 파일 구조** 갱신
+5. 트러블슈팅 시 **주의사항** 섹션에 추가

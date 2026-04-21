@@ -12,6 +12,7 @@ export interface Studio {
   rating: string | null;
   hours: string | null;
   options: string | null;
+  instruments: string[] | null;
   lat: number | null;
   lng: number | null;
   room_type: 'T' | 'M' | 'both' | null;

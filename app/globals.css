@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 
 * {
@@ -12,21 +13,21 @@
 
 body {
   font-family: 'Pretendard Variable', Pretendard, sans-serif;
-  background-color: #0a0a0a;
-  color: #ffffff;
+  background-color: #FFF8F0;
+  color: #0A0A0A;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Hide scrollbar but keep functionality */
+/* Comic book scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #FFF8F0;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
-  border-radius: 2px;
+  background: #0A0A0A;
+  border-radius: 0;
 }
 
 /* Hide horizontal scrollbar for favorites */
@@ -36,4 +37,42 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Comic book utility classes */
+.comic-border {
+  border: 3px solid #0A0A0A;
+}
+
+.comic-shadow {
+  box-shadow: 4px 4px 0 #0A0A0A;
+}
+
+.comic-shadow-md {
+  box-shadow: 6px 6px 0 #0A0A0A;
+}
+
+.comic-shadow-lg {
+  box-shadow: 8px 8px 0 #0A0A0A;
+}
+
+.comic-shadow-xl {
+  box-shadow: 12px 12px 0 #0A0A0A;
+}
+
+/* Halftone pattern background */
+.halftone {
+  background-image: radial-gradient(circle, #0A0A0A 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+/* Speed lines */
+.speed-lines {
+  background-image: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 3deg,
+    rgba(255, 214, 0, 0.15) 3deg,
+    rgba(255, 214, 0, 0.15) 4deg
+  );
 }

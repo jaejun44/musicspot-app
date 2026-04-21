@@ -8,18 +8,39 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Comic book palette
+        comic: {
+          pink: '#FF3D77',
+          'pink-hover': '#E02860',
+          yellow: '#FFD600',
+          blue: '#4FC3F7',
+          green: '#00D26A',
+          cream: '#FFF8F0',
+          black: '#0A0A0A',
+        },
+        // Legacy aliases so existing code doesn't break immediately
         brand: {
-          bg: '#0A0A0A',
-          red: '#E84040',
-          'red-hover': '#D03030',
-          text: '#FFFFFF',
-          muted: '#A0A0A0',
-          card: '#1A1A1A',
-          border: '#2A2A2A',
+          bg: '#FFF8F0',
+          red: '#FF3D77',
+          'red-hover': '#E02860',
+          text: '#0A0A0A',
+          muted: '#555555',
+          card: '#FFFFFF',
+          border: '#0A0A0A',
         },
       },
       fontFamily: {
-        pretendard: ['Pretendard', 'sans-serif'],
+        pretendard: ['Pretendard Variable', 'Pretendard', 'sans-serif'],
+        bungee: ['Bungee', 'cursive'],
+      },
+      boxShadow: {
+        comic: '4px 4px 0 #0A0A0A',
+        'comic-md': '6px 6px 0 #0A0A0A',
+        'comic-lg': '8px 8px 0 #0A0A0A',
+        'comic-xl': '12px 12px 0 #0A0A0A',
+      },
+      borderWidth: {
+        '3': '3px',
       },
     },
   },
