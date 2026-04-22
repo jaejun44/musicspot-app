@@ -148,8 +148,13 @@ export default function RoomDetailClient() {
         </motion.button>
       </div>
 
-      {/* 사진 갤러리 */}
-      <RoomPhotoGallery photos={studio.photos ?? []} name={studio.name} />
+      {/* 사진 갤러리 — 지도 이미지 URL 제외 */}
+      <RoomPhotoGallery
+        photos={(studio.photos ?? []).filter(
+          (url) => !/map\.(kakao|daum|naver)|daumcdn\.net|staticmap|maps\.googleapis/i.test(url)
+        )}
+        name={studio.name}
+      />
 
       {/* 본문 */}
       <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
