@@ -107,7 +107,7 @@ export default function HotRooms() {
                             boxShadow: '3px 3px 0 #0A0A0A',
                           }}
                         >
-                          ⚡ 즉시예약
+                          ⚡ 바로문의
                         </motion.div>
                       )}
                     </div>

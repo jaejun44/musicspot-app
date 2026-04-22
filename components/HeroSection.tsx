@@ -107,7 +107,7 @@ export default function HeroSection() {
                   transform: 'rotate(-2deg)',
                 }}
               >
-                🎤 밴드 만들기
+                🎤 밴드 찾기
               </motion.button>
             </Link>
           </motion.div>

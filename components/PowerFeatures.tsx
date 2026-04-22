@@ -16,7 +16,7 @@ const features = [
   },
   {
     id: 2,
-    name: '밴드 만들기',
+    name: '밴드 찾기',
     description: '실력·장르로 합주 파트너 찾기',
     image: '/ms_character/Leonardo_Anime_XL_cute_chibi_character_mischievous_little_rock_2.jpg',
     bgColor: '#E5FFE8',
