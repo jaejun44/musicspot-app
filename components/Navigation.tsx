@@ -2,14 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { trackComingSoonClick } from '@/lib/analytics';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Navigation() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading, signOut } = useAuth();
+
+  async function handleSignOut() {
+    await signOut();
+    router.push('/');
+  }
 
   const menuItems: { label: string; path: string; trackAs?: 'band_matching' | 'community' }[] = [
     { label: '연습실', path: '/search' },
@@ -73,13 +81,33 @@ export default function Navigation() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="hidden md:block px-4 py-2"
-            style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
-          >
-            로그인
-          </Link>
+          {!loading && (
+            user ? (
+              <div className="hidden md:flex items-center gap-3">
+                <span
+                  className="text-[13px] text-[#0A0A0A]/60 max-w-[120px] truncate"
+                  style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+                >
+                  {user.user_metadata?.full_name || user.email?.split('@')[0] || '회원'}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="px-4 py-2 text-[13px] border-[2px] border-[#0A0A0A] rounded-[10px]"
+                  style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, boxShadow: '2px 2px 0 #0A0A0A' }}
+                >
+                  로그아웃
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden md:block px-4 py-2"
+                style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+              >
+                로그인
+              </Link>
+            )
+          )}
           <Link href="/search">
             <motion.button
               whileHover={{ y: 5, boxShadow: '2px 2px 0 #0A0A0A' }}
@@ -125,14 +153,24 @@ export default function Navigation() {
               {item.label}
             </Link>
           ))}
-          <Link
-            href="/login"
-            className="block px-8 py-4"
-            style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
-            onClick={() => setMenuOpen(false)}
-          >
-            로그인
-          </Link>
+          {user ? (
+            <button
+              className="block w-full text-left px-8 py-4"
+              style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+              onClick={() => { setMenuOpen(false); handleSignOut(); }}
+            >
+              로그아웃
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="block px-8 py-4"
+              style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+              onClick={() => setMenuOpen(false)}
+            >
+              로그인
+            </Link>
+          )}
         </motion.div>
       )}
     </nav>

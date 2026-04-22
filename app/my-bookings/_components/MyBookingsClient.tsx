@@ -7,6 +7,7 @@ import Navigation from '@/components/Navigation';
 import BookingsTab from './BookingsTab';
 import FavoritesTab from './FavoritesTab';
 import RecentTab from './RecentTab';
+import { useAuth } from '@/hooks/useAuth';
 
 type Tab = 'bookings' | 'favorites' | 'recent';
 
@@ -19,6 +20,15 @@ const TABS: { id: Tab; label: string; emoji: string }[] = [
 export default function MyBookingsClient() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('bookings');
+  const { user, loading, signOut } = useAuth();
+
+  async function handleSignOut() {
+    await signOut();
+    router.push('/');
+  }
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'GUEST';
+  const isLoggedIn = !!user;
 
   return (
     <div className="min-h-screen bg-[#FFF8F0]">
@@ -41,26 +51,39 @@ export default function MyBookingsClient() {
           </div>
           <div className="flex-1 min-w-0">
             <p
-              className="text-[16px] font-bold text-[#0A0A0A]"
+              className="text-[16px] font-bold text-[#0A0A0A] truncate"
               style={{ fontFamily: 'Bungee, sans-serif' }}
             >
-              GUEST
+              {loading ? '...' : displayName.toUpperCase()}
             </p>
             <p
               className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              로그인하면 더 많은 기능을 이용할 수 있어요
+              {isLoggedIn ? (user?.email ?? '') : '로그인하면 더 많은 기능을 이용할 수 있어요'}
             </p>
           </div>
-          <motion.button
-            onClick={() => router.push('/login')}
-            whileTap={{ scale: 0.95, y: 1 }}
-            className="flex-shrink-0 px-4 py-2 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
-            style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-          >
-            로그인
-          </motion.button>
+          {!loading && (
+            isLoggedIn ? (
+              <motion.button
+                onClick={handleSignOut}
+                whileTap={{ scale: 0.95, y: 1 }}
+                className="flex-shrink-0 px-4 py-2 bg-white rounded-[12px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[13px]"
+                style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+              >
+                로그아웃
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={() => router.push('/login')}
+                whileTap={{ scale: 0.95, y: 1 }}
+                className="flex-shrink-0 px-4 py-2 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
+                style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+              >
+                로그인
+              </motion.button>
+            )
+          )}
         </motion.div>
       </div>
 
