@@ -151,7 +151,7 @@ export default function RoomDetailClient() {
       {/* 사진 갤러리 — 지도 이미지 URL 제외 */}
       <RoomPhotoGallery
         photos={(studio.photos ?? []).filter(
-          (url) => !/map\.(kakao|daum|naver)|daumcdn\.net|staticmap|maps\.googleapis/i.test(url)
+          (url) => !/map\.(kakao|daum|naver)|daumcdn\.net|staticmap|maps\.googleapis|nrbe\.pstatic\.net|pstatic\.net.*[?&]mt=/i.test(url)
         )}
         name={studio.name}
       />
