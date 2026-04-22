@@ -9,6 +9,7 @@ import FavoritesTab from './FavoritesTab';
 import RecentTab from './RecentTab';
 import { useAuth } from '@/hooks/useAuth';
 import OnboardingModal from '@/components/OnboardingModal';
+import ProfileEditModal from '@/components/ProfileEditModal';
 import { supabase } from '@/lib/supabase';
 
 type Tab = 'bookings' | 'favorites' | 'recent';
@@ -19,21 +20,35 @@ const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'recent', label: '최근 본', emoji: '👀' },
 ];
 
+interface ProfileData {
+  display_name: string;
+  avatar_url: string;
+}
+
 export default function MyBookingsClient() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('bookings');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const { user, loading, signOut } = useAuth();
 
   useEffect(() => {
     if (!user || loading) return;
     supabase
       .from('user_profiles')
-      .select('user_id')
+      .select('user_id, display_name, avatar_url')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!data) setShowOnboarding(true);
+        if (!data) {
+          setShowOnboarding(true);
+        } else {
+          setProfileData({
+            display_name: data.display_name ?? '',
+            avatar_url: data.avatar_url ?? '',
+          });
+        }
       });
   }, [user, loading]);
 
@@ -42,7 +57,11 @@ export default function MyBookingsClient() {
     router.push('/');
   }
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'GUEST';
+  const displayName =
+    profileData?.display_name ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'GUEST';
   const isLoggedIn = !!user;
 
   return (
@@ -59,11 +78,32 @@ export default function MyBookingsClient() {
           className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5 flex items-center gap-4"
           style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
         >
-          <div
-            className="w-14 h-14 rounded-full bg-[#FFD600] border-[3px] border-[#0A0A0A] flex items-center justify-center flex-shrink-0"
-            style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
-          >
-            <span className="text-[24px]">🎸</span>
+          <div className="relative flex-shrink-0">
+            <div
+              className="w-14 h-14 rounded-full bg-[#FFD600] border-[3px] border-[#0A0A0A] overflow-hidden flex items-center justify-center"
+              style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
+            >
+              {profileData?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profileData.avatar_url}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[24px]">🎸</span>
+              )}
+            </div>
+            {isLoggedIn && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowProfileEdit(true)}
+                className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#FF3D77] rounded-full border-[2px] border-[#0A0A0A] flex items-center justify-center text-[11px]"
+                style={{ boxShadow: '1px 1px 0 #0A0A0A' }}
+              >
+                ✏️
+              </motion.button>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p
@@ -152,7 +192,38 @@ export default function MyBookingsClient() {
     </div>
 
     {showOnboarding && user && (
-      <OnboardingModal user={user} onComplete={() => setShowOnboarding(false)} />
+      <OnboardingModal
+        user={user}
+        onComplete={() => {
+          setShowOnboarding(false);
+          supabase
+            .from('user_profiles')
+            .select('display_name, avatar_url')
+            .eq('user_id', user.id)
+            .maybeSingle()
+            .then(({ data }) => {
+              if (data) {
+                setProfileData({
+                  display_name: data.display_name ?? '',
+                  avatar_url: data.avatar_url ?? '',
+                });
+              }
+            });
+        }}
+      />
+    )}
+
+    {showProfileEdit && user && (
+      <ProfileEditModal
+        user={user}
+        onClose={() => setShowProfileEdit(false)}
+        onSaved={(p) =>
+          setProfileData((prev) => ({
+            display_name: p.display_name ?? prev?.display_name ?? '',
+            avatar_url: p.avatar_url ?? prev?.avatar_url ?? '',
+          }))
+        }
+      />
     )}
     </>
   );
