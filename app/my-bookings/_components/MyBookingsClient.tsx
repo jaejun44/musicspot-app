@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
@@ -8,6 +8,8 @@ import BookingsTab from './BookingsTab';
 import FavoritesTab from './FavoritesTab';
 import RecentTab from './RecentTab';
 import { useAuth } from '@/hooks/useAuth';
+import OnboardingModal from '@/components/OnboardingModal';
+import { supabase } from '@/lib/supabase';
 
 type Tab = 'bookings' | 'favorites' | 'recent';
 
@@ -20,7 +22,20 @@ const TABS: { id: Tab; label: string; emoji: string }[] = [
 export default function MyBookingsClient() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('bookings');
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { user, loading, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!user || loading) return;
+    supabase
+      .from('user_profiles')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) setShowOnboarding(true);
+      });
+  }, [user, loading]);
 
   async function handleSignOut() {
     await signOut();
@@ -31,6 +46,7 @@ export default function MyBookingsClient() {
   const isLoggedIn = !!user;
 
   return (
+    <>
     <div className="min-h-screen bg-[#FFF8F0]">
       <Navigation />
 
@@ -134,5 +150,10 @@ export default function MyBookingsClient() {
 
       <div className="h-12" />
     </div>
+
+    {showOnboarding && user && (
+      <OnboardingModal user={user} onComplete={() => setShowOnboarding(false)} />
+    )}
+    </>
   );
 }

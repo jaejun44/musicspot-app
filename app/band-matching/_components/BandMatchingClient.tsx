@@ -1,23 +1,87 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import PositionFilter from './PositionFilter';
 import MusicianCard from './MusicianCard';
 import ContactModal from './ContactModal';
+import OnboardingModal from '@/components/OnboardingModal';
 import { MUSICIANS, Musician, Position } from '../_data/musicians';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
+
+const POSITION_EMOJIS: Record<string, string> = {
+  '보컬': '🎤', '기타': '🎸', '베이스': '🎵', '드럼': '🥁', '건반': '🎹', '기타(other)': '🎶',
+};
+const CARD_COLORS = ['#FF3D77', '#4FC3F7', '#FFD600', '#00D26A'];
+
+function profileToMusician(p: {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  bio: string | null;
+  instruments: string[];
+  genres: string[];
+  region: string | null;
+  purposes: string[];
+}, idx: number): Musician {
+  const pos = (p.instruments[0] ?? '기타(other)') as Position;
+  return {
+    id: p.user_id,
+    name: p.display_name ?? '뮤지션',
+    position: pos,
+    genre: p.genres,
+    location: p.region ?? '미정',
+    level: '중급',
+    bio: p.bio ?? (p.purposes.join(', ') || '밴드 멤버를 찾고 있어요 🎶'),
+    lookingFor: p.purposes.join(', ') || '함께 연주할 분 구해요',
+    emoji: POSITION_EMOJIS[pos] ?? '🎶',
+    color: CARD_COLORS[idx % CARD_COLORS.length],
+  };
+}
 
 export default function BandMatchingClient() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [activePosition, setActivePosition] = useState<Position | 'all'>('all');
   const [contactTarget, setContactTarget] = useState<Musician | null>(null);
+  const [musicians, setMusicians] = useState<Musician[]>(MUSICIANS);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    async function fetchProfiles() {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('id, user_id, display_name, bio, instruments, genres, region, purposes')
+        .eq('is_public', true)
+        .not('instruments', 'eq', '{}');
+      if (data && data.length > 0) {
+        const real = data.map((p, i) => profileToMusician(p, i));
+        // real profiles first, then dummy to fill gaps
+        setMusicians([...real, ...MUSICIANS].slice(0, 20));
+      }
+    }
+    fetchProfiles();
+  }, []);
+
+  async function handleProfileRegister() {
+    if (loading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setShowOnboarding(true);
+  }
 
   const filtered =
     activePosition === 'all'
-      ? MUSICIANS
-      : MUSICIANS.filter((m) => m.position === activePosition);
+      ? musicians
+      : musicians.filter((m) => m.position === activePosition);
 
   return (
+    <>
     <div className="min-h-screen bg-[#FFF8F0]">
       <Navigation />
 
@@ -102,7 +166,7 @@ export default function BandMatchingClient() {
         <div className="max-w-2xl mx-auto">
           <motion.button
             whileTap={{ scale: 0.96, y: 2 }}
-            onClick={() => alert('프로필 등록 기능은 곧 오픈돼요! 🎸')}
+            onClick={handleProfileRegister}
             className="w-full py-4 bg-[#FFD600] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[15px]"
             style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
           >
@@ -113,5 +177,26 @@ export default function BandMatchingClient() {
 
       <ContactModal musician={contactTarget} onClose={() => setContactTarget(null)} />
     </div>
+
+    {showOnboarding && user && (
+      <OnboardingModal
+        user={user}
+        onComplete={() => {
+          setShowOnboarding(false);
+          // re-fetch profiles after save
+          supabase
+            .from('user_profiles')
+            .select('id, user_id, display_name, bio, instruments, genres, region, purposes')
+            .eq('is_public', true)
+            .not('instruments', 'eq', '{}')
+            .then(({ data }) => {
+              if (data && data.length > 0) {
+                setMusicians([...data.map((p, i) => profileToMusician(p, i)), ...MUSICIANS].slice(0, 20));
+              }
+            });
+        }}
+      />
+    )}
+    </>
   );
 }

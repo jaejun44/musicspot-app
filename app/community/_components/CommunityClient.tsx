@@ -2,12 +2,16 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import CategoryFilter from './CategoryFilter';
 import PostCard from './PostCard';
 import { POSTS, Category } from '../_data/posts';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function CommunityClient() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
 
   const filtered =
@@ -103,7 +107,11 @@ export default function CommunityClient() {
           transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
           whileHover={{ scale: 1.07, rotate: 5 }}
           whileTap={{ scale: 0.92, y: 2 }}
-          onClick={() => alert('글쓰기는 로그인 후 이용 가능해요! 🎸')}
+          onClick={() => {
+            if (loading) return;
+            if (!user) { router.push('/login'); return; }
+            alert('글쓰기 기능은 곧 오픈돼요! 🎸');
+          }}
           className="w-14 h-14 bg-[#FF3D77] rounded-full border-[3px] border-[#0A0A0A] flex items-center justify-center text-[24px]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
         >
