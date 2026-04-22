@@ -29,17 +29,20 @@ export default function FavoriteSection() {
 
   return (
     <div className="w-full mt-6">
-      <h2 className="text-sm font-semibold text-white mb-3">
-        내가 찜한 연습실
+      <h2 className="text-sm font-bold text-comic-black mb-3 flex items-center gap-2">
+        <span className="bg-comic-pink text-white border-[2px] border-comic-black px-2 py-0.5 text-xs" style={{ boxShadow: '2px 2px 0 #0A0A0A' }}>
+          ❤️ 내가 찜한 연습실
+        </span>
       </h2>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x">
         {studios.map((s) => (
           <Link
             key={s.id}
             href={`/studios/${s.id}`}
-            className="w-64 shrink-0 snap-start bg-brand-card/80 backdrop-blur border border-brand-border rounded-xl overflow-hidden"
+            className="w-56 shrink-0 snap-start bg-white border-[2px] border-comic-black overflow-hidden block"
+            style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
           >
-            <div className="relative h-32 bg-brand-border">
+            <div className="relative h-28 bg-comic-black/10">
               {s.photos?.[0] ? (
                 <img
                   src={s.photos[0]}
@@ -47,10 +50,8 @@ export default function FavoriteSection() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-brand-muted">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                  </svg>
+                <div className="w-full h-full flex items-center justify-center text-2xl">
+                  🎵
                 </div>
               )}
               <div className="absolute top-1 right-1">
@@ -58,8 +59,8 @@ export default function FavoriteSection() {
               </div>
             </div>
             <div className="p-2.5">
-              <p className="text-sm font-medium truncate">{s.name}</p>
-              <p className="text-xs text-brand-muted mt-0.5">
+              <p className="text-sm font-bold truncate">{s.name}</p>
+              <p className="text-xs text-comic-pink font-semibold mt-0.5">
                 {s.price_per_hour
                   ? `₩${s.price_per_hour.toLocaleString()}/시간`
                   : s.price_info || '가격 문의'}

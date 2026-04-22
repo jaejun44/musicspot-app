@@ -5,6 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 
+const inputClass =
+  'w-full px-3 py-2.5 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/30 focus:outline-none focus:border-comic-pink';
+const labelClass = 'text-xs font-bold text-comic-black/50 block mb-1';
+
 export default function AdminEditPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -102,170 +106,194 @@ export default function AdminEditPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-red border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-comic-cream flex items-center justify-center">
+        <div className="w-8 h-8 border-[3px] border-comic-pink border-t-transparent animate-spin" />
       </div>
     );
   }
 
   if (!studio) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-brand-muted">
-        연습실을 찾을 수 없습니다
+      <div className="min-h-screen bg-comic-cream flex items-center justify-center">
+        <p className="font-bold text-comic-black/50">연습실을 찾을 수 없습니다</p>
       </div>
     );
   }
 
-  const inputClass =
-    'w-full px-3 py-2 bg-brand-bg border border-brand-border rounded-lg text-sm focus:outline-none focus:border-brand-red';
-  const labelClass = 'text-xs text-brand-muted block mb-1';
-
   return (
-    <div className="min-h-screen p-4 max-w-2xl mx-auto pb-20">
+    <div className="min-h-screen bg-comic-cream pb-24">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.push('/admin')} className="text-brand-muted">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      <div className="sticky top-0 z-20 bg-comic-cream border-b-[3px] border-comic-black px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => router.push('/admin')}
+          className="w-8 h-8 flex items-center justify-center border-[2px] border-comic-black bg-white"
+          style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-lg font-bold truncate">{studio.name} 수정</h1>
+        <h1 className="text-base font-bold truncate">{studio.name} 수정</h1>
       </div>
 
-      <div className="space-y-6">
+      <div className="px-4 mt-5 space-y-6 max-w-2xl mx-auto">
+
         {/* Basic Info */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold border-b border-brand-border pb-2">
-            기본 정보
-          </h2>
-          <div>
-            <label className={labelClass}>연습실명</label>
-            <input
-              type="text"
-              value={studio.name}
-              onChange={(e) => updateField('name', e.target.value)}
-              className={inputClass}
-            />
+        <section>
+          <div
+            className="bg-comic-pink border-[2px] border-comic-black px-3 py-1.5 inline-block mb-3"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            <h2 className="text-xs font-bold text-white">기본 정보</h2>
           </div>
-          <div>
-            <label className={labelClass}>주소</label>
-            <input
-              type="text"
-              value={studio.address ?? ''}
-              onChange={(e) => updateField('address', e.target.value)}
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>전화번호</label>
-            <input
-              type="text"
-              value={studio.phone ?? ''}
-              onChange={(e) => updateField('phone', e.target.value)}
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>운영시간</label>
-            <input
-              type="text"
-              value={studio.hours ?? ''}
-              onChange={(e) => updateField('hours', e.target.value)}
-              className={inputClass}
-            />
+          <div className="space-y-3">
+            <div>
+              <label className={labelClass}>연습실명</label>
+              <input
+                type="text"
+                value={studio.name}
+                onChange={(e) => updateField('name', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>주소</label>
+              <input
+                type="text"
+                value={studio.address ?? ''}
+                onChange={(e) => updateField('address', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>전화번호</label>
+              <input
+                type="text"
+                value={studio.phone ?? ''}
+                onChange={(e) => updateField('phone', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>운영시간</label>
+              <input
+                type="text"
+                value={studio.hours ?? ''}
+                onChange={(e) => updateField('hours', e.target.value)}
+                className={inputClass}
+              />
+            </div>
           </div>
         </section>
 
         {/* Music-specific */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold border-b border-brand-border pb-2">
-            음악 특화 정보
-          </h2>
-          <div>
-            <label className={labelClass}>룸 타입</label>
-            <select
-              value={studio.room_type ?? ''}
-              onChange={(e) =>
-                updateField('room_type', (e.target.value || null) as Studio['room_type'])
-              }
-              className={inputClass}
-            >
-              <option value="">선택 안함</option>
-              <option value="T">T룸</option>
-              <option value="M">M룸</option>
-              <option value="both">T/M 겸용</option>
-            </select>
+        <section>
+          <div
+            className="bg-comic-blue border-[2px] border-comic-black px-3 py-1.5 inline-block mb-3"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            <h2 className="text-xs font-bold text-comic-black">음악 특화 정보</h2>
           </div>
+          <div className="space-y-3">
+            <div>
+              <label className={labelClass}>룸 타입</label>
+              <select
+                value={studio.room_type ?? ''}
+                onChange={(e) =>
+                  updateField('room_type', (e.target.value || null) as Studio['room_type'])
+                }
+                className={inputClass}
+              >
+                <option value="">선택 안함</option>
+                <option value="T">T룸</option>
+                <option value="M">M룸</option>
+                <option value="both">T/M 겸용</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm">
+            <div className="flex items-center justify-between p-3 bg-white border-[2px] border-comic-black">
+              <span className="text-sm font-bold">🥁 드럼 가능</span>
+              <button
+                type="button"
+                onClick={() => updateField('has_drum', !studio.has_drum)}
+                className={`w-11 h-6 border-[2px] border-comic-black relative transition-colors ${
+                  studio.has_drum ? 'bg-comic-green' : 'bg-comic-black/20'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 bg-white border-[2px] border-comic-black transition-transform ${
+                    studio.has_drum ? 'left-[22px]' : 'left-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div>
+              <label className={labelClass}>시간당 가격 (원)</label>
               <input
-                type="checkbox"
-                checked={studio.has_drum}
-                onChange={(e) => updateField('has_drum', e.target.checked)}
-                className="accent-brand-red"
+                type="number"
+                value={studio.price_per_hour ?? ''}
+                onChange={(e) =>
+                  updateField(
+                    'price_per_hour',
+                    e.target.value ? Number(e.target.value) : null
+                  )
+                }
+                className={inputClass}
               />
-              드럼 가능
-            </label>
-          </div>
-
-          <div>
-            <label className={labelClass}>시간당 가격 (원)</label>
-            <input
-              type="number"
-              value={studio.price_per_hour ?? ''}
-              onChange={(e) =>
-                updateField(
-                  'price_per_hour',
-                  e.target.value ? Number(e.target.value) : null
-                )
-              }
-              className={inputClass}
-            />
+            </div>
           </div>
         </section>
 
         {/* Contact */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold border-b border-brand-border pb-2">
-            문의 채널
-          </h2>
-          <div>
-            <label className={labelClass}>카카오톡 채널 ID</label>
-            <input
-              type="text"
-              value={studio.kakao_channel ?? ''}
-              onChange={(e) => updateField('kakao_channel', e.target.value)}
-              className={inputClass}
-            />
+        <section>
+          <div
+            className="bg-comic-yellow border-[2px] border-comic-black px-3 py-1.5 inline-block mb-3"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            <h2 className="text-xs font-bold text-comic-black">문의 채널</h2>
           </div>
-          <div>
-            <label className={labelClass}>네이버 플레이스 URL</label>
-            <input
-              type="text"
-              value={studio.naver_place_url ?? ''}
-              onChange={(e) => updateField('naver_place_url', e.target.value)}
-              className={inputClass}
-            />
+          <div className="space-y-3">
+            <div>
+              <label className={labelClass}>카카오톡 채널 ID</label>
+              <input
+                type="text"
+                value={studio.kakao_channel ?? ''}
+                onChange={(e) => updateField('kakao_channel', e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>네이버 플레이스 URL</label>
+              <input
+                type="text"
+                value={studio.naver_place_url ?? ''}
+                onChange={(e) => updateField('naver_place_url', e.target.value)}
+                className={inputClass}
+              />
+            </div>
           </div>
         </section>
 
         {/* Photos */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold border-b border-brand-border pb-2">
-            사진
-          </h2>
-          <div className="grid grid-cols-3 gap-2">
+        <section>
+          <div
+            className="bg-comic-green border-[2px] border-comic-black px-3 py-1.5 inline-block mb-3"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            <h2 className="text-xs font-bold text-comic-black">사진</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-2 mb-3">
             {(studio.photos ?? []).map((url, idx) => (
-              <div key={idx} className="relative group">
+              <div key={idx} className="relative border-[2px] border-comic-black">
                 <img
                   src={url}
                   alt={`사진 ${idx + 1}`}
-                  className="w-full h-24 object-cover rounded-lg"
+                  className="w-full h-24 object-cover"
                 />
                 <button
                   onClick={() => removePhoto(url)}
-                  className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-0.5 right-0.5 w-5 h-5 bg-comic-pink border-[1px] border-comic-black text-white text-xs flex items-center justify-center font-bold"
                 >
                   ×
                 </button>
@@ -273,8 +301,11 @@ export default function AdminEditPage() {
             ))}
           </div>
           <label className="block">
-            <span className="px-4 py-2 bg-brand-card border border-brand-border rounded-lg text-sm cursor-pointer inline-block">
-              {uploading ? '업로드 중...' : '사진 추가'}
+            <span
+              className="px-4 py-2 bg-white border-[2px] border-comic-black text-sm font-bold cursor-pointer inline-block transition-transform active:translate-x-[1px] active:translate-y-[1px]"
+              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+            >
+              {uploading ? '업로드 중...' : '+ 사진 추가'}
             </span>
             <input
               type="file"
@@ -287,44 +318,56 @@ export default function AdminEditPage() {
         </section>
 
         {/* Notes */}
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold border-b border-brand-border pb-2">
-            메모
-          </h2>
+        <section>
+          <div
+            className="bg-comic-black border-[2px] border-comic-black px-3 py-1.5 inline-block mb-3"
+            style={{ boxShadow: '2px 2px 0 #FF3D77' }}
+          >
+            <h2 className="text-xs font-bold text-white">메모</h2>
+          </div>
           <textarea
             value={studio.notes ?? ''}
             onChange={(e) => updateField('notes', e.target.value)}
             rows={3}
-            className={inputClass}
+            className={`${inputClass} resize-none`}
           />
         </section>
 
         {/* Published toggle */}
-        <label className="flex items-center gap-3 p-4 bg-brand-card border border-brand-border rounded-xl">
-          <input
-            type="checkbox"
-            checked={studio.is_published}
-            onChange={(e) => updateField('is_published', e.target.checked)}
-            className="accent-brand-red w-5 h-5"
-          />
+        <div className="flex items-center justify-between p-4 bg-white border-[2px] border-comic-black" style={{ boxShadow: '3px 3px 0 #0A0A0A' }}>
           <div>
-            <p className="text-sm font-medium">서비스에 공개</p>
-            <p className="text-xs text-brand-muted">
-              체크하면 검색 결과에 노출됩니다
-            </p>
+            <p className="text-sm font-bold">서비스에 공개</p>
+            <p className="text-xs text-comic-black/50">체크하면 검색 결과에 노출됩니다</p>
           </div>
-        </label>
+          <button
+            type="button"
+            onClick={() => updateField('is_published', !studio.is_published)}
+            className={`w-11 h-6 border-[2px] border-comic-black relative transition-colors ${
+              studio.is_published ? 'bg-comic-green' : 'bg-comic-black/20'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-4 h-4 bg-white border-[2px] border-comic-black transition-transform ${
+                studio.is_published ? 'left-[22px]' : 'left-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
       </div>
 
       {/* Save button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-brand-bg/95 backdrop-blur border-t border-brand-border max-w-2xl mx-auto">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-3 bg-brand-red text-white font-semibold rounded-xl disabled:opacity-50"
-        >
-          {saving ? '저장 중...' : '저장'}
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-comic-cream border-t-[3px] border-comic-black">
+        <div className="max-w-2xl mx-auto">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full py-3.5 bg-comic-pink border-[3px] border-comic-black text-white font-bold text-sm disabled:opacity-50 transition-transform active:translate-x-[2px] active:translate-y-[2px]"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+          >
+            {saving ? '저장 중...' : '💾 저장하기'}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -7,15 +7,16 @@ interface Preset {
   label: string;
   region: string | null;
   filters: { room_type?: string; has_drum?: boolean };
+  emoji: string;
 }
 
 const PRESETS: Preset[] = [
-  { label: '홍대 합주룸', region: '홍대', filters: { room_type: 'M' } },
-  { label: '홍대 개인연습', region: '홍대', filters: { room_type: 'T' } },
-  { label: '합정 연습실', region: '합정', filters: {} },
-  { label: '강남 연습실', region: '강남', filters: {} },
-  { label: '드럼 가능', region: null, filters: { has_drum: true } },
-  { label: '내 근처 연습실', region: 'gps', filters: {} },
+  { label: '홍대 합주룸', region: '홍대', filters: { room_type: 'M' }, emoji: '🎸' },
+  { label: '홍대 개인연습', region: '홍대', filters: { room_type: 'T' }, emoji: '🎹' },
+  { label: '합정 연습실', region: '합정', filters: {}, emoji: '🎵' },
+  { label: '강남 연습실', region: '강남', filters: {}, emoji: '🎤' },
+  { label: '드럼 가능', region: null, filters: { has_drum: true }, emoji: '🥁' },
+  { label: '내 근처', region: 'gps', filters: {}, emoji: '📍' },
 ];
 
 function buildParams(preset: Preset): string {
@@ -93,13 +94,14 @@ export default function QuickPresets({ showActive = false }: Props) {
           <button
             key={preset.label}
             onClick={() => handleClick(preset)}
-            className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap snap-start border transition-colors shrink-0 ${
+            className={`px-3 py-2 text-xs font-bold whitespace-nowrap snap-start border-[2px] border-comic-black shrink-0 transition-transform active:translate-x-[1px] active:translate-y-[1px] ${
               active
-                ? 'bg-brand-red border-brand-red text-white'
-                : 'bg-brand-card/60 backdrop-blur border-brand-border text-brand-muted hover:border-brand-red/50'
+                ? 'bg-comic-pink text-white'
+                : 'bg-comic-yellow text-comic-black hover:bg-comic-pink hover:text-white'
             }`}
+            style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
           >
-            {preset.label}
+            {preset.emoji} {preset.label}
           </button>
         );
       })}

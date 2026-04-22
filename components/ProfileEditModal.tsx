@@ -55,9 +55,10 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
   const [purposes, setPurposes] = useState<string[]>([]);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [pendingBase64, setPendingBase64] = useState('');
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -83,29 +84,51 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
-  }
+    setConverting(true);
+    setSaveError('');
 
-  async function uploadAvatar(): Promise<string> {
-    if (!avatarFile) return avatarUrl;
-    setUploading(true);
-    const ext = avatarFile.name.split('.').pop() ?? 'jpg';
-    const path = `${user.id}/avatar.${ext}`;
-    const { error } = await supabase.storage
-      .from('avatars')
-      .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
-    setUploading(false);
-    if (error) return avatarUrl;
-    const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-    return data.publicUrl + `?t=${Date.now()}`;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const SIZE = 300;
+          const scale = Math.min(SIZE / img.width, SIZE / img.height, 1);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('no ctx');
+          ctx.drawImage(img, 0, 0, w, h);
+          setPendingBase64(canvas.toDataURL('image/jpeg', 0.82));
+        } catch {
+          setPendingBase64(dataUrl);
+        }
+        setConverting(false);
+      };
+      img.onerror = () => {
+        setPendingBase64(dataUrl);
+        setConverting(false);
+      };
+      img.src = dataUrl;
+    };
+    reader.onerror = () => {
+      setConverting(false);
+      setSaveError('이미지를 읽을 수 없습니다.');
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleSave() {
     if (!displayName.trim()) return;
     setSaving(true);
-    const finalAvatarUrl = await uploadAvatar();
-    await supabase.from('user_profiles').upsert(
+    setSaveError('');
+    const finalAvatarUrl = pendingBase64 || avatarUrl;
+    const { error } = await supabase.from('user_profiles').upsert(
       {
         user_id: user.id,
         display_name: displayName.trim(),
@@ -121,6 +144,10 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
       { onConflict: 'user_id' }
     );
     setSaving(false);
+    if (error) {
+      setSaveError('저장에 실패했습니다. 다시 시도해주세요.');
+      return;
+    }
     onSaved({
       display_name: displayName.trim(),
       bio: bio.trim(),
@@ -205,7 +232,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[12px] font-bold text-[#FF3D77] underline underline-offset-2"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              {uploading ? '업로드 중...' : '사진 변경'}
+              {converting ? '변환 중...' : '사진 변경'}
             </button>
             <input
               ref={fileInputRef}
@@ -370,10 +397,17 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
             </div>
           </section>
 
+          {/* 에러 */}
+          {saveError && (
+            <p className="text-[13px] font-bold text-[#FF3D77] text-center" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+              ⚠️ {saveError}
+            </p>
+          )}
+
           {/* 저장 */}
           <motion.button
             onClick={handleSave}
-            disabled={saving || !loaded || !displayName.trim()}
+            disabled={saving || converting || !loaded || !displayName.trim()}
             whileTap={{ scale: 0.96, y: 2 }}
             className="w-full py-4 bg-[#FF3D77] text-white rounded-[16px] border-[3px] border-[#0A0A0A] font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-60"
             style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}

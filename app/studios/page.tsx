@@ -16,8 +16,13 @@ export default function StudiosPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-brand-red border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-comic-cream flex items-center justify-center">
+          <div
+            className="bg-comic-yellow border-[3px] border-comic-black font-bungee text-sm px-6 py-3"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+          >
+            로딩 중...
+          </div>
         </div>
       }
     >
@@ -44,10 +49,8 @@ function StudiosContent() {
     const initial: StudioFilters = {
       radius: searchParams.get('radius') ? Number(searchParams.get('radius')) : 3,
     };
-    // URL 쿼리 파라미터에서 필터 초기값 설정
     if (qRoomType) initial.room_type = qRoomType;
     if (qHasDrum) initial.has_drum = true;
-    // 레거시 filter 파라미터 호환
     if (quickFilter === 'drum') initial.has_drum = true;
     if (quickFilter === 'troom') initial.room_type = 'T';
     return initial;
@@ -58,11 +61,9 @@ function StudiosContent() {
 
   const isGpsSearch = !!(lat && lng);
 
-  // GPS 검색: 반경 내 전체를 한번에 가져와서 프론트 정렬 후 slice
   const fetchGpsStudios = useCallback(async () => {
     setLoading(true);
 
-    // Supabase 1,000건 제한 우회: 배치로 전체 fetch
     const all: Studio[] = [];
     let offset = 0;
     const BATCH = 1000;
@@ -109,7 +110,6 @@ function StudiosContent() {
     setLoading(false);
   }, [lat, lng, filters]);
 
-  // 텍스트 검색: 서버에서 완성도순 정렬 + 페이지네이션
   const fetchTextStudios = useCallback(async (pageNum: number, reset = false) => {
     setLoading(true);
 
@@ -174,23 +174,35 @@ function StudiosContent() {
   }
 
   return (
-    <div className="min-h-screen pb-4">
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-brand-bg/95 backdrop-blur border-b border-brand-border px-4 py-3 space-y-3">
+    <div className="min-h-screen bg-comic-cream pb-4">
+      {/* ── Header ── */}
+      <div className="sticky top-0 z-20 bg-comic-cream border-b-[3px] border-comic-black px-4 py-3 space-y-3">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push('/')} className="text-brand-muted">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <button
+            onClick={() => router.push('/')}
+            className="w-8 h-8 flex items-center justify-center border-[2px] border-comic-black bg-white hover:bg-comic-yellow transition-colors"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <form onSubmit={handleSearch} className="flex-1 relative">
+          <form onSubmit={handleSearch} className="flex-1 flex gap-2">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="검색 (예: 지역, 상호)"
-              className="w-full px-3 py-2 bg-brand-card border border-brand-border rounded-lg text-sm placeholder:text-brand-muted focus:outline-none focus:border-brand-red"
+              placeholder="지역명 또는 상호명 검색"
+              className="flex-1 px-3 py-2 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/40 focus:outline-none focus:border-comic-pink"
+              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
             />
+            <button
+              type="submit"
+              className="px-3 py-2 bg-comic-pink border-[2px] border-comic-black text-white text-xs font-bold"
+              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+            >
+              검색
+            </button>
           </form>
         </div>
 
@@ -198,22 +210,36 @@ function StudiosContent() {
 
         <div className="flex items-center justify-between">
           <StudioFilter filters={filters} onChange={setFilters} />
-          <span className="text-xs text-brand-muted">
-            {studios.length}개 연습실
+          <span
+            className="text-xs font-bold bg-comic-black text-comic-yellow px-2 py-1"
+            style={{ boxShadow: '2px 2px 0 #FF3D77' }}
+          >
+            {studios.length}개
           </span>
         </div>
       </div>
 
-      {/* List */}
+      {/* ── List ── */}
       <div className="px-4 mt-4">
         {loading && studios.length === 0 ? (
           <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-brand-red border-t-transparent rounded-full animate-spin" />
+            <div
+              className="bg-comic-yellow border-[3px] border-comic-black font-bold text-sm px-6 py-3 animate-pulse"
+              style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+            >
+              🎵 연습실 찾는 중...
+            </div>
           </div>
         ) : studios.length === 0 ? (
-          <div className="text-center py-20 text-brand-muted">
-            <p className="text-lg">검색 결과가 없습니다</p>
-            <p className="text-sm mt-1">다른 지역이나 필터를 시도해보세요</p>
+          <div className="text-center py-20">
+            <div
+              className="inline-block bg-white border-[3px] border-comic-black px-8 py-6"
+              style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
+            >
+              <p className="font-bungee text-2xl text-comic-pink mb-2">Hmm...</p>
+              <p className="text-sm font-bold">검색 결과가 없습니다</p>
+              <p className="text-xs text-comic-black/50 mt-1">다른 지역이나 필터를 시도해보세요</p>
+            </div>
           </div>
         ) : (
           <>
@@ -234,19 +260,18 @@ function StudiosContent() {
                   const next = page + 1;
                   setPage(next);
                   if (isGpsSearch) {
-                    // GPS: 이미 정렬된 전체 배열에서 slice
                     const end = (next + 1) * PAGE_SIZE;
                     setStudios(allGpsResults.slice(0, end));
                     setHasMore(end < allGpsResults.length);
                   } else {
-                    // 텍스트: 서버 페이지네이션
                     fetchTextStudios(next);
                   }
                 }}
                 disabled={loading}
-                className="w-full mt-4 py-3 text-sm text-brand-muted border border-brand-border rounded-xl disabled:opacity-50"
+                className="w-full mt-4 py-3 font-bold text-sm border-[3px] border-comic-black bg-white hover:bg-comic-yellow transition-colors disabled:opacity-50"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
               >
-                {loading ? '로딩 중...' : '더 보기'}
+                {loading ? '로딩 중...' : '더 보기 ↓'}
               </button>
             )}
           </>

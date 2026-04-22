@@ -78,25 +78,31 @@ export default function AdminPage() {
 
   if (!authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
-          <h1 className="text-xl font-bold text-center">
-            Music <span className="text-brand-red">Spot</span> 관리자
+      <div className="min-h-screen bg-comic-cream flex items-center justify-center px-6">
+        <form
+          onSubmit={handleLogin}
+          className="w-full max-w-sm space-y-4 bg-white border-[3px] border-comic-black p-6"
+          style={{ boxShadow: '6px 6px 0 #FF3D77' }}
+        >
+          <h1 className="text-xl font-bungee text-center">
+            MUSIC <span className="text-comic-pink">SPOT</span>
           </h1>
+          <p className="text-xs font-bold text-center text-comic-black/50">관리자</p>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="비밀번호 입력"
             autoFocus
-            className="w-full px-4 py-3 bg-brand-card border border-brand-border rounded-xl text-sm placeholder:text-brand-muted focus:outline-none focus:border-brand-red"
+            className="w-full px-3 py-2.5 bg-comic-cream border-[2px] border-comic-black text-sm placeholder:text-comic-black/40 focus:outline-none focus:border-comic-pink"
           />
           {authError && (
-            <p className="text-brand-red text-xs text-center">{authError}</p>
+            <p className="text-comic-pink text-xs font-bold text-center">{authError}</p>
           )}
           <button
             type="submit"
-            className="w-full py-3 bg-brand-red text-white font-semibold rounded-xl"
+            className="w-full py-3 bg-comic-pink border-[2px] border-comic-black text-white font-bold"
+            style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
           >
             확인
           </button>
@@ -178,7 +184,6 @@ export default function AdminPage() {
 
   async function approveRequest(req: StudioRequest) {
     setApprovingId(req.id);
-    // studios 테이블에 insert
     const { error } = await supabase.from('studios').insert({
       name: req.name,
       address: req.address,
@@ -203,7 +208,6 @@ export default function AdminPage() {
       return;
     }
 
-    // 신청 상태를 approved로 업데이트
     await supabase
       .from('studio_requests')
       .update({ status: 'approved' })
@@ -239,72 +243,60 @@ export default function AdminPage() {
 
   const pendingRequests = requests.filter((r) => r.status === 'pending');
 
+  const TABS = [
+    { key: 'studios' as const, label: `연습실 (${studios.length})` },
+    { key: 'requests' as const, label: `등록신청 (${requests.length})`, badge: pendingRequests.length },
+    { key: 'feedbacks' as const, label: `피드백 (${feedbacks.length})` },
+    { key: 'reports' as const, label: `제보 (${reports.length})` },
+  ];
+
   return (
-    <div className="min-h-screen p-4 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-comic-cream p-4 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">
-          Music <span className="text-brand-red">Spot</span> 관리자
+        <h1 className="font-bungee text-xl">
+          MUSIC <span className="text-comic-pink">SPOT</span> ADMIN
         </h1>
-        <span className="text-sm text-brand-muted">
+        <span className="text-xs font-bold text-comic-black/50">
           총 {studios.length}개 / 공개 {studios.filter((s) => s.is_published).length}개
         </span>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-brand-card rounded-lg p-1">
-        <button
-          onClick={() => setTab('studios')}
-          className={`flex-1 py-2 text-xs rounded-md transition-colors ${
-            tab === 'studios' ? 'bg-brand-red text-white font-semibold' : 'text-brand-muted'
-          }`}
-        >
-          연습실 ({studios.length})
-        </button>
-        <button
-          onClick={() => setTab('requests')}
-          className={`flex-1 py-2 text-xs rounded-md transition-colors relative ${
-            tab === 'requests' ? 'bg-brand-red text-white font-semibold' : 'text-brand-muted'
-          }`}
-        >
-          등록신청 ({requests.length})
-          {pendingRequests.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-black text-[10px] font-bold rounded-full flex items-center justify-center">
-              {pendingRequests.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setTab('feedbacks')}
-          className={`flex-1 py-2 text-xs rounded-md transition-colors ${
-            tab === 'feedbacks' ? 'bg-brand-red text-white font-semibold' : 'text-brand-muted'
-          }`}
-        >
-          피드백 ({feedbacks.length})
-        </button>
-        <button
-          onClick={() => setTab('reports')}
-          className={`flex-1 py-2 text-xs rounded-md transition-colors ${
-            tab === 'reports' ? 'bg-brand-red text-white font-semibold' : 'text-brand-muted'
-          }`}
-        >
-          제보 ({reports.length})
-        </button>
+      <div className="flex gap-1 mb-5 border-[2px] border-comic-black bg-white p-1" style={{ boxShadow: '3px 3px 0 #0A0A0A' }}>
+        {TABS.map(({ key, label, badge }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`flex-1 py-2 text-xs font-bold relative transition-colors border-[2px] ${
+              tab === key
+                ? 'bg-comic-pink border-comic-black text-white'
+                : 'border-transparent text-comic-black/60 hover:bg-comic-yellow/30'
+            }`}
+          >
+            {label}
+            {badge != null && badge > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-comic-yellow border-[2px] border-comic-black text-comic-black text-[9px] font-bold flex items-center justify-center">
+                {badge}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {tab === 'studios' && (
         <>
-          <div className="flex gap-3 mb-4">
+          <div className="flex gap-2 mb-4">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="이름 / 지역 검색"
-              className="flex-1 px-3 py-2 bg-brand-card border border-brand-border rounded-lg text-sm placeholder:text-brand-muted focus:outline-none focus:border-brand-red"
+              className="flex-1 px-3 py-2 bg-white border-[2px] border-comic-black text-sm placeholder:text-comic-black/40 focus:outline-none focus:border-comic-pink"
             />
             <select
               value={publishedFilter}
               onChange={(e) => setPublishedFilter(e.target.value as 'all' | 'true' | 'false')}
-              className="px-3 py-2 bg-brand-card border border-brand-border rounded-lg text-sm"
+              className="px-3 py-2 bg-white border-[2px] border-comic-black text-sm focus:outline-none"
             >
               <option value="all">전체</option>
               <option value="true">공개</option>
@@ -314,38 +306,42 @@ export default function AdminPage() {
 
           {loading ? (
             <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-brand-red border-t-transparent rounded-full animate-spin" />
+              <div
+                className="bg-comic-yellow border-[2px] border-comic-black px-6 py-3 font-bold text-sm animate-pulse"
+              >
+                로딩 중...
+              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-brand-border text-brand-muted text-left">
-                    <th className="py-2 pr-4">이름</th>
-                    <th className="py-2 pr-4">지역</th>
-                    <th className="py-2 pr-4">룸타입</th>
-                    <th className="py-2 pr-4">드럼</th>
-                    <th className="py-2 pr-4">공개</th>
-                    <th className="py-2"></th>
+                  <tr className="border-b-[2px] border-comic-black text-comic-black/60 text-left bg-comic-cream">
+                    <th className="py-2 pr-4 font-bold">이름</th>
+                    <th className="py-2 pr-4 font-bold">지역</th>
+                    <th className="py-2 pr-4 font-bold">룸타입</th>
+                    <th className="py-2 pr-4 font-bold">드럼</th>
+                    <th className="py-2 pr-4 font-bold">공개</th>
+                    <th className="py-2 font-bold"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((studio) => (
-                    <tr key={studio.id} className="border-b border-brand-border/50 hover:bg-brand-card/50">
-                      <td className="py-3 pr-4 font-medium max-w-[200px] truncate">{studio.name}</td>
-                      <td className="py-3 pr-4 text-brand-muted">{studio.region ?? '-'}</td>
-                      <td className="py-3 pr-4 text-brand-muted">{studio.room_type ?? '-'}</td>
+                    <tr key={studio.id} className="border-b border-comic-black/10 hover:bg-white">
+                      <td className="py-3 pr-4 font-bold max-w-[200px] truncate">{studio.name}</td>
+                      <td className="py-3 pr-4 text-comic-black/50">{studio.region ?? '-'}</td>
+                      <td className="py-3 pr-4 text-comic-black/50">{studio.room_type ?? '-'}</td>
                       <td className="py-3 pr-4">{studio.has_drum ? '✅' : '-'}</td>
                       <td className="py-3 pr-4">
                         <button
                           onClick={() => togglePublish(studio.id, studio.is_published)}
-                          className={`w-10 h-5 rounded-full relative transition-colors ${
-                            studio.is_published ? 'bg-brand-red' : 'bg-brand-border'
+                          className={`w-10 h-5 border-[2px] border-comic-black relative transition-colors ${
+                            studio.is_published ? 'bg-comic-green' : 'bg-comic-black/20'
                           }`}
                         >
                           <span
-                            className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
-                              studio.is_published ? 'left-5' : 'left-0.5'
+                            className={`absolute top-0.5 w-3 h-3 bg-white border-[2px] border-comic-black transition-transform ${
+                              studio.is_published ? 'left-[18px]' : 'left-0.5'
                             }`}
                           />
                         </button>
@@ -353,7 +349,7 @@ export default function AdminPage() {
                       <td className="py-3">
                         <Link
                           href={`/admin/${studio.id}`}
-                          className="px-3 py-1 bg-brand-card border border-brand-border rounded text-xs hover:border-brand-red/50"
+                          className="px-3 py-1 bg-white border-[2px] border-comic-black text-xs font-bold hover:bg-comic-yellow transition-colors"
                         >
                           수정
                         </Link>
@@ -363,7 +359,7 @@ export default function AdminPage() {
                 </tbody>
               </table>
               {filtered.length === 0 && (
-                <p className="text-center py-10 text-brand-muted">결과가 없습니다</p>
+                <p className="text-center py-10 font-bold text-comic-black/40">결과가 없습니다</p>
               )}
             </div>
           )}
@@ -373,36 +369,35 @@ export default function AdminPage() {
       {tab === 'requests' && (
         <div className="space-y-3">
           {requests.length === 0 ? (
-            <p className="text-center py-20 text-brand-muted">등록 신청이 없습니다</p>
+            <p className="text-center py-20 font-bold text-comic-black/40">등록 신청이 없습니다</p>
           ) : (
             requests.map((req) => (
               <div
                 key={req.id}
-                className={`p-4 bg-brand-card border rounded-xl space-y-3 ${
-                  req.status === 'pending' ? 'border-yellow-500/50' : 'border-brand-border'
+                className={`p-4 bg-white border-[2px] space-y-3 ${
+                  req.status === 'pending' ? 'border-comic-yellow' : 'border-comic-black/30'
                 }`}
+                style={req.status === 'pending' ? { boxShadow: '3px 3px 0 #FFD600' } : {}}
               >
-                {/* Header */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold">{req.name}</h3>
-                    <p className="text-xs text-brand-muted mt-0.5">{req.address}</p>
+                    <h3 className="font-bold">{req.name}</h3>
+                    <p className="text-xs text-comic-black/50 mt-0.5">{req.address}</p>
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded shrink-0 ${
+                    className={`text-xs px-2 py-1 font-bold border-[2px] border-comic-black shrink-0 ${
                       req.status === 'pending'
-                        ? 'bg-yellow-900/30 text-yellow-400'
+                        ? 'bg-comic-yellow text-comic-black'
                         : req.status === 'approved'
-                          ? 'bg-green-900/30 text-green-400'
-                          : 'bg-red-900/30 text-red-400'
+                          ? 'bg-comic-green text-comic-black'
+                          : 'bg-comic-pink text-white'
                     }`}
                   >
                     {req.status === 'pending' ? '대기' : req.status === 'approved' ? '승인' : '거절'}
                   </span>
                 </div>
 
-                {/* Details */}
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-brand-muted">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-comic-black/60">
                   {req.region && <span>지역: {req.region}</span>}
                   {req.phone && <span>전화: {req.phone}</span>}
                   {req.room_type && <span>룸타입: {req.room_type}</span>}
@@ -413,42 +408,37 @@ export default function AdminPage() {
                   {req.applicant_contact && <span>연락처: {req.applicant_contact}</span>}
                 </div>
 
-                {req.options && (
-                  <p className="text-xs text-brand-muted">옵션: {req.options}</p>
-                )}
-                {req.notes && (
-                  <p className="text-xs text-brand-muted">메모: {req.notes}</p>
-                )}
+                {req.options && <p className="text-xs text-comic-black/60">옵션: {req.options}</p>}
+                {req.notes && <p className="text-xs text-comic-black/60">메모: {req.notes}</p>}
                 {(req.naver_place_url || req.kakao_channel) && (
                   <div className="flex gap-2 text-xs">
                     {req.naver_place_url && (
-                      <a href={req.naver_place_url} target="_blank" rel="noopener noreferrer" className="text-brand-red underline">
+                      <a href={req.naver_place_url} target="_blank" rel="noopener noreferrer" className="text-comic-pink underline font-bold">
                         네이버플레이스
                       </a>
                     )}
                     {req.kakao_channel && (
-                      <span className="text-brand-muted">카카오: {req.kakao_channel}</span>
+                      <span className="text-comic-black/50">카카오: {req.kakao_channel}</span>
                     )}
                   </div>
                 )}
 
-                <p className="text-xs text-brand-muted">
+                <p className="text-xs text-comic-black/40 font-medium">
                   {new Date(req.created_at).toLocaleDateString('ko-KR')} 신청
                 </p>
 
-                {/* Actions */}
                 {req.status === 'pending' && (
                   <div className="flex gap-2 pt-1">
                     <button
                       onClick={() => approveRequest(req)}
                       disabled={approvingId === req.id}
-                      className="flex-1 py-2 bg-brand-red text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                      className="flex-1 py-2 bg-comic-green border-[2px] border-comic-black text-comic-black text-sm font-bold disabled:opacity-50"
                     >
-                      {approvingId === req.id ? '승인 중...' : '승인 (공개 등록)'}
+                      {approvingId === req.id ? '승인 중...' : '✅ 승인 (공개 등록)'}
                     </button>
                     <button
                       onClick={() => rejectRequest(req.id)}
-                      className="flex-1 py-2 bg-brand-card border border-brand-border text-sm rounded-lg text-brand-muted"
+                      className="flex-1 py-2 bg-white border-[2px] border-comic-black text-sm font-bold text-comic-black/60 hover:bg-comic-pink hover:text-white transition-colors"
                     >
                       거절
                     </button>
@@ -463,28 +453,28 @@ export default function AdminPage() {
       {tab === 'feedbacks' && (
         <div className="overflow-x-auto">
           {feedbacks.length === 0 ? (
-            <p className="text-center py-20 text-brand-muted">피드백이 없습니다</p>
+            <p className="text-center py-20 font-bold text-comic-black/40">피드백이 없습니다</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-brand-border text-brand-muted text-left">
-                  <th className="py-2 pr-4">날짜</th>
-                  <th className="py-2 pr-4">이름</th>
-                  <th className="py-2 pr-4">별점</th>
-                  <th className="py-2">내용</th>
+                <tr className="border-b-[2px] border-comic-black text-comic-black/60 text-left">
+                  <th className="py-2 pr-4 font-bold">날짜</th>
+                  <th className="py-2 pr-4 font-bold">이름</th>
+                  <th className="py-2 pr-4 font-bold">별점</th>
+                  <th className="py-2 font-bold">내용</th>
                 </tr>
               </thead>
               <tbody>
                 {feedbacks.map((fb) => (
-                  <tr key={fb.id} className="border-b border-brand-border/50 hover:bg-brand-card/50">
-                    <td className="py-3 pr-4 text-brand-muted whitespace-nowrap">
+                  <tr key={fb.id} className="border-b border-comic-black/10 hover:bg-white">
+                    <td className="py-3 pr-4 text-comic-black/50 whitespace-nowrap">
                       {new Date(fb.created_at).toLocaleDateString('ko-KR')}
                     </td>
-                    <td className="py-3 pr-4 whitespace-nowrap">{fb.name || '익명'}</td>
+                    <td className="py-3 pr-4 whitespace-nowrap font-medium">{fb.name || '익명'}</td>
                     <td className="py-3 pr-4">
                       {fb.rating ? '★'.repeat(fb.rating) + '☆'.repeat(5 - fb.rating) : '-'}
                     </td>
-                    <td className="py-3 text-brand-muted max-w-[300px]">{fb.content}</td>
+                    <td className="py-3 text-comic-black/60 max-w-[300px]">{fb.content}</td>
                   </tr>
                 ))}
               </tbody>
@@ -496,36 +486,36 @@ export default function AdminPage() {
       {tab === 'reports' && (
         <div className="overflow-x-auto">
           {reports.length === 0 ? (
-            <p className="text-center py-20 text-brand-muted">제보가 없습니다</p>
+            <p className="text-center py-20 font-bold text-comic-black/40">제보가 없습니다</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-brand-border text-brand-muted text-left">
-                  <th className="py-2 pr-4">날짜</th>
-                  <th className="py-2 pr-4">유형</th>
-                  <th className="py-2 pr-4">연습실</th>
-                  <th className="py-2 pr-4">내용</th>
-                  <th className="py-2">상태</th>
+                <tr className="border-b-[2px] border-comic-black text-comic-black/60 text-left">
+                  <th className="py-2 pr-4 font-bold">날짜</th>
+                  <th className="py-2 pr-4 font-bold">유형</th>
+                  <th className="py-2 pr-4 font-bold">연습실</th>
+                  <th className="py-2 pr-4 font-bold">내용</th>
+                  <th className="py-2 font-bold">상태</th>
                 </tr>
               </thead>
               <tbody>
                 {reports.map((r) => (
-                  <tr key={r.id} className="border-b border-brand-border/50 hover:bg-brand-card/50">
-                    <td className="py-3 pr-4 text-brand-muted whitespace-nowrap">
+                  <tr key={r.id} className="border-b border-comic-black/10 hover:bg-white">
+                    <td className="py-3 pr-4 text-comic-black/50 whitespace-nowrap">
                       {new Date(r.created_at).toLocaleDateString('ko-KR')}
                     </td>
-                    <td className="py-3 pr-4 whitespace-nowrap">
+                    <td className="py-3 pr-4 whitespace-nowrap font-medium">
                       {r.report_type === 'correction' ? '수정' : r.report_type === 'new_studio' ? '신규' : '폐업'}
                     </td>
-                    <td className="py-3 pr-4 whitespace-nowrap">{r.studios?.name || '-'}</td>
-                    <td className="py-3 pr-4 text-brand-muted max-w-[250px] truncate">{r.content}</td>
+                    <td className="py-3 pr-4 whitespace-nowrap text-comic-black/60">{r.studios?.name || '-'}</td>
+                    <td className="py-3 pr-4 text-comic-black/60 max-w-[250px] truncate">{r.content}</td>
                     <td className="py-3">
                       <button
                         onClick={() => toggleReportStatus(r.id, r.status)}
-                        className={`px-2 py-1 text-xs rounded ${
+                        className={`px-2 py-1 text-xs font-bold border-[2px] border-comic-black ${
                           r.status === 'resolved'
-                            ? 'bg-green-900/30 text-green-400'
-                            : 'bg-yellow-900/30 text-yellow-400'
+                            ? 'bg-comic-green text-comic-black'
+                            : 'bg-comic-yellow text-comic-black'
                         }`}
                       >
                         {r.status === 'resolved' ? '완료' : '대기'}

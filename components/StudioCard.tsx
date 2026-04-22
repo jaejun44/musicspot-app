@@ -29,9 +29,12 @@ export default function StudioCard({ studio, userLat, userLng }: Props) {
 
   return (
     <Link href={`/studios/${studio.id}`}>
-      <div className="bg-brand-card rounded-xl overflow-hidden border border-brand-border hover:border-brand-red/40 transition-colors">
+      <div
+        className="bg-white border-[3px] border-comic-black overflow-hidden transition-transform hover:-translate-y-0.5"
+        style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
+      >
         {/* Photo */}
-        <div className="relative w-full h-40 bg-brand-border">
+        <div className="relative w-full h-40 bg-comic-black/10 border-b-[2px] border-comic-black">
           {photo ? (
             <img
               src={photo}
@@ -39,35 +42,31 @@ export default function StudioCard({ studio, userLat, userLng }: Props) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-brand-muted">
-              <svg
-                className="w-12 h-12"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                />
-              </svg>
+            <div className="w-full h-full flex items-center justify-center text-4xl">
+              🎵
             </div>
           )}
+
           {/* Favorite */}
           <div className="absolute top-1 right-1">
             <FavoriteButton studioId={studio.id} studioName={studio.name} />
           </div>
+
           {/* Badges */}
           <div className="absolute top-2 left-2 flex gap-1">
             {roomLabel && (
-              <span className="px-2 py-0.5 bg-brand-red text-white text-xs font-semibold rounded">
+              <span
+                className="px-2 py-0.5 bg-comic-pink border-[2px] border-comic-black text-white text-xs font-bold"
+                style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+              >
                 {roomLabel}
               </span>
             )}
             {studio.has_drum && (
-              <span className="px-2 py-0.5 bg-white/20 backdrop-blur text-white text-xs font-semibold rounded">
+              <span
+                className="px-2 py-0.5 bg-comic-yellow border-[2px] border-comic-black text-comic-black text-xs font-bold"
+                style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+              >
                 🥁 드럼
               </span>
             )}
@@ -76,14 +75,15 @@ export default function StudioCard({ studio, userLat, userLng }: Props) {
 
         {/* Info */}
         <div className="p-3">
-          <h3 className="font-semibold text-sm truncate">{studio.name}</h3>
+          <h3 className="font-bold text-sm truncate text-comic-black">{studio.name}</h3>
 
-          <div className="flex items-center gap-2 mt-1 text-xs text-brand-muted">
-            {distance !== null && <span>{distance.toFixed(1)}km</span>}
+          <div className="flex items-center gap-2 mt-1 text-xs text-comic-black/50 font-medium">
+            {distance !== null && <span>📍 {distance.toFixed(1)}km</span>}
             {studio.rating && <span>⭐ {studio.rating}</span>}
+            {studio.region && !distance && <span>{studio.region}</span>}
           </div>
 
-          <div className="mt-1.5 text-sm font-semibold text-brand-red">
+          <div className="mt-1.5 text-sm font-bold text-comic-pink">
             {studio.price_per_hour
               ? `₩${studio.price_per_hour.toLocaleString()}/시간`
               : studio.price_info

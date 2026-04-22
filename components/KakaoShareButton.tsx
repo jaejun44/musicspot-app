@@ -18,7 +18,7 @@ export default function KakaoShareButton({
   imageUrl,
 }: Props) {
   async function handleShare() {
-    const url = `${BASE_URL}/studios/${studioId}`;
+    const url = `${BASE_URL}/room/${studioId}`;
 
     // 1순위: 카카오 SDK
     if (window.Kakao?.isInitialized()) {
@@ -85,12 +85,13 @@ export default function KakaoShareButton({
   return (
     <button
       onClick={handleShare}
-      className="flex-1 py-3 bg-[#FEE500] text-[#191919] text-sm font-semibold rounded-xl text-center flex items-center justify-center gap-1.5"
+      className="w-full py-3 bg-comic-yellow border-[3px] border-comic-black text-comic-black text-sm font-bold flex items-center justify-center gap-2 transition-transform active:translate-x-[2px] active:translate-y-[2px]"
+      style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 3C6.5 3 2 6.58 2 11c0 2.83 1.87 5.32 4.68 6.73l-.96 3.57c-.09.32.25.59.54.42L10.6 19.1c.45.06.92.1 1.4.1 5.5 0 10-3.58 10-8s-4.5-8-10-8z" />
       </svg>
-      카카오톡 공유
+      💬 카카오톡 공유
     </button>
   );
 }
