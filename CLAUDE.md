@@ -107,16 +107,16 @@ guitar.jpg      — 핑크 일렉기타 치비 (포인트용)
 
 | Figma 경로 | Next.js 경로 | 화면명 | 상태 |
 |-----------|-------------|--------|------|
-| `/` | `app/page.tsx` | Landing (홈) | 🔄 재작성 필요 |
-| `/search` | `app/search/page.tsx` | SearchResult | 🔄 신규 생성 |
-| `/room/[id]` | `app/room/[id]/page.tsx` | RoomDetail | 🔄 신규 생성 |
-| `/booking` | `app/booking/page.tsx` | BookingForm | ❌ 없음 |
-| `/payment` | `app/payment/page.tsx` | Payment | ❌ 없음 |
-| `/complete` | `app/complete/page.tsx` | BookingComplete | ❌ 없음 |
-| `/my-bookings` | `app/my-bookings/page.tsx` | MyBookings | ❌ 없음 |
-| `/login` | `app/login/page.tsx` | Login | ❌ 없음 |
-| `/band-matching` | `app/band-matching/page.tsx` | BandMatching | ❌ 없음 |
-| `/community` | `app/community/page.tsx` | CommunityFeed | ❌ 없음 |
+| `/` | `app/page.tsx` | Landing (홈) | ✅ 완료 |
+| `/search` | `app/search/page.tsx` | SearchResult | ✅ 완료 |
+| `/room/[id]` | `app/room/[id]/page.tsx` | RoomDetail | ✅ 완료 |
+| `/booking` | `app/booking/page.tsx` | BookingForm | ❌ 미구현 |
+| `/payment` | `app/payment/page.tsx` | Payment | ❌ 미구현 |
+| `/complete` | `app/complete/page.tsx` | BookingComplete | ❌ 미구현 |
+| `/my-bookings` | `app/my-bookings/page.tsx` | MyBookings | ✅ 완료 |
+| `/login` | `app/login/page.tsx` | Login | ✅ 완료 (카카오 OAuth) |
+| `/band-matching` | `app/band-matching/page.tsx` | BandMatching | ✅ 완료 |
+| `/community` | `app/community/page.tsx` | CommunityFeed | ✅ 완료 |
 
 > 기존 `/studios`, `/studios/[id]` 경로는 `/search`, `/room/[id]`로 리다이렉트 처리
 
@@ -417,34 +417,72 @@ navigate('/room/1')  →  router.push('/room/1')
 - [ ] Payment (`/payment`) — 미구현
 - [ ] BookingComplete (`/complete`) — 미구현
 
-### 🔄 Phase 3 — 마이페이지 & 로그인 *(현재 진행)*
+### ✅ Phase 3 — 마이페이지 & 로그인 (완료)
 - [x] MyBookings (`/my-bookings`) — 프로필·탭·즐겨찾기·최근 본 연결
 - [x] 온보딩 모달 (첫 로그인 시 프로필 설정)
 - [x] ProfileEditModal — 프로필 수정 (이미지 업로드 버그 2026-04-22 수정 완료)
 - [x] `hooks/useAuth.ts` — 전역 auth 상태 훅
 - [x] `app/auth/callback/page.tsx` — OAuth 리다이렉트 처리
-- [ ] **`app/login/page.tsx` — 실제 OAuth(카카오/구글) + 이메일 매직링크 구현** ← 다음 작업
-- [ ] Navigation.tsx — 로그인 상태 반영 (로그인 시 아이콘/이름 표시)
+- [x] `app/login/page.tsx` — 카카오 OAuth + 구글 OAuth + 이메일 매직링크 구현 완료
+- [x] Navigation.tsx — 로그인 상태 반영 (아바타 아이콘 + `/my-bookings` 링크)
 
-### ❌ Phase 4 — 신규 기능
+### 🔄 Phase 4 — 신규 기능 & 예약 플로우 *(현재 진행)*
 - [x] BandMatching (`/band-matching`) — 실데이터 연결
 - [x] CommunityFeed (`/community`) — auth 연동
+- [x] GA4 + Supabase 전체 버튼 이벤트 트래킹 추가 (2026-04-23)
+- [ ] BookingForm (`/booking`) — UI 구현
+- [ ] Payment (`/payment`) — UI 구현
+- [ ] BookingComplete (`/complete`) — UI 구현
 - [ ] 실제 예약/결제 Supabase 연동
+
+---
+
+## Analytics 이벤트 트래킹 (GA4 + Supabase)
+
+> `lib/analytics.ts`에서 모든 이벤트를 GA4 + Supabase `user_events` 테이블에 동시 기록
+
+| GA4 Event Name | 트리거 | 파일 |
+|---------------|--------|------|
+| `page_view` | 모든 페이지 진입 (자동) | `app/layout.tsx` GA4 script |
+| `studio_view` | 연습실 상세 페이지 열기 | `app/room/[id]/RoomDetail.tsx` |
+| `contact_click` | 전화/네이버/카카오 버튼 클릭 | `components/ContactButtons.tsx` |
+| `search` | 검색어 입력 GO 버튼 / 엔터 | `app/search/_components/SearchHeader.tsx` |
+| `search` (gps) | 내 위치 버튼 클릭 | `app/search/_components/SearchHeader.tsx` |
+| `filter_apply` | 필터 칩 토글 (T룸/M룸/드럼 등) | `components/FilterChips.tsx` |
+| `view_toggle` | 목록↔지도 뷰 전환 | `app/search/_components/ViewToggle.tsx` |
+| `load_more` | 더 보기 버튼 클릭 | `app/search/_components/RoomList.tsx` |
+| `favorite_toggle` | 하트 즐겨찾기 추가/해제 | `components/RoomCard.tsx` |
+| `map_marker_click` | 지도 마커 클릭 | `app/search/_components/SearchClient.tsx` |
+| `hot_room_click` | 랜딩 HOT 연습실 카드 클릭 | `components/HotRooms.tsx` |
+| `coming_soon_click` | 미구현 기능 버튼 클릭 | 각 stub 버튼 |
+| `band_contact` | 밴드매칭 연락하기 클릭 | `app/band-matching/` |
 
 ---
 
 ## 다음 세션 즉시 시작할 작업
 
-> **`app/login/page.tsx` → `LoginClient.tsx` 완성**
-> - Supabase Auth: 카카오 OAuth, 구글 OAuth, 이메일 매직링크
-> - 로그인 성공 → `router.push('/')` 또는 `router.back()`
-> - `hooks/useAuth.ts` 이미 준비됨 (`supabase.auth.signInWithOAuth`, `signInWithOtp`)
-> - `app/auth/callback/page.tsx` 이미 준비됨 (OAuth 리다이렉트 처리)
+> **예약 플로우 UI 구현 (BookingForm → Payment → Complete)**
 >
-> 그 다음: **Navigation.tsx 로그인 상태 반영**
-> - `useAuth()` 훅으로 user 체크
-> - 로그인 시: 아바타 아이콘 + `/my-bookings` 링크
-> - 미로그인 시: "시작하기" 핑크 버튼 유지
+> 1. **`app/booking/page.tsx`** — BookingForm
+>    - URL params: `?roomId=...&time=...` 수신
+>    - 연습실 정보 표시 (Supabase에서 roomId로 fetch)
+>    - 밴드명, 연락처, 인원, 이용목적 입력 폼
+>    - 이용 규칙 동의 체크
+>    - "다음 단계 💥" → `/payment` (sessionStorage로 데이터 전달)
+>
+> 2. **`app/payment/page.tsx`** — Payment 시뮬레이션
+>    - 결제수단 선택 UI (카드/계좌이체/카카오페이)
+>    - 쿠폰 입력 UI
+>    - 주문 요약 (sessionStorage 데이터)
+>    - "결제하기 💥" → `/complete`
+>
+> 3. **`app/complete/page.tsx`** — BookingComplete
+>    - 완료 애니메이션 (Framer Motion confetti 또는 체크 애니메이션)
+>    - 예약 정보 요약 카드
+>    - "내 예약 보기" → `/my-bookings`
+>    - "홈으로" → `/`
+>
+> **주의**: 실제 결제/예약 DB 저장 없음 — UI 플로우만 구현, Phase 4에서 Supabase 연동
 
 ---
 
