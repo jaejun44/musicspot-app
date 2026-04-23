@@ -401,30 +401,50 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] 관리자 페이지 (/admin)
 - [x] 업체 등록 신청 (/register)
 - [x] 피드백 (/feedback)
-- [x] GA4 트래킹
+- [x] GA4 + Supabase 듀얼 트래킹
 - [x] Kakao 공유
 
-### 🔄 Phase 1 — 핵심 UI 재구축 *(진행 예정)*
-- [ ] 캐릭터 이미지 public/ms_character/ 복사
-- [ ] Navigation 컴포넌트 (Figma 기준)
-- [ ] Landing 페이지 전면 재작성
-- [ ] SearchResult 페이지 (`/search`)
-- [ ] 경로 리다이렉트 설정
+### ✅ Phase 1 — 핵심 UI 재구축 (완료)
+- [x] 캐릭터 이미지 `public/ms_character/` 복사
+- [x] Navigation 컴포넌트 (Figma 기준)
+- [x] Landing 페이지 전면 재작성
+- [x] SearchResult 페이지 (`/search`) + 기존 검색 로직 연결
+- [x] 경로 리다이렉트 (`/studios` → `/search`, `/studios/[id]` → `/room/[id]`)
 
-### ❌ Phase 2 — 연습실 상세 & 예약
-- [ ] RoomDetail 페이지 (`/room/[id]`)
-- [ ] BookingForm (`/booking`)
-- [ ] Payment (`/payment`)
-- [ ] BookingComplete (`/complete`)
+### ✅ Phase 2 — 연습실 상세 (완료)
+- [x] RoomDetail 페이지 (`/room/[id]`) — 갤러리·위치·태그·공유·ContactBar
+- [ ] BookingForm (`/booking`) — UI 미구현 (예약 시스템 없음)
+- [ ] Payment (`/payment`) — 미구현
+- [ ] BookingComplete (`/complete`) — 미구현
 
-### ❌ Phase 3 — 마이페이지
-- [ ] MyBookings (`/my-bookings`)
-- [ ] Login (`/login`)
+### 🔄 Phase 3 — 마이페이지 & 로그인 *(현재 진행)*
+- [x] MyBookings (`/my-bookings`) — 프로필·탭·즐겨찾기·최근 본 연결
+- [x] 온보딩 모달 (첫 로그인 시 프로필 설정)
+- [x] ProfileEditModal — 프로필 수정 (이미지 업로드 버그 2026-04-22 수정 완료)
+- [x] `hooks/useAuth.ts` — 전역 auth 상태 훅
+- [x] `app/auth/callback/page.tsx` — OAuth 리다이렉트 처리
+- [ ] **`app/login/page.tsx` — 실제 OAuth(카카오/구글) + 이메일 매직링크 구현** ← 다음 작업
+- [ ] Navigation.tsx — 로그인 상태 반영 (로그인 시 아이콘/이름 표시)
 
 ### ❌ Phase 4 — 신규 기능
-- [ ] BandMatching (`/band-matching`)
-- [ ] CommunityFeed (`/community`)
+- [x] BandMatching (`/band-matching`) — 실데이터 연결
+- [x] CommunityFeed (`/community`) — auth 연동
 - [ ] 실제 예약/결제 Supabase 연동
+
+---
+
+## 다음 세션 즉시 시작할 작업
+
+> **`app/login/page.tsx` → `LoginClient.tsx` 완성**
+> - Supabase Auth: 카카오 OAuth, 구글 OAuth, 이메일 매직링크
+> - 로그인 성공 → `router.push('/')` 또는 `router.back()`
+> - `hooks/useAuth.ts` 이미 준비됨 (`supabase.auth.signInWithOAuth`, `signInWithOtp`)
+> - `app/auth/callback/page.tsx` 이미 준비됨 (OAuth 리다이렉트 처리)
+>
+> 그 다음: **Navigation.tsx 로그인 상태 반영**
+> - `useAuth()` 훅으로 user 체크
+> - 로그인 시: 아바타 아이콘 + `/my-bookings` 링크
+> - 미로그인 시: "시작하기" 핑크 버튼 유지
 
 ---
 

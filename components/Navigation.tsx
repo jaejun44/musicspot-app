@@ -84,15 +84,34 @@ export default function Navigation() {
           {!loading && (
             user ? (
               <div className="hidden md:flex items-center gap-3">
-                <span
-                  className="text-[13px] text-[#0A0A0A]/60 max-w-[120px] truncate"
-                  style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
-                >
-                  {user.user_metadata?.full_name || user.email?.split('@')[0] || '회원'}
-                </span>
+                <Link href="/my-bookings" className="flex items-center gap-2 group">
+                  {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                    <img
+                      src={user.user_metadata.avatar_url || user.user_metadata.picture}
+                      alt="프로필"
+                      className="w-9 h-9 rounded-full border-[2px] border-[#0A0A0A] object-cover"
+                      style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+                    />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full bg-[#FF3D77] border-[2px] border-[#0A0A0A] flex items-center justify-center"
+                      style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+                    >
+                      <span className="text-white text-[14px] font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                        {(user.user_metadata?.full_name || user.email || '?')[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <span
+                    className="text-[13px] text-[#0A0A0A]/70 max-w-[100px] truncate group-hover:text-[#FF3D77] transition-colors"
+                    style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+                  >
+                    {user.user_metadata?.full_name || user.email?.split('@')[0] || '회원'}
+                  </span>
+                </Link>
                 <button
                   onClick={handleSignOut}
-                  className="px-4 py-2 text-[13px] border-[2px] border-[#0A0A0A] rounded-[10px]"
+                  className="px-3 py-1.5 text-[12px] border-[2px] border-[#0A0A0A] rounded-[10px] text-[#0A0A0A]/60 hover:bg-[#0A0A0A] hover:text-white transition-colors"
                   style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, boxShadow: '2px 2px 0 #0A0A0A' }}
                 >
                   로그아웃
@@ -101,8 +120,8 @@ export default function Navigation() {
             ) : (
               <Link
                 href="/login"
-                className="hidden md:block px-4 py-2"
-                style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+                className="hidden md:block px-4 py-2 text-[14px] font-bold text-[#0A0A0A]/70 hover:text-[#FF3D77] transition-colors"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
                 로그인
               </Link>
@@ -154,13 +173,36 @@ export default function Navigation() {
             </Link>
           ))}
           {user ? (
-            <button
-              className="block w-full text-left px-8 py-4"
-              style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
-              onClick={() => { setMenuOpen(false); handleSignOut(); }}
-            >
-              로그아웃
-            </button>
+            <>
+              <Link
+                href="/my-bookings"
+                className="flex items-center gap-3 px-8 py-4 border-b border-[#0A0A0A]"
+                style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+                onClick={() => setMenuOpen(false)}
+              >
+                {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                  <img
+                    src={user.user_metadata.avatar_url || user.user_metadata.picture}
+                    alt="프로필"
+                    className="w-7 h-7 rounded-full border-[2px] border-[#0A0A0A] object-cover"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-[#FF3D77] border-[2px] border-[#0A0A0A] flex items-center justify-center">
+                    <span className="text-white text-[12px] font-bold">
+                      {(user.user_metadata?.full_name || user.email || '?')[0].toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                {user.user_metadata?.full_name || user.email?.split('@')[0] || '내 프로필'}
+              </Link>
+              <button
+                className="block w-full text-left px-8 py-4 text-[#0A0A0A]/50"
+                style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
+                onClick={() => { setMenuOpen(false); handleSignOut(); }}
+              >
+                로그아웃
+              </button>
+            </>
           ) : (
             <Link
               href="/login"
