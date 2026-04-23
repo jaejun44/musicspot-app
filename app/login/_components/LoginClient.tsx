@@ -99,8 +99,7 @@ export default function LoginClient() {
               transition={{ delay: 0.4 }}
               className="w-full max-w-sm flex flex-col gap-3"
             >
-              {/* 카카오 — 비즈 앱 승인 후 활성화 예정 */}
-              {false && (
+              {/* 카카오 */}
               <motion.button
                 onClick={() => handleOAuth('kakao')}
                 disabled={!!loading}
@@ -123,7 +122,6 @@ export default function LoginClient() {
                 )}
                 카카오로 시작하기
               </motion.button>
-              )}
 
               {/* 구글 */}
               <motion.button
