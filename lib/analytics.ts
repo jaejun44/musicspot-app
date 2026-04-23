@@ -104,3 +104,17 @@ export function trackComingSoonClick(tabName: 'band_matching' | 'community') {
   trackGA('coming_soon_click', { tab_name: tabName });
   logEvent({ event_type: 'coming_soon_click', search_query: tabName });
 }
+
+/** 밴드매칭 연락하기 클릭 */
+export function trackBandContact(
+  type: 'open_modal' | 'kakao',
+  musicianName: string,
+  position: string
+) {
+  trackGA('band_contact_click', { type, musician: musicianName, position });
+  logEvent({
+    event_type: 'band_contact_click',
+    click_type: type,
+    studio_name: `${musicianName} (${position})`,
+  });
+}

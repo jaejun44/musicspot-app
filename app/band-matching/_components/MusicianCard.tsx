@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Musician } from '../_data/musicians';
+import { trackBandContact } from '@/lib/analytics';
 
 const LEVEL_COLOR: Record<Musician['level'], string> = {
   입문: '#00D26A',
@@ -96,7 +97,7 @@ export default function MusicianCard({ musician, index, onContact }: Props) {
 
       {/* 연락 버튼 */}
       <motion.button
-        onClick={() => onContact(musician)}
+        onClick={() => { trackBandContact('open_modal', musician.name, musician.position); onContact(musician); }}
         whileTap={{ scale: 0.95, y: 1 }}
         className="w-full py-2.5 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
         style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
