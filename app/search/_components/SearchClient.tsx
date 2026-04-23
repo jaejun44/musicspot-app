@@ -9,6 +9,7 @@ import ViewToggle from './ViewToggle';
 import Navigation from '@/components/Navigation';
 import { Studio } from '@/types/studio';
 import Link from 'next/link';
+import { trackMapMarkerClick } from '@/lib/analytics';
 
 export default function SearchClient() {
   const {
@@ -73,7 +74,7 @@ export default function SearchClient() {
               studios={studios}
               userLat={userLat}
               userLng={userLng}
-              onMarkerClick={(s) => setSelectedStudio(s)}
+              onMarkerClick={(s) => { trackMapMarkerClick(s.id, s.name); setSelectedStudio(s); }}
             />
 
             {/* 마커 클릭 시 미니 카드 */}

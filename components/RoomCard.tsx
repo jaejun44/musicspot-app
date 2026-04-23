@@ -6,6 +6,7 @@ import { Heart } from 'lucide-react';
 import { Studio } from '@/types/studio';
 import { getDistanceKm } from '@/lib/distance';
 import { useFavorites } from '@/hooks/useFavorites';
+import { trackFavoriteToggle } from '@/lib/analytics';
 
 interface RoomCardProps {
   studio: Studio;
@@ -46,6 +47,7 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
   function handleFav(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    trackFavoriteToggle(fav ? 'remove' : 'add', studio.id);
     toggle(studio.id);
   }
 

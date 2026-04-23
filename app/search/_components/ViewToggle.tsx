@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { List, Map } from 'lucide-react';
+import { trackViewToggle } from '@/lib/analytics';
 
 interface ViewToggleProps {
   view: 'list' | 'map';
@@ -17,7 +18,7 @@ export default function ViewToggle({ view, onChange }: ViewToggleProps) {
       {(['list', 'map'] as const).map((v) => (
         <motion.button
           key={v}
-          onClick={() => onChange(v)}
+          onClick={() => { trackViewToggle(v); onChange(v); }}
           whileTap={{ scale: 0.93 }}
           className={[
             'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-colors',

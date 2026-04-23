@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { StudioFilters } from '@/types/studio';
+import { trackFilterApply } from '@/lib/analytics';
 
 interface FilterChipsProps {
   filters: StudioFilters;
@@ -60,7 +61,10 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
         return (
           <motion.button
             key={chip.key}
-            onClick={() => onChange(toggle(chip.key, filters))}
+            onClick={() => {
+              trackFilterApply(chip.key, active ? 'off' : 'on');
+              onChange(toggle(chip.key, filters));
+            }}
             whileTap={{ scale: 0.93, y: 1 }}
             className={[
               'flex-shrink-0 px-4 py-2 rounded-[12px] border-[2px] border-[#0A0A0A]',

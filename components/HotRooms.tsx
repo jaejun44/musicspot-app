@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
+import { trackHotRoomClick } from '@/lib/analytics';
 
 const ROTATIONS = [-2, 1, -1, 2, -1, 0, 2, -2];
 
@@ -74,7 +75,7 @@ export default function HotRooms() {
               const hasInstantBook = !!(studio.naver_place_url || studio.kakao_channel);
 
               return (
-                <Link key={studio.id} href={`/room/${studio.id}`}>
+                <Link key={studio.id} href={`/room/${studio.id}`} onClick={() => trackHotRoomClick(studio.id, studio.name)}>
                   <motion.div
                     initial={{ y: 50, opacity: 0, rotate: 0 }}
                     whileInView={{ y: 0, opacity: 1, rotate: ROTATIONS[index % ROTATIONS.length] }}
@@ -116,7 +117,7 @@ export default function HotRooms() {
                     <div className="p-5">
                       <h3
                         className="mb-2 line-clamp-1"
-                        style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 800, fontSize: '20px' }}
+                        style={{ fontFamily: 'Bungee, sans-serif', fontSize: '18px' }}
                       >
                         {studio.name}
                       </h3>

@@ -34,7 +34,7 @@ export default function SiteFooter() {
           <div>
             <h4
               className="mb-4"
-              style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', color: '#FFD600' }}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#FFD600' }}
             >
               서비스
             </h4>
@@ -57,7 +57,7 @@ export default function SiteFooter() {
           <div>
             <h4
               className="mb-4"
-              style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', color: '#FFD600' }}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#FFD600' }}
             >
               회사
             </h4>
@@ -80,7 +80,7 @@ export default function SiteFooter() {
           <div>
             <h4
               className="mb-4"
-              style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', color: '#FFD600' }}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#FFD600' }}
             >
               고객지원
             </h4>

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import RoomCard from '@/components/RoomCard';
 import { Studio } from '@/types/studio';
+import { trackLoadMore } from '@/lib/analytics';
 
 interface RoomListProps {
   studios: Studio[];
@@ -82,7 +83,7 @@ export default function RoomList({
       {hasMore && (
         <div className="mt-8 flex justify-center">
           <motion.button
-            onClick={onLoadMore}
+            onClick={() => { trackLoadMore(studios.length); onLoadMore(); }}
             disabled={loading}
             whileTap={{ scale: 0.95, y: 2 }}
             className="px-8 py-3 bg-[#FFD600] rounded-[16px] border-[3px] border-[#0A0A0A] font-bold text-[14px]"

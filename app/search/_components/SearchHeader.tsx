@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Search, MapPin } from 'lucide-react';
 import FilterChips from '@/components/FilterChips';
 import { StudioFilters } from '@/types/studio';
+import { trackSearch } from '@/lib/analytics';
 
 interface SearchHeaderProps {
   initialQuery: string;
@@ -31,7 +32,10 @@ export default function SearchHeader({
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') onSubmit();
+    if (e.key === 'Enter') {
+      trackSearch('text', value);
+      onSubmit();
+    }
   }
 
   return (
@@ -56,7 +60,7 @@ export default function SearchHeader({
 
         {/* 내 위치 버튼 */}
         <motion.button
-          onClick={onGps}
+          onClick={() => { trackSearch('gps'); onGps(); }}
           whileTap={{ scale: 0.93, y: 1 }}
           className="w-14 flex-shrink-0 flex items-center justify-center bg-[#4FC3F7] rounded-[16px] border-[3px] border-[#0A0A0A]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
@@ -67,7 +71,7 @@ export default function SearchHeader({
 
         {/* 재검색 버튼 */}
         <motion.button
-          onClick={onSubmit}
+          onClick={() => { trackSearch('text', value); onSubmit(); }}
           whileTap={{ scale: 0.93, y: 1 }}
           className="flex-shrink-0 px-4 flex items-center justify-center bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A' }}

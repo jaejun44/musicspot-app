@@ -118,3 +118,33 @@ export function trackBandContact(
     studio_name: `${musicianName} (${position})`,
   });
 }
+
+/** 즐겨찾기 토글 */
+export function trackFavoriteToggle(action: 'add' | 'remove', studioId: string) {
+  trackGA('favorite_toggle', { action, studio_id: studioId });
+  logEvent({ event_type: 'favorite_toggle', studio_id: studioId, click_type: action });
+}
+
+/** 목록/지도 뷰 전환 */
+export function trackViewToggle(view: 'list' | 'map') {
+  trackGA('view_toggle', { view });
+  logEvent({ event_type: 'view_toggle', search_query: view });
+}
+
+/** 더보기 버튼 클릭 */
+export function trackLoadMore(currentCount: number) {
+  trackGA('load_more', { current_count: currentCount });
+  logEvent({ event_type: 'load_more' });
+}
+
+/** 지도 마커 클릭 */
+export function trackMapMarkerClick(studioId: string, studioName: string) {
+  trackGA('map_marker_click', { studio_id: studioId, studio_name: studioName });
+  logEvent({ event_type: 'map_marker_click', studio_id: studioId, studio_name: studioName });
+}
+
+/** 랜딩 HOT 연습실 카드 클릭 */
+export function trackHotRoomClick(studioId: string, studioName: string) {
+  trackGA('hot_room_click', { studio_id: studioId, studio_name: studioName });
+  logEvent({ event_type: 'hot_room_click', studio_id: studioId, studio_name: studioName });
+}
