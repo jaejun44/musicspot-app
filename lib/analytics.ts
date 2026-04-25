@@ -155,6 +155,18 @@ export function trackBookingAttempt(studioId: string, studioName: string) {
   logEvent({ event_type: 'booking_attempt', studio_id: studioId, studio_name: studioName });
 }
 
+/** 예약 폼 진입 — /booking 페이지 로드 시 */
+export function trackBookingStart(studioId: string, studioName: string) {
+  trackGA('booking_start', { studio_id: studioId, studio_name: studioName });
+  logEvent({ event_type: 'booking_start', studio_id: studioId, studio_name: studioName });
+}
+
+/** 결제 수단 선택 */
+export function trackPaymentSelect(method: 'card' | 'bank' | 'kakao', studioId: string) {
+  trackGA('payment_select', { method, studio_id: studioId });
+  logEvent({ event_type: 'payment_select', studio_id: studioId, click_type: method });
+}
+
 /** 결제 완료 — 실제 예약 확정 */
 export function trackBookingComplete(studioId: string, studioName: string, totalPrice: number | null) {
   trackGA('booking_complete', {

@@ -7,7 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { trackBookingComplete } from '@/lib/analytics';
+import { trackBookingComplete, trackPaymentSelect } from '@/lib/analytics';
 
 interface BookingData {
   studioId: string;
@@ -241,7 +241,7 @@ export default function PaymentClient() {
               <motion.button
                 key={m.id}
                 type="button"
-                onClick={() => setMethod(m.id)}
+                onClick={() => { setMethod(m.id); if (booking) trackPaymentSelect(m.id, booking.studioId); }}
                 whileTap={{ scale: 0.98 }}
                 className={[
                   'w-full flex items-center gap-3 px-4 py-3.5 rounded-[14px] border-[2px] border-[#0A0A0A] transition-colors text-left',

@@ -433,7 +433,14 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] BookingForm (`/booking`) — Framer Motion, 날짜/시간/인원/목적 입력, sessionStorage 전달
 - [x] Payment (`/payment`) — 결제수단 선택, 쿠폰(MUSIC10), 주문 요약, 1.2s 시뮬레이션
 - [x] BookingComplete (`/complete`) — 체크 애니메이션, QR 플레이스홀더, 예약 요약 카드
-- [ ] 실제 예약/결제 Supabase 연동 (Phase 5)
+
+### ✅ Phase 5 — 예약 DB 연동 & 밴드매칭 채팅 (완료)
+- [x] `bookings` Supabase 테이블 연동 — PaymentClient insert + MyBookings 탭 read (2026-04-25)
+- [x] Analytics: `booking_start`, `payment_select`, `booking_complete` 이벤트 추가 (2026-04-25)
+- [x] 밴드매칭 1:1 웹 채팅 — `direct_messages` 테이블 + Realtime (2026-04-25)
+- [x] 자기 자신에게 채팅 방지 (isSelf 체크)
+- [x] OnboardingModal 닫기 버튼 + 밴드찾기 취소 버튼 추가 (2026-04-25)
+- [ ] B2B 계약 후 실결제 오픈 (준비 완료, 대기 중)
 
 ---
 
@@ -456,27 +463,42 @@ navigate('/room/1')  →  router.push('/room/1')
 | `hot_room_click` | 랜딩 HOT 연습실 카드 클릭 | `components/HotRooms.tsx` |
 | `coming_soon_click` | 미구현 기능 버튼 클릭 | 각 stub 버튼 |
 | `band_contact` | 밴드매칭 연락하기 클릭 | `app/band-matching/` |
+| `booking_start` | `/booking` 페이지 로드 시 (연습실 확정) | `app/booking/_components/BookingClient.tsx` |
+| `payment_select` | 결제 수단 선택 클릭 | `app/payment/_components/PaymentClient.tsx` |
+| `booking_complete` | 결제하기 버튼 → Supabase insert 완료 | `app/payment/_components/PaymentClient.tsx` |
 
 ---
 
 ## 다음 세션 즉시 시작할 작업
 
-> **Phase 5 — 실제 예약 Supabase 연동 OR 추가 기능**
+> **Phase 5 완료 — B2B 계약 후 할 일**
 >
-> ### 옵션 A — Supabase `bookings` 테이블 연동
-> - `bookings` 테이블 생성: `id, studio_id, user_id, date, time, duration, persons, band_name, contact, purpose, room_type, total_price, status, created_at`
-> - `PaymentClient.tsx` `handlePay()` → 결제 시뮬레이션 후 Supabase insert
-> - `MyBookings` 예약현황 탭 → `bookings` 테이블에서 사용자 예약 불러오기
-> - RLS: `user_id = auth.uid()` 정책 적용
+> ### Supabase SQL 실행 필요 (아직 안 했다면)
+> ```sql
+> create table if not exists public.bookings (
+>   id uuid default gen_random_uuid() primary key,
+>   user_id uuid references auth.users(id) on delete cascade not null,
+>   studio_id text not null, studio_name text not null, studio_address text,
+>   room_type text, date text not null, time text not null,
+>   duration integer not null default 2, persons integer not null default 2,
+>   band_name text, contact text, purpose text,
+>   total_price integer, price_info text, payment_method text,
+>   status text not null default 'confirmed',
+>   created_at timestamptz default now() not null
+> );
+> alter table public.bookings enable row level security;
+> create policy "Users can read own bookings" on public.bookings for select using (auth.uid() = user_id);
+> create policy "Users can insert own bookings" on public.bookings for insert with check (auth.uid() = user_id);
+> ```
 >
-> ### 옵션 B — Analytics 이벤트 추가
-> - 예약 플로우 이벤트: `booking_start`, `payment_select`, `booking_complete`
-> - `lib/analytics.ts`에 3개 이벤트 추가
+> ### B2B 오픈 시 제거할 것
+> - 현재 `/booking`, `/payment`, `/complete` 페이지에 **"준비 중" 배너 없음** — 그냥 오픈하면 됨
+> - Payment 결제 시뮬레이션(1.2초 딜레이)은 실제 PG사 연동 후 교체
 >
-> ### 옵션 C — MyBookings 예약현황 탭 UI 스텁 → 실제 연동
-> - 현재 스텁 상태인 예약현황 탭을 Supabase 연동 또는 더 나은 빈 상태 UI로 교체
->
-> **주의**: 실제 결제/예약 DB 저장 없음 — UI 플로우만 구현, Phase 4에서 Supabase 연동
+> ### 추가 가능한 기능
+> - 실결제 PG 연동 (토스페이먼츠 / 아임포트)
+> - 커뮤니티 글쓰기 기능 (`posts` 테이블)
+> - 연습실 업체 대시보드 (/partner)
 
 ---
 

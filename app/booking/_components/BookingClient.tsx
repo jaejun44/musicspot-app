@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
+import { trackBookingStart } from '@/lib/analytics';
 import Navigation from '@/components/Navigation';
 import BookingStudioCard from './BookingStudioCard';
 import BookingDatePicker from './BookingDatePicker';
@@ -44,7 +45,10 @@ export default function BookingClient() {
       .eq('is_published', true)
       .single()
       .then(({ data }) => {
-        if (data) setStudio(data as Studio);
+        if (data) {
+          setStudio(data as Studio);
+          trackBookingStart(data.id, data.name);
+        }
         setLoading(false);
       });
   }, [roomId]);
