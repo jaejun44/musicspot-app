@@ -413,9 +413,9 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ### ✅ Phase 2 — 연습실 상세 (완료)
 - [x] RoomDetail 페이지 (`/room/[id]`) — 갤러리·위치·태그·공유·ContactBar
-- [ ] BookingForm (`/booking`) — UI 미구현 (예약 시스템 없음)
-- [ ] Payment (`/payment`) — 미구현
-- [ ] BookingComplete (`/complete`) — 미구현
+- [x] BookingForm (`/booking`) — Phase 4에서 구현 완료
+- [x] Payment (`/payment`) — Phase 4에서 구현 완료
+- [x] BookingComplete (`/complete`) — Phase 4에서 구현 완료
 
 ### ✅ Phase 3 — 마이페이지 & 로그인 (완료)
 - [x] MyBookings (`/my-bookings`) — 프로필·탭·즐겨찾기·최근 본 연결
@@ -426,14 +426,14 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] `app/login/page.tsx` — 카카오 OAuth + 구글 OAuth + 이메일 매직링크 구현 완료
 - [x] Navigation.tsx — 로그인 상태 반영 (아바타 아이콘 + `/my-bookings` 링크)
 
-### 🔄 Phase 4 — 신규 기능 & 예약 플로우 *(현재 진행)*
+### ✅ Phase 4 — 신규 기능 & 예약 플로우 (완료)
 - [x] BandMatching (`/band-matching`) — 실데이터 연결
 - [x] CommunityFeed (`/community`) — auth 연동
 - [x] GA4 + Supabase 전체 버튼 이벤트 트래킹 추가 (2026-04-23)
-- [ ] BookingForm (`/booking`) — UI 구현
-- [ ] Payment (`/payment`) — UI 구현
-- [ ] BookingComplete (`/complete`) — UI 구현
-- [ ] 실제 예약/결제 Supabase 연동
+- [x] BookingForm (`/booking`) — Framer Motion, 날짜/시간/인원/목적 입력, sessionStorage 전달
+- [x] Payment (`/payment`) — 결제수단 선택, 쿠폰(MUSIC10), 주문 요약, 1.2s 시뮬레이션
+- [x] BookingComplete (`/complete`) — 체크 애니메이션, QR 플레이스홀더, 예약 요약 카드
+- [ ] 실제 예약/결제 Supabase 연동 (Phase 5)
 
 ---
 
@@ -461,26 +461,20 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ## 다음 세션 즉시 시작할 작업
 
-> **예약 플로우 UI 구현 (BookingForm → Payment → Complete)**
+> **Phase 5 — 실제 예약 Supabase 연동 OR 추가 기능**
 >
-> 1. **`app/booking/page.tsx`** — BookingForm
->    - URL params: `?roomId=...&time=...` 수신
->    - 연습실 정보 표시 (Supabase에서 roomId로 fetch)
->    - 밴드명, 연락처, 인원, 이용목적 입력 폼
->    - 이용 규칙 동의 체크
->    - "다음 단계 💥" → `/payment` (sessionStorage로 데이터 전달)
+> ### 옵션 A — Supabase `bookings` 테이블 연동
+> - `bookings` 테이블 생성: `id, studio_id, user_id, date, time, duration, persons, band_name, contact, purpose, room_type, total_price, status, created_at`
+> - `PaymentClient.tsx` `handlePay()` → 결제 시뮬레이션 후 Supabase insert
+> - `MyBookings` 예약현황 탭 → `bookings` 테이블에서 사용자 예약 불러오기
+> - RLS: `user_id = auth.uid()` 정책 적용
 >
-> 2. **`app/payment/page.tsx`** — Payment 시뮬레이션
->    - 결제수단 선택 UI (카드/계좌이체/카카오페이)
->    - 쿠폰 입력 UI
->    - 주문 요약 (sessionStorage 데이터)
->    - "결제하기 💥" → `/complete`
+> ### 옵션 B — Analytics 이벤트 추가
+> - 예약 플로우 이벤트: `booking_start`, `payment_select`, `booking_complete`
+> - `lib/analytics.ts`에 3개 이벤트 추가
 >
-> 3. **`app/complete/page.tsx`** — BookingComplete
->    - 완료 애니메이션 (Framer Motion confetti 또는 체크 애니메이션)
->    - 예약 정보 요약 카드
->    - "내 예약 보기" → `/my-bookings`
->    - "홈으로" → `/`
+> ### 옵션 C — MyBookings 예약현황 탭 UI 스텁 → 실제 연동
+> - 현재 스텁 상태인 예약현황 탭을 Supabase 연동 또는 더 나은 빈 상태 UI로 교체
 >
 > **주의**: 실제 결제/예약 DB 저장 없음 — UI 플로우만 구현, Phase 4에서 Supabase 연동
 
