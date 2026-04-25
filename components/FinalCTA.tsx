@@ -40,7 +40,7 @@ export default function FinalCTA() {
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      <div className="relative flex flex-col justify-end px-8 pb-12 pt-64">
+      <div className="relative flex flex-col justify-end px-8 pb-0 pt-64">
         <div className="max-w-[1440px] mx-auto text-center">
           {/* CTA Button */}
           <motion.button
@@ -52,6 +52,7 @@ export default function FinalCTA() {
               boxShadow: '8px 8px 0 #0A0A0A',
               fontFamily: 'Bungee, sans-serif',
               fontSize: 'clamp(16px, 2.7vw, 21px)',
+              transform: 'translateY(28px)',
             }}
           >
             {open ? '문 닫기 🚪' : '솔직히 말해줘'}
