@@ -10,6 +10,24 @@ import WritePostModal from './WritePostModal';
 import { POSTS, Post, Category } from '../_data/posts';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import EditPostModal from './EditPostModal';
+
+const SELECT_FIELDS = 'id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags';
+
+function mapPost(p: Record<string, unknown>): Post {
+  return {
+    id: p.id as string,
+    category: p.category as Category,
+    title: p.title as string,
+    body: p.body as string,
+    author: p.author_name as string,
+    authorEmoji: p.author_emoji as string,
+    author_id: (p.author_id as string) ?? undefined,
+    author_avatar_url: (p.author_avatar_url as string) ?? undefined,
+    createdAt: (p.created_at as string).slice(0, 10),
+    tags: (p.tags as string[]) ?? [],
+  };
+}
 
 export default function CommunityClient() {
   const router = useRouter();
@@ -17,26 +35,17 @@ export default function CommunityClient() {
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const [posts, setPosts] = useState<Post[]>(POSTS);
   const [showWrite, setShowWrite] = useState(false);
+  const [editPost, setEditPost] = useState<Post | null>(null);
 
   useEffect(() => {
     async function fetchPosts() {
       const { data } = await supabase
         .from('posts')
-        .select('id, category, title, body, author_name, author_emoji, author_avatar_url, created_at, tags')
+        .select(SELECT_FIELDS)
         .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(50);
-        const mapped: Post[] = (data ?? []).map((p) => ({
-        id: p.id,
-        category: p.category as Category,
-        title: p.title,
-        body: p.body,
-        author: p.author_name,
-        authorEmoji: p.author_emoji,
-        author_avatar_url: p.author_avatar_url ?? undefined,
-        createdAt: (p.created_at as string).slice(0, 10),
-        tags: p.tags ?? [],
-      }));
+      const mapped = (data ?? []).map(mapPost);
       setPosts(mapped.length > 0 ? mapped : POSTS);
     }
     fetchPosts();
@@ -45,23 +54,18 @@ export default function CommunityClient() {
   async function refreshPosts() {
     const { data } = await supabase
       .from('posts')
-      .select('id, category, title, body, author_name, author_emoji, author_avatar_url, created_at, tags')
+      .select(SELECT_FIELDS)
       .eq('is_published', true)
       .order('created_at', { ascending: false })
       .limit(50);
     if (data && data.length > 0) {
-      setPosts(data.map((p) => ({
-        id: p.id,
-        category: p.category as Category,
-        title: p.title,
-        body: p.body,
-        author: p.author_name,
-        authorEmoji: p.author_emoji,
-        author_avatar_url: p.author_avatar_url ?? undefined,
-        createdAt: (p.created_at as string).slice(0, 10),
-        tags: p.tags ?? [],
-      })));
+      setPosts(data.map(mapPost));
     }
+  }
+
+  async function handleDelete(postId: string) {
+    await supabase.from('posts').delete().eq('id', postId);
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
   }
 
   const filtered =
@@ -132,7 +136,14 @@ export default function CommunityClient() {
           >
             {filtered.length > 0 ? (
               filtered.map((post, i) => (
-                <PostCard key={post.id} post={post} index={i} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  index={i}
+                  currentUserId={user?.id}
+                  onEdit={() => setEditPost(post)}
+                  onDelete={() => handleDelete(post.id)}
+                />
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-20">
@@ -176,6 +187,19 @@ export default function CommunityClient() {
           onClose={() => setShowWrite(false)}
           onSuccess={() => {
             setShowWrite(false);
+            refreshPosts();
+          }}
+        />
+      )}
+
+      {/* 수정 모달 */}
+      {editPost && (
+        <EditPostModal
+          user={user}
+          post={editPost}
+          onClose={() => setEditPost(null)}
+          onSuccess={() => {
+            setEditPost(null);
             refreshPosts();
           }}
         />

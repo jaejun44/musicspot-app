@@ -31,18 +31,17 @@ export default function Navigation() {
       <div className="max-w-[1440px] mx-auto px-8 h-full flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
-          <motion.div initial={{ rotate: 0 }} animate={{ rotate: -2 }} className="relative">
-            <h1
-              className="text-4xl uppercase select-none"
-              style={{
-                fontFamily: 'Bungee, sans-serif',
-                color: '#FF3D77',
-                WebkitTextStroke: '3px #0A0A0A',
-                paintOrder: 'stroke fill',
-              }}
-            >
-              MUSIC SPOT
-            </h1>
+          <motion.div
+            initial={{ rotate: 0 }}
+            animate={{ rotate: -2 }}
+            whileHover={{ rotate: 0, scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <img
+              src="/ms_character/happy.png"
+              alt="MUSIC SPOT"
+              className="h-14 w-auto object-contain select-none"
+            />
           </motion.div>
         </Link>
 
