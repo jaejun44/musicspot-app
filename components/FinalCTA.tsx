@@ -40,7 +40,7 @@ export default function FinalCTA() {
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      <div className="relative py-32 px-8">
+      <div className="relative flex flex-col justify-end px-8 pb-12 pt-64">
         <div className="max-w-[1440px] mx-auto text-center">
           {/* CTA Button */}
           <motion.button
