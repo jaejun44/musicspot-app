@@ -442,6 +442,10 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] OnboardingModal 닫기 버튼 + 밴드찾기 취소 버튼 추가 (2026-04-25)
 - [ ] B2B 계약 후 실결제 오픈 (준비 완료, 대기 중)
 
+### ✅ Phase 6 — 모바일 버그 수정 (완료, 2026-04-26)
+- [x] HeroSection CTA 버튼 텍스트 줄바꿈 수정 (fontSize 고정 18px + whiteSpace nowrap)
+- [x] SearchBar iOS 날짜 입력 너비 불일치 수정 (appearance-none으로 네이티브 렌더링 해제)
+
 ---
 
 ## Analytics 이벤트 트래킹 (GA4 + Supabase)
@@ -471,9 +475,19 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ## 다음 세션 즉시 시작할 작업
 
-> **Phase 5 완료 — B2B 계약 후 할 일**
+> **Phase 6 완료 — 다음 작업**
 >
-> ### Supabase SQL 실행 필요 (아직 안 했다면)
+> ### 1순위: 커뮤니티 글쓰기 기능
+> - 현재 CommunityFeed는 읽기 전용 (더미 데이터 + localStorage 좋아요만)
+> - `posts` Supabase 테이블 생성 + 글쓰기 모달 UI (로그인 필요)
+>
+> ### 2순위: 모바일 UI 전체 점검
+> - 다른 페이지들(SearchResult, RoomDetail, BandMatching 등) iPhone/iPad 체크
+>
+> ### 3순위: SEO 강화
+> - Landing, Search 페이지 OG 메타태그 + sitemap.xml 보완
+>
+> ### Supabase SQL 실행 필요 (bookings 테이블, 아직 안 했다면)
 > ```sql
 > create table if not exists public.bookings (
 >   id uuid default gen_random_uuid() primary key,
