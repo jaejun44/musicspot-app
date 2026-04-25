@@ -78,7 +78,7 @@ export default function HeroSection() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="flex flex-wrap gap-4"
+            className="flex gap-4"
           >
             <Link href="/search">
               <motion.button
