@@ -30,12 +30,21 @@ export default function MusicianCard({ musician, index, onContact }: Props) {
     >
       {/* 아바타 + 이름 */}
       <div className="flex items-center gap-3">
-        <div
-          className="w-12 h-12 rounded-full border-[3px] border-[#0A0A0A] flex items-center justify-center text-[22px] flex-shrink-0"
-          style={{ backgroundColor: musician.color, boxShadow: '2px 2px 0 #0A0A0A' }}
-        >
-          {musician.emoji}
-        </div>
+        {musician.avatar_url ? (
+          <img
+            src={musician.avatar_url}
+            alt={musician.name}
+            className="w-12 h-12 rounded-full border-[3px] border-[#0A0A0A] flex-shrink-0 object-cover"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          />
+        ) : (
+          <div
+            className="w-12 h-12 rounded-full border-[3px] border-[#0A0A0A] flex items-center justify-center text-[22px] flex-shrink-0"
+            style={{ backgroundColor: musician.color, boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            {musician.emoji}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p
             className="text-[14px] font-bold text-[#0A0A0A] leading-tight"

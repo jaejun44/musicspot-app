@@ -20,7 +20,8 @@ interface Props {
 
 export default function PostCard({ post, index }: Props) {
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(Math.floor(parseInt(post.id) * 7 + 3));
+  const parsed = parseInt(post.id);
+  const [likeCount, setLikeCount] = useState(isNaN(parsed) ? 5 : Math.floor(parsed * 7 + 3));
   const rotate = index % 3 === 0 ? -1 : index % 3 === 1 ? 0 : 1;
   const style = CATEGORY_STYLE[post.category];
 
@@ -96,7 +97,15 @@ export default function PostCard({ post, index }: Props) {
       {/* 하단 바 */}
       <div className="flex items-center justify-between pt-1 border-t-[1px] border-[#0A0A0A]/10">
         <div className="flex items-center gap-2">
-          <span className="text-[14px]">{post.authorEmoji}</span>
+          {post.author_avatar_url ? (
+            <img
+              src={post.author_avatar_url}
+              alt={post.author}
+              className="w-6 h-6 rounded-full border border-[#0A0A0A]/20 object-cover flex-shrink-0"
+            />
+          ) : (
+            <span className="text-[14px]">{post.authorEmoji}</span>
+          )}
           <span
             className="text-[12px] text-[#0A0A0A]/50 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}

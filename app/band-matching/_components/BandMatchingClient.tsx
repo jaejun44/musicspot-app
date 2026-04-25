@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import PositionFilter from './PositionFilter';
 import MusicianCard from './MusicianCard';
-import ContactModal from './ContactModal';
+import ChatModal from './ChatModal';
 import OnboardingModal from '@/components/OnboardingModal';
 import { MUSICIANS, Musician, Position } from '../_data/musicians';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,6 +26,7 @@ function profileToMusician(p: {
   genres: string[];
   region: string | null;
   purposes: string[];
+  avatar_url: string | null;
 }, idx: number): Musician {
   const pos = (p.instruments[0] ?? '기타(other)') as Position;
   return {
@@ -39,6 +40,7 @@ function profileToMusician(p: {
     lookingFor: p.purposes.join(', ') || '함께 연주할 분 구해요',
     emoji: POSITION_EMOJIS[pos] ?? '🎶',
     color: CARD_COLORS[idx % CARD_COLORS.length],
+    avatar_url: p.avatar_url ?? undefined,
   };
 }
 
@@ -49,12 +51,23 @@ export default function BandMatchingClient() {
   const [contactTarget, setContactTarget] = useState<Musician | null>(null);
   const [musicians, setMusicians] = useState<Musician[]>(MUSICIANS);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [myProfile, setMyProfile] = useState<{ is_public: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!user) { setMyProfile(null); return; }
+    supabase
+      .from('user_profiles')
+      .select('is_public')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => setMyProfile(data ?? null));
+  }, [user?.id]);
 
   useEffect(() => {
     async function fetchProfiles() {
       const { data } = await supabase
         .from('user_profiles')
-        .select('id, user_id, display_name, bio, instruments, genres, region, purposes')
+        .select('id, user_id, display_name, bio, instruments, genres, region, purposes, avatar_url')
         .eq('is_public', true)
         .not('instruments', 'eq', '{}');
       if (data && data.length > 0) {
@@ -65,6 +78,14 @@ export default function BandMatchingClient() {
     }
     fetchProfiles();
   }, []);
+
+  async function handleCancelProfile() {
+    if (!user) return;
+    if (!confirm('밴드찾기 프로필을 숨길까요?\n언제든지 다시 등록할 수 있어요.')) return;
+    await supabase.from('user_profiles').update({ is_public: false }).eq('user_id', user.id);
+    setMyProfile({ is_public: false });
+    setMusicians((prev) => prev.filter((m) => m.id !== user.id));
+  }
 
   async function handleProfileRegister() {
     if (loading) return;
@@ -161,37 +182,63 @@ export default function BandMatchingClient() {
         )}
       </div>
 
-      {/* 프로필 등록 배너 */}
+      {/* 프로필 등록/관리 배너 */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 py-3">
         <div className="max-w-2xl mx-auto">
-          <motion.button
-            whileTap={{ scale: 0.96, y: 2 }}
-            onClick={handleProfileRegister}
-            className="w-full py-4 bg-[#FFD600] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[15px]"
-            style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-          >
-            🎵 내 프로필 등록하기
-          </motion.button>
+          {user && myProfile?.is_public ? (
+            <div className="flex gap-2">
+              <motion.button
+                whileTap={{ scale: 0.96, y: 2 }}
+                onClick={handleProfileRegister}
+                className="flex-1 py-4 bg-[#4FC3F7] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+              >
+                ✏️ 프로필 수정
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.96, y: 2 }}
+                onClick={handleCancelProfile}
+                className="flex-1 py-4 bg-white rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A]/60 font-bold text-[14px]"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+              >
+                ❌ 밴드찾기 취소
+              </motion.button>
+            </div>
+          ) : (
+            <motion.button
+              whileTap={{ scale: 0.96, y: 2 }}
+              onClick={handleProfileRegister}
+              className="w-full py-4 bg-[#FFD600] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[15px]"
+              style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+            >
+              🎵 내 프로필 등록하기
+            </motion.button>
+          )}
         </div>
       </div>
 
-      <ContactModal musician={contactTarget} onClose={() => setContactTarget(null)} />
+      <ChatModal musician={contactTarget} user={user} onClose={() => setContactTarget(null)} />
     </div>
 
     {showOnboarding && user && (
       <OnboardingModal
         user={user}
+        onClose={() => setShowOnboarding(false)}
         onComplete={() => {
           setShowOnboarding(false);
-          // re-fetch profiles after save
           supabase
             .from('user_profiles')
-            .select('id, user_id, display_name, bio, instruments, genres, region, purposes')
+            .select('id, user_id, display_name, bio, instruments, genres, region, purposes, avatar_url, is_public')
             .eq('is_public', true)
             .not('instruments', 'eq', '{}')
             .then(({ data }) => {
               if (data && data.length > 0) {
                 setMusicians([...data.map((p, i) => profileToMusician(p, i)), ...MUSICIANS].slice(0, 20));
+              }
+              // refresh my own profile state
+              if (user) {
+                supabase.from('user_profiles').select('is_public').eq('user_id', user.id).single()
+                  .then(({ data: pd }) => setMyProfile(pd ?? null));
               }
             });
         }}

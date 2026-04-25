@@ -1,23 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import CategoryFilter from './CategoryFilter';
 import PostCard from './PostCard';
-import { POSTS, Category } from '../_data/posts';
+import { POSTS, Post, Category } from '../_data/posts';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 
 export default function CommunityClient() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
+  const [posts, setPosts] = useState<Post[]>(POSTS);
+
+  useEffect(() => {
+    async function fetchPosts() {
+      const { data } = await supabase
+        .from('posts')
+        .select('id, category, title, body, author_name, author_emoji, author_avatar_url, created_at, tags')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (data && data.length > 0) {
+        setPosts(
+          data.map((p) => ({
+            id: p.id,
+            category: p.category as Category,
+            title: p.title,
+            body: p.body,
+            author: p.author_name,
+            authorEmoji: p.author_emoji,
+            author_avatar_url: p.author_avatar_url ?? undefined,
+            createdAt: (p.created_at as string).slice(0, 10),
+            tags: p.tags ?? [],
+          }))
+        );
+      }
+    }
+    fetchPosts();
+  }, []);
 
   const filtered =
     activeCategory === 'all'
-      ? POSTS
-      : POSTS.filter((p) => p.category === activeCategory);
+      ? posts
+      : posts.filter((p) => p.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-[#FFF8F0]">
@@ -59,7 +88,7 @@ export default function CommunityClient() {
       {/* 카운트 */}
       <div className="px-4 pb-3 max-w-2xl mx-auto">
         <motion.p
-          key={activeCategory}
+          key={`${activeCategory}-${filtered.length}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-[12px] text-[#0A0A0A]/40 font-bold"

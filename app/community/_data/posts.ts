@@ -7,6 +7,7 @@ export interface Post {
   body: string;
   author: string;
   authorEmoji: string;
+  author_avatar_url?: string;
   createdAt: string;
   tags: string[];
 }

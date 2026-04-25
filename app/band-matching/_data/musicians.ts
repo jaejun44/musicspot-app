@@ -11,6 +11,7 @@ export interface Musician {
   lookingFor: string;
   emoji: string;
   color: string;
+  avatar_url?: string;
 }
 
 export const MUSICIANS: Musician[] = [

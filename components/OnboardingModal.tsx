@@ -31,13 +31,14 @@ const PURPOSES = [
 interface Props {
   user: User;
   onComplete: () => void;
+  onClose?: () => void;
 }
 
 function toggle(arr: string[], item: string): string[] {
   return arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
 }
 
-export default function OnboardingModal({ user, onComplete }: Props) {
+export default function OnboardingModal({ user, onComplete, onClose }: Props) {
   const [instruments, setInstruments] = useState<string[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
   const [region, setRegion] = useState('');
@@ -101,13 +102,23 @@ export default function OnboardingModal({ user, onComplete }: Props) {
                 연습실 필터 · 밴드 매칭에 활용돼요
               </p>
             </div>
-            <button
-              onClick={handleSkip}
-              className="text-[12px] font-bold text-[#0A0A0A]/40 px-3 py-1.5 rounded-[8px] border-[2px] border-[#0A0A0A]/20"
-              style={{ fontFamily: 'Pretendard, sans-serif' }}
-            >
-              건너뛰기
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSkip}
+                className="text-[12px] font-bold text-[#0A0A0A]/40 px-3 py-1.5 rounded-[8px] border-[2px] border-[#0A0A0A]/20"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                건너뛰기
+              </button>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-[#0A0A0A]/10 flex items-center justify-center flex-shrink-0"
+                >
+                  <span className="text-[16px] leading-none">✕</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
