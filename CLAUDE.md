@@ -475,44 +475,79 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ## 다음 세션 즉시 시작할 작업
 
-> **Phase 6 완료 — 다음 작업**
->
-> ### 1순위: 커뮤니티 글쓰기 기능
-> - 현재 CommunityFeed는 읽기 전용 (더미 데이터 + localStorage 좋아요만)
-> - `posts` Supabase 테이블 생성 + 글쓰기 모달 UI (로그인 필요)
->
-> ### 2순위: 모바일 UI 전체 점검
-> - 다른 페이지들(SearchResult, RoomDetail, BandMatching 등) iPhone/iPad 체크
->
-> ### 3순위: SEO 강화
-> - Landing, Search 페이지 OG 메타태그 + sitemap.xml 보완
->
-> ### Supabase SQL 실행 필요 (bookings 테이블, 아직 안 했다면)
-> ```sql
-> create table if not exists public.bookings (
->   id uuid default gen_random_uuid() primary key,
->   user_id uuid references auth.users(id) on delete cascade not null,
->   studio_id text not null, studio_name text not null, studio_address text,
->   room_type text, date text not null, time text not null,
->   duration integer not null default 2, persons integer not null default 2,
->   band_name text, contact text, purpose text,
->   total_price integer, price_info text, payment_method text,
->   status text not null default 'confirmed',
->   created_at timestamptz default now() not null
-> );
-> alter table public.bookings enable row level security;
-> create policy "Users can read own bookings" on public.bookings for select using (auth.uid() = user_id);
-> create policy "Users can insert own bookings" on public.bookings for insert with check (auth.uid() = user_id);
-> ```
->
-> ### B2B 오픈 시 제거할 것
-> - 현재 `/booking`, `/payment`, `/complete` 페이지에 **"준비 중" 배너 없음** — 그냥 오픈하면 됨
-> - Payment 결제 시뮬레이션(1.2초 딜레이)은 실제 PG사 연동 후 교체
->
-> ### 추가 가능한 기능
-> - 실결제 PG 연동 (토스페이먼츠 / 아임포트)
-> - 커뮤니티 글쓰기 기능 (`posts` 테이블)
-> - 연습실 업체 대시보드 (/partner)
+> **최종 업데이트: 2026-04-26**
+
+### ✅ 바로 시작 — 1순위: 커뮤니티 글쓰기 기능
+
+**현재 상태**: `app/community/page.tsx` 읽기 전용 (더미 데이터 + localStorage 좋아요)
+
+**할 일**:
+1. Supabase에서 아래 SQL 실행 (posts 테이블 생성)
+2. `app/community/page.tsx`에서 더미 데이터 → Supabase `posts` 테이블 read로 교체
+3. "글쓰기" 버튼 클릭 → WritePostModal 컴포넌트 (로그인 필요)
+4. 글 작성 완료 → Supabase insert → 목록 자동 갱신
+
+```sql
+create table if not exists public.posts (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  author text not null,
+  author_avatar_url text,
+  category text not null check (category in ('후기','구인','자유','질문')),
+  title text not null,
+  body text not null,
+  tags text[] default '{}',
+  likes integer default 0,
+  created_at timestamptz default now() not null
+);
+alter table public.posts enable row level security;
+create policy "Anyone can read posts" on public.posts for select using (true);
+create policy "Users can insert own posts" on public.posts for insert with check (auth.uid() = user_id);
+create policy "Users can delete own posts" on public.posts for delete using (auth.uid() = user_id);
+```
+
+---
+
+### 2순위: 모바일 UI 전체 점검
+
+2026-04-26에 iOS 버그 2건 수정 완료 (HeroSection 버튼 텍스트 줄바꿈, SearchBar 날짜 너비). 나머지 페이지들도 iPhone Safari에서 확인 필요:
+- `app/search/page.tsx` — 필터 칩, 카드 레이아웃
+- `app/room/[id]` — 갤러리, ContactBar 버튼
+- `app/band-matching/page.tsx` — 뮤지션 카드
+- `app/booking/page.tsx`, `app/payment/page.tsx` — 폼 입력 요소
+
+---
+
+### 3순위: SEO 강화
+
+현재 `app/room/[id]/page.tsx`만 `generateMetadata` 있음. 나머지 추가:
+- `app/page.tsx` — Landing OG 태그
+- `app/search/page.tsx` — Search OG 태그
+- `public/sitemap.xml` 생성 또는 `app/sitemap.ts` Next.js 방식 추가
+
+---
+
+### 장기 대기 (B2B 계약 후)
+- 실결제 PG 연동 (토스페이먼츠 / 아임포트) — Payment 시뮬레이션 교체
+- 연습실 업체 대시보드 (`/partner`)
+- bookings 테이블 SQL (아직 Supabase에 안 만들었다면 아래 실행):
+
+```sql
+create table if not exists public.bookings (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  studio_id text not null, studio_name text not null, studio_address text,
+  room_type text, date text not null, time text not null,
+  duration integer not null default 2, persons integer not null default 2,
+  band_name text, contact text, purpose text,
+  total_price integer, price_info text, payment_method text,
+  status text not null default 'confirmed',
+  created_at timestamptz default now() not null
+);
+alter table public.bookings enable row level security;
+create policy "Users can read own bookings" on public.bookings for select using (auth.uid() = user_id);
+create policy "Users can insert own bookings" on public.bookings for insert with check (auth.uid() = user_id);
+```
 
 ---
 
