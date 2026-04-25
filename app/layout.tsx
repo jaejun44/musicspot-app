@@ -2,14 +2,28 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import './globals.css';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspot.app';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'Music Spot — 내 밴드에 맞는 연습실 찾기',
   description:
     '음악인을 위한 연습실 검색 플랫폼. 위치 기반으로 가까운 연습실을 찾고, 바로 문의하세요.',
   openGraph: {
     title: 'Music Spot — 내 밴드에 맞는 연습실 찾기',
     description: '음악인을 위한 연습실 검색 플랫폼',
+    url: SITE_URL,
+    siteName: 'Music Spot',
     type: 'website',
+    locale: 'ko_KR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Music Spot — 내 밴드에 맞는 연습실 찾기',
+    description: '음악인을 위한 연습실 검색 플랫폼',
+  },
+  alternates: {
+    canonical: SITE_URL,
   },
 };
 
