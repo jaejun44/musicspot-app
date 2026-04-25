@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import CategoryFilter from './CategoryFilter';
 import PostCard from './PostCard';
+import WritePostModal from './WritePostModal';
 import { POSTS, Post, Category } from '../_data/posts';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
@@ -15,6 +16,7 @@ export default function CommunityClient() {
   const { user, loading } = useAuth();
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const [posts, setPosts] = useState<Post[]>(POSTS);
+  const [showWrite, setShowWrite] = useState(false);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -24,24 +26,43 @@ export default function CommunityClient() {
         .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(50);
-      if (data && data.length > 0) {
-        setPosts(
-          data.map((p) => ({
-            id: p.id,
-            category: p.category as Category,
-            title: p.title,
-            body: p.body,
-            author: p.author_name,
-            authorEmoji: p.author_emoji,
-            author_avatar_url: p.author_avatar_url ?? undefined,
-            createdAt: (p.created_at as string).slice(0, 10),
-            tags: p.tags ?? [],
-          }))
-        );
-      }
+        const mapped: Post[] = (data ?? []).map((p) => ({
+        id: p.id,
+        category: p.category as Category,
+        title: p.title,
+        body: p.body,
+        author: p.author_name,
+        authorEmoji: p.author_emoji,
+        author_avatar_url: p.author_avatar_url ?? undefined,
+        createdAt: (p.created_at as string).slice(0, 10),
+        tags: p.tags ?? [],
+      }));
+      setPosts(mapped.length > 0 ? mapped : POSTS);
     }
     fetchPosts();
   }, []);
+
+  async function refreshPosts() {
+    const { data } = await supabase
+      .from('posts')
+      .select('id, category, title, body, author_name, author_emoji, author_avatar_url, created_at, tags')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (data && data.length > 0) {
+      setPosts(data.map((p) => ({
+        id: p.id,
+        category: p.category as Category,
+        title: p.title,
+        body: p.body,
+        author: p.author_name,
+        authorEmoji: p.author_emoji,
+        author_avatar_url: p.author_avatar_url ?? undefined,
+        createdAt: (p.created_at as string).slice(0, 10),
+        tags: p.tags ?? [],
+      })));
+    }
+  }
 
   const filtered =
     activeCategory === 'all'
@@ -139,7 +160,7 @@ export default function CommunityClient() {
           onClick={() => {
             if (loading) return;
             if (!user) { router.push('/login'); return; }
-            alert('글쓰기 기능은 곧 오픈돼요! 🎸');
+            setShowWrite(true);
           }}
           className="w-14 h-14 bg-[#FF3D77] rounded-full border-[3px] border-[#0A0A0A] flex items-center justify-center text-[24px]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
@@ -147,6 +168,18 @@ export default function CommunityClient() {
           ✏️
         </motion.button>
       </div>
+
+      {/* 글쓰기 모달 */}
+      {showWrite && (
+        <WritePostModal
+          user={user}
+          onClose={() => setShowWrite(false)}
+          onSuccess={() => {
+            setShowWrite(false);
+            refreshPosts();
+          }}
+        />
+      )}
     </div>
   );
 }
