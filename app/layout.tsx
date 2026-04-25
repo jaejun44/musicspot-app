@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import PWAInstallBanner from '@/components/PWAInstallBanner';
 import './globals.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspotapp.vercel.app';
@@ -39,9 +40,15 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Music Spot" />
+        <meta name="theme-color" content="#FF3D77" />
       </head>
       <body className="min-h-screen bg-comic-cream text-comic-black font-pretendard">
         {children}
+        <PWAInstallBanner />
 
         <Script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
