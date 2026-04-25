@@ -38,10 +38,9 @@ export default function Navigation() {
             whileTap={{ scale: 0.95 }}
           >
             <img
-              src="/ms_character/happy.png"
+              src="/ms_character/cutout.png"
               alt="MUSIC SPOT"
               className="h-28 w-auto object-contain select-none"
-              style={{ mixBlendMode: 'multiply' }}
             />
           </motion.div>
         </Link>
