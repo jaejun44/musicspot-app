@@ -29,7 +29,7 @@ export default function SearchBar() {
             <select
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
+              className="w-full h-12 px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               <option>서울 전체</option>
@@ -48,7 +48,7 @@ export default function SearchBar() {
             </label>
             <input
               type="date"
-              className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
+              className="w-full h-12 px-4 py-0 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             />
           </div>
@@ -62,7 +62,7 @@ export default function SearchBar() {
               시간
             </label>
             <select
-              className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
+              className="w-full h-12 px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               <option>오전</option>
@@ -80,7 +80,7 @@ export default function SearchBar() {
               인원
             </label>
             <select
-              className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
+              className="w-full h-12 px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               <option>1-2명</option>
