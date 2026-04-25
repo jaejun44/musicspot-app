@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Studio } from '@/types/studio';
-import { trackBookingAttempt } from '@/lib/analytics';
+import { trackBookingAttempt, trackContactClick } from '@/lib/analytics';
 
 interface RoomBookingWidgetProps {
   studio: Studio;
@@ -211,6 +211,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
                         href={studio.naver_place_url!}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => trackContactClick('naver', studio.id, studio.name)}
                         className="flex items-center gap-3 px-4 py-3 bg-[#00C73C] rounded-[14px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
                         style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                       >
@@ -221,6 +222,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
                     {hasPhone && (
                       <a
                         href={`tel:${studio.phone}`}
+                        onClick={() => trackContactClick('phone', studio.id, studio.name)}
                         className="flex items-center gap-3 px-4 py-3 bg-[#4FC3F7] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[13px]"
                         style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                       >
@@ -233,6 +235,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
                         href={studio.kakao_channel!}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => trackContactClick('kakao', studio.id, studio.name)}
                         className="flex items-center gap-3 px-4 py-3 bg-[#FFD600] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[13px]"
                         style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                       >
