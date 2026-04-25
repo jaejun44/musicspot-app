@@ -38,9 +38,9 @@ export default function Navigation() {
             whileTap={{ scale: 0.95 }}
           >
             <img
-              src="/ms_character/cutout.png"
+              src="/ms_character/cutout_clean.png"
               alt="MUSIC SPOT"
-              className="h-28 w-auto object-contain select-none"
+              className="h-[75px] w-auto object-contain select-none"
             />
           </motion.div>
         </Link>
