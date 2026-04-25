@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import VisitorCounter from '@/components/VisitorCounter';
 
-const trioImage = '/ms_character/Leonardo_Anime_XL_three_cute_chibi_rockstar_kids_standing_toge_1_3418649b-25bc-4055-a8f1-4ad72f27c7a6.jpg';
+const trioImage = '/ms_character/starbeat.png';
 
 export default function HeroSection() {
   return (

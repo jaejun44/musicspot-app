@@ -9,28 +9,37 @@ const features = [
     id: 1,
     name: '연습실 찾기',
     description: '내 동네 연습실을 3초만에 찾고 예약!',
-    image: '/ms_character/Leonardo_Anime_XL_cute_chibi_character_elegant_diva_little_key_3.jpg',
-    bgColor: '#FFE5EE',
+    image: '/ms_character/doll.png',
+    overlayFrom: 'from-[#FF3D77]',
+    overlayColor: '#FF3D77',
+    badgeColor: '#FFE5EE',
     rotation: -2,
     action: 'scroll-search',
+    cta: '바로가기 →',
   },
   {
     id: 2,
     name: '밴드 찾기',
     description: '실력·장르로 합주 파트너 찾기',
-    image: '/ms_character/Leonardo_Anime_XL_cute_chibi_character_mischievous_little_rock_2.jpg',
-    bgColor: '#E5FFE8',
+    image: '/ms_character/mika.png',
+    overlayFrom: 'from-[#00D26A]',
+    overlayColor: '#00D26A',
+    badgeColor: '#E5FFE8',
     rotation: 2,
     action: 'scroll-band',
+    cta: '바로가기 →',
   },
   {
     id: 3,
     name: '공연 중개',
     description: '연습부터 무대까지 한번에',
-    image: '/ms_character/Leonardo_Anime_XL_cute_chibi_character_tough_strong_little_gir_2.jpg',
-    bgColor: '#E5F6FF',
+    image: '/ms_character/lucky.png',
+    overlayFrom: 'from-[#4FC3F7]',
+    overlayColor: '#4FC3F7',
+    badgeColor: '#E5F6FF',
     rotation: -1,
     action: 'coming-soon',
+    cta: '🔒 준비중',
   },
 ];
 
@@ -65,66 +74,90 @@ export default function PowerFeatures() {
             }}
           >
             우리의{' '}
-            <span className="relative inline-block">
-              <span className="absolute inset-0 bg-[#FFD600] -z-10 -left-2 -right-2 -top-1 -bottom-1" />
-              <span style={{ color: '#FF3D77' }}>POWER</span>
+            <span
+              className="italic"
+              style={{
+                color: '#FF3D77',
+                WebkitTextStroke: '2px #0A0A0A',
+                textShadow: '5px 5px 0 #FFD600, 7px 7px 0 #0A0A0A',
+                paintOrder: 'stroke fill',
+                letterSpacing: '0.05em',
+              }}
+            >
+              POWER
             </span>{' '}
             3종 세트 💥
           </motion.h2>
 
-          {/* Feature Cards */}
+          {/* Feature Cards — full-bleed image style */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.id}
                 initial={{ y: 50, opacity: 0, rotate: 0 }}
                 whileInView={{ y: 0, opacity: 1, rotate: feature.rotation }}
-                whileHover={{ y: -8, rotate: 0, boxShadow: '10px 10px 0 #0A0A0A', cursor: 'pointer' }}
+                whileHover={{ y: -10, rotate: 0, boxShadow: '12px 12px 0 #0A0A0A', cursor: 'pointer' }}
                 whileTap={{ scale: 0.97 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
+                transition={{ delay: index * 0.15 }}
                 onClick={() => handleClick(feature.action)}
-                className="p-8 rounded-[24px] border-[4px] border-[#0A0A0A] relative overflow-hidden"
+                className="relative overflow-hidden rounded-[24px] border-[4px] border-[#0A0A0A]"
                 style={{
-                  backgroundColor: feature.bgColor,
                   boxShadow: '8px 8px 0 #0A0A0A',
+                  height: '420px',
                 }}
               >
-                {/* Character Image */}
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                  className="relative mx-auto w-40 h-40 mb-6"
-                >
-                  <img
-                    src={feature.image}
-                    alt={feature.name}
-                    className="w-full h-full object-contain border-[3px] border-[#0A0A0A] rounded-full"
-                    style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
-                  />
-                </motion.div>
+                {/* Full-bleed character image */}
+                <img
+                  src={feature.image}
+                  alt={feature.name}
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                />
 
-                <h3
-                  className="text-center mb-3"
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: '24px', color: '#0A0A0A' }}
-                >
-                  {feature.name}
-                </h3>
+                {/* Gradient overlay — bottom 55% */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `linear-gradient(to top, ${feature.overlayColor}F0 0%, ${feature.overlayColor}CC 30%, ${feature.overlayColor}55 55%, transparent 75%)`,
+                  }}
+                />
 
-                <p
-                  className="text-center mb-4"
-                  style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 600, fontSize: '16px' }}
-                >
-                  {feature.description}
-                </p>
+                {/* Text content */}
+                <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 flex flex-col gap-1.5">
+                  <h3
+                    className="text-white"
+                    style={{
+                      fontFamily: 'Bungee, sans-serif',
+                      fontSize: '26px',
+                      textShadow: '2px 2px 0 rgba(10,10,10,0.6)',
+                    }}
+                  >
+                    {feature.name}
+                  </h3>
 
-                {/* Arrow hint */}
-                <p
-                  className="text-center text-[#0A0A0A]/40 text-[13px] font-bold"
-                  style={{ fontFamily: 'Pretendard, sans-serif' }}
-                >
-                  {feature.action === 'coming-soon' ? '🔒 준비중' : '↓ 바로가기'}
-                </p>
+                  <p
+                    className="text-white/90"
+                    style={{
+                      fontFamily: 'Pretendard, sans-serif',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      textShadow: '1px 1px 0 rgba(10,10,10,0.5)',
+                    }}
+                  >
+                    {feature.description}
+                  </p>
+
+                  {/* CTA pill */}
+                  <div
+                    className="mt-2 inline-flex items-center self-start px-4 py-1.5 rounded-full border-[2px] border-[#0A0A0A] bg-white text-[#0A0A0A] text-[13px] font-bold"
+                    style={{
+                      fontFamily: 'Pretendard, sans-serif',
+                      boxShadow: '2px 2px 0 #0A0A0A',
+                    }}
+                  >
+                    {feature.cta}
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
