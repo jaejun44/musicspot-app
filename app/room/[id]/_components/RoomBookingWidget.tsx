@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Studio } from '@/types/studio';
+import { trackBookingAttempt } from '@/lib/analytics';
 
 interface RoomBookingWidgetProps {
   studio: Studio;
@@ -134,7 +135,10 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
 
         {/* CTA */}
         <motion.button
-          onClick={() => setShowComingSoon(true)}
+          onClick={() => {
+            trackBookingAttempt(studio.id, studio.name);
+            setShowComingSoon(true);
+          }}
           whileTap={{ scale: 0.96, y: 2 }}
           className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[16px]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}

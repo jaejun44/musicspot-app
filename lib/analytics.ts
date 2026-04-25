@@ -148,3 +148,9 @@ export function trackHotRoomClick(studioId: string, studioName: string) {
   trackGA('hot_room_click', { studio_id: studioId, studio_name: studioName });
   logEvent({ event_type: 'hot_room_click', studio_id: studioId, studio_name: studioName });
 }
+
+/** 예약 시도 — "지금 예약하기" 버튼 클릭 (B2B 수요 측정 핵심 지표) */
+export function trackBookingAttempt(studioId: string, studioName: string) {
+  trackGA('booking_attempt', { studio_id: studioId, studio_name: studioName });
+  logEvent({ event_type: 'booking_attempt', studio_id: studioId, studio_name: studioName });
+}
