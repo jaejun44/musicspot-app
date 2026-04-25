@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-const rockerImage = '/ms_character/Leonardo_Anime_XL_cute_chibi_character_mischievous_little_rock_2.jpg';
+const rockerImage = '/ms_character/joy.png';
 
 export default function SiteFooter() {
   return (
