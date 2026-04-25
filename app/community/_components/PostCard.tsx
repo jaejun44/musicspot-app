@@ -71,10 +71,11 @@ export default function PostCard({ post, index, currentUserId, onEdit, onDelete 
       {/* 카테고리 + 날짜 + 메뉴 */}
       <div className="flex items-center justify-between">
         <span
-          className="px-2.5 py-1 rounded-[8px] border-[2px] border-[#0A0A0A] text-[11px] font-bold"
+          className="px-2.5 py-1 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold"
           style={{ backgroundColor: style.bg, color: style.text, fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
         >
           {post.category}
+
         </span>
         <div className="flex items-center gap-2">
           <span
@@ -88,7 +89,7 @@ export default function PostCard({ post, index, currentUserId, onEdit, onDelete 
               <motion.button
                 onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); setConfirmDelete(false); }}
                 whileTap={{ scale: 0.85 }}
-                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#0A0A0A]/8 transition-colors"
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#0A0A0A]/8 transition-colors"
               >
                 <MoreVertical className="w-4 h-4 text-[#0A0A0A]/40" />
               </motion.button>
@@ -203,7 +204,7 @@ export default function PostCard({ post, index, currentUserId, onEdit, onDelete 
         <motion.button
           onClick={toggleLike}
           whileTap={{ scale: 0.8 }}
-          className="flex items-center gap-1.5"
+          className="flex items-center gap-1.5 p-2 -m-2"
         >
           <motion.span
             animate={{ scale: liked ? [1, 1.4, 1] : 1 }}

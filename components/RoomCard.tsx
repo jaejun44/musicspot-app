@@ -64,7 +64,7 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
         style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
       >
         {/* 사진 */}
-        <div className="relative h-44 bg-[#0A0A0A]/10 border-b-[2px] border-[#0A0A0A]">
+        <div className="relative aspect-[4/3] bg-[#0A0A0A]/10 border-b-[2px] border-[#0A0A0A]">
           {photo ? (
             <img
               src={photo}
@@ -81,12 +81,12 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
           <motion.button
             onClick={handleFav}
             whileTap={{ scale: 0.85 }}
-            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white rounded-full border-[2px] border-[#0A0A0A]"
+            className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center bg-white rounded-full border-[2px] border-[#0A0A0A]"
             style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
             aria-label={fav ? '즐겨찾기 해제' : '즐겨찾기 추가'}
           >
             <Heart
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill={fav ? '#FF3D77' : 'none'}
               stroke={fav ? '#FF3D77' : '#0A0A0A'}
               strokeWidth={2}
@@ -97,7 +97,7 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
           <div className="absolute top-3 left-3 flex flex-col gap-1">
             {roomLabel && (
               <span
-                className="px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[11px] font-bold rounded-[6px]"
+                className="px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
               >
                 {roomLabel}
@@ -105,7 +105,7 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
             )}
             {studio.has_drum && (
               <span
-                className="px-2 py-0.5 bg-[#FFD600] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[6px]"
+                className="px-2 py-0.5 bg-[#FFD600] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
               >
                 🥁 드럼

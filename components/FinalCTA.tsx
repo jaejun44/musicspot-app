@@ -32,7 +32,7 @@ export default function FinalCTA() {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="relative overflow-hidden" style={{ minHeight: '420px' }}>
+    <section className="relative overflow-hidden" style={{ minHeight: 'clamp(280px, 50vw, 420px)' }}>
       {/* Full-bleed background image */}
       <img
         src="/ms_character/audition.png"
@@ -40,7 +40,7 @@ export default function FinalCTA() {
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      <div className="relative flex flex-col justify-end px-8 pb-0 pt-64">
+      <div className="relative flex flex-col justify-end px-4 md:px-8 pb-0 pt-28 md:pt-64">
         <div className="max-w-[1440px] mx-auto text-center">
           {/* CTA Button */}
           <motion.button

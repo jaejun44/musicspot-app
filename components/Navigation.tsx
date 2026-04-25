@@ -110,7 +110,7 @@ export default function Navigation() {
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="px-3 py-1.5 text-[12px] border-[2px] border-[#0A0A0A] rounded-[10px] text-[#0A0A0A]/60 hover:bg-[#0A0A0A] hover:text-white transition-colors"
+                  className="px-3 py-2 text-[12px] border-[2px] border-[#0A0A0A] rounded-[10px] text-[#0A0A0A]/60 hover:bg-[#0A0A0A] hover:text-white transition-colors"
                   style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, boxShadow: '2px 2px 0 #0A0A0A' }}
                 >
                   로그아웃
@@ -143,7 +143,7 @@ export default function Navigation() {
 
           {/* Mobile Hamburger */}
           <button
-            className="md:hidden flex flex-col gap-1.5 p-2"
+            className="md:hidden flex flex-col gap-1.5 w-11 h-11 items-center justify-center"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <span className="w-6 h-0.5 bg-[#0A0A0A] block" />
