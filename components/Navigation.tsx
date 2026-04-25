@@ -40,7 +40,7 @@ export default function Navigation() {
             <img
               src="/ms_character/happy.png"
               alt="MUSIC SPOT"
-              className="h-14 w-auto object-contain select-none"
+              className="h-28 w-auto object-contain select-none"
             />
           </motion.div>
         </Link>
