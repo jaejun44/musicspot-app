@@ -133,7 +133,7 @@ export default function HeroSection() {
             <img
               src={trioImage}
               alt="Rock Band Chibi Characters"
-              className="w-full max-w-[500px] h-auto border-[6px] border-[#0A0A0A] rounded-3xl"
+              className="w-full max-w-[1000px] h-auto border-[6px] border-[#0A0A0A] rounded-3xl"
               style={{ boxShadow: '12px 12px 0 #0A0A0A' }}
             />
             {/* BOOM! Speech Bubble */}
