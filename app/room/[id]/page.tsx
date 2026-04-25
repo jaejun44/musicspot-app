@@ -8,7 +8,7 @@ interface Props {
   params: { id: string };
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspot.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspotapp.vercel.app';
 
 const getStudio = cache(async (id: string) => {
   const { data } = await supabase
