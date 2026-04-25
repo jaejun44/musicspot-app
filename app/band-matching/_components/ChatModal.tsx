@@ -33,7 +33,8 @@ export default function ChatModal({ musician, user, onClose }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const isReal = musician ? isUUID(musician.id) : false;
-  const canChat = isReal && !!user;
+  const isSelf = isReal && !!user && musician?.id === user.id;
+  const canChat = isReal && !!user && !isSelf;
 
   useEffect(() => {
     if (!canChat || !musician) return;
@@ -165,7 +166,21 @@ export default function ChatModal({ musician, user, onClose }: Props) {
               </div>
 
               {/* 본문 */}
-              {!isReal ? (
+              {isSelf ? (
+                /* 본인 프로필 */
+                <div className="px-5 py-6 flex flex-col gap-3">
+                  <div className="bg-[#FFF8F0] rounded-[16px] border-[2px] border-[#0A0A0A]/20 p-4 text-center">
+                    <p className="text-[24px] mb-2">🪞</p>
+                    <p className="text-[13px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                      내 프로필이에요!
+                    </p>
+                    <p className="text-[11px] text-[#0A0A0A]/40 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                      다른 뮤지션에게 메시지를 보내보세요
+                    </p>
+                  </div>
+                  <CloseButton onClose={onClose} />
+                </div>
+              ) : !isReal ? (
                 /* 더미 뮤지션 */
                 <div className="px-5 py-6 flex flex-col gap-3">
                   <p className="text-[13px] text-[#0A0A0A]/60 font-bold bg-[#FFF8F0] rounded-[12px] p-3" style={{ fontFamily: 'Pretendard, sans-serif' }}>
