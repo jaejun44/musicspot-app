@@ -47,11 +47,11 @@ export default function FinalCTA() {
             onClick={() => setOpen((v) => !v)}
             whileHover={{ y: 5, boxShadow: '6px 6px 0 #0A0A0A', scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-16 py-6 bg-[#FFF8F0] text-[#0A0A0A] rounded-[24px] border-[5px] border-[#0A0A0A]"
+            className="px-10 py-4 bg-[#FFF8F0] text-[#0A0A0A] rounded-[16px] border-[3px] border-[#0A0A0A]"
             style={{
-              boxShadow: '12px 12px 0 #0A0A0A',
+              boxShadow: '8px 8px 0 #0A0A0A',
               fontFamily: 'Bungee, sans-serif',
-              fontSize: 'clamp(24px, 4vw, 32px)',
+              fontSize: 'clamp(16px, 2.7vw, 21px)',
             }}
           >
             {open ? '문 닫기 🚪' : '솔직히 말해줘'}
