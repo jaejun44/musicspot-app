@@ -136,35 +136,6 @@ export default function HeroSection() {
               className="w-full max-w-[1000px] h-auto border-[6px] border-[#0A0A0A] rounded-3xl"
               style={{ boxShadow: '12px 12px 0 #0A0A0A' }}
             />
-            {/* BOOM! Starburst Badge */}
-            <motion.div
-              initial={{ rotate: 0, scale: 0 }}
-              animate={{ rotate: -14, scale: 1 }}
-              transition={{ delay: 0.8, type: 'spring', stiffness: 200 }}
-              whileHover={{ scale: 1.12 }}
-              className="absolute -top-10 -right-6 flex items-center justify-center"
-              style={{
-                width: '148px',
-                height: '148px',
-                backgroundColor: '#FFD600',
-                clipPath: 'polygon(50% 0%,58% 30%,90% 18%,72% 44%,100% 50%,72% 56%,90% 82%,58% 70%,50% 100%,42% 70%,10% 82%,28% 56%,0% 50%,28% 44%,10% 18%,42% 30%)',
-                filter: 'drop-shadow(5px 5px 0 #0A0A0A)',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'Bungee, sans-serif',
-                  fontSize: '27px',
-                  color: '#0A0A0A',
-                  lineHeight: 1,
-                  letterSpacing: '-0.01em',
-                  display: 'block',
-                  transform: 'rotate(14deg)',
-                }}
-              >
-                BOOM!
-              </span>
-            </motion.div>
           </div>
         </motion.div>
       </div>
