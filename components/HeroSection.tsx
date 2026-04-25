@@ -88,8 +88,9 @@ export default function HeroSection() {
                 style={{
                   boxShadow: '8px 8px 0 #0A0A0A',
                   fontFamily: 'Bungee, sans-serif',
-                  fontSize: 'clamp(14px, 2.5vw, 18px)',
+                  fontSize: '18px',
                   transform: 'rotate(2deg)',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 🔥 연습실 찾기
@@ -103,8 +104,9 @@ export default function HeroSection() {
                 style={{
                   boxShadow: '8px 8px 0 #0A0A0A',
                   fontFamily: 'Bungee, sans-serif',
-                  fontSize: 'clamp(14px, 2.5vw, 18px)',
+                  fontSize: '18px',
                   transform: 'rotate(-2deg)',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 🎤 밴드 찾기
