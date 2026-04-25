@@ -136,30 +136,35 @@ export default function HeroSection() {
               className="w-full max-w-[1000px] h-auto border-[6px] border-[#0A0A0A] rounded-3xl"
               style={{ boxShadow: '12px 12px 0 #0A0A0A' }}
             />
-            {/* BOOM! Speech Bubble */}
+            {/* BOOM! Starburst Badge */}
             <motion.div
               initial={{ rotate: 0, scale: 0 }}
-              animate={{ rotate: -10, scale: 1 }}
+              animate={{ rotate: -14, scale: 1 }}
               transition={{ delay: 0.8, type: 'spring', stiffness: 200 }}
-              className="absolute -top-8 -right-8 px-6 py-3 bg-[#FFD600] border-[4px] border-[#0A0A0A] rounded-2xl"
+              whileHover={{ scale: 1.12 }}
+              className="absolute -top-10 -right-6 flex items-center justify-center"
               style={{
-                boxShadow: '6px 6px 0 #0A0A0A',
-                fontFamily: 'Bungee, sans-serif',
-                fontSize: '32px',
+                width: '148px',
+                height: '148px',
+                backgroundColor: '#FFD600',
+                clipPath: 'polygon(50% 0%,58% 30%,90% 18%,72% 44%,100% 50%,72% 56%,90% 82%,58% 70%,50% 100%,42% 70%,10% 82%,28% 56%,0% 50%,28% 44%,10% 18%,42% 30%)',
+                filter: 'drop-shadow(5px 5px 0 #0A0A0A)',
               }}
             >
-              BOOM!
+              <span
+                style={{
+                  fontFamily: 'Bungee, sans-serif',
+                  fontSize: '27px',
+                  color: '#0A0A0A',
+                  lineHeight: 1,
+                  letterSpacing: '-0.01em',
+                  display: 'block',
+                  transform: 'rotate(14deg)',
+                }}
+              >
+                BOOM!
+              </span>
             </motion.div>
-            {/* Speech Bubble Tail */}
-            <div
-              className="absolute -bottom-2 right-12 w-0 h-0 border-[#0A0A0A]"
-              style={{
-                borderLeft: '15px solid transparent',
-                borderRight: '15px solid transparent',
-                borderTop: '20px solid #0A0A0A',
-                transform: 'rotate(-10deg)',
-              }}
-            />
           </div>
         </motion.div>
       </div>
