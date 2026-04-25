@@ -41,6 +41,7 @@ export default function Navigation() {
               src="/ms_character/happy.png"
               alt="MUSIC SPOT"
               className="h-28 w-auto object-contain select-none"
+              style={{ mixBlendMode: 'multiply' }}
             />
           </motion.div>
         </Link>
