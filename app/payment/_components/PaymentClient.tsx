@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import Navigation from '@/components/Navigation';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { trackBookingComplete } from '@/lib/analytics';
 
 interface BookingData {
   studioId: string;
@@ -33,6 +36,7 @@ const PAYMENT_METHODS: { id: PaymentMethod; label: string; emoji: string; color:
 
 export default function PaymentClient() {
   const router = useRouter();
+  const { user } = useAuth();
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [method, setMethod] = useState<PaymentMethod>('card');
   const [coupon, setCoupon] = useState('');
@@ -59,6 +63,29 @@ export default function PaymentClient() {
   async function handlePay() {
     setPaying(true);
     await new Promise((r) => setTimeout(r, 1200));
+
+    if (user && booking) {
+      await supabase.from('bookings').insert({
+        user_id: user.id,
+        studio_id: booking.studioId,
+        studio_name: booking.studioName,
+        studio_address: booking.studioAddress,
+        room_type: booking.roomType,
+        date: booking.date,
+        time: booking.time,
+        duration: booking.duration,
+        persons: booking.persons,
+        band_name: booking.bandName,
+        contact: booking.contact,
+        purpose: booking.purpose,
+        total_price: finalPrice,
+        price_info: booking.priceInfo,
+        payment_method: method,
+        status: 'confirmed',
+      });
+      trackBookingComplete(booking.studioId, booking.studioName, finalPrice);
+    }
+
     router.push('/complete');
   }
 

@@ -154,3 +154,13 @@ export function trackBookingAttempt(studioId: string, studioName: string) {
   trackGA('booking_attempt', { studio_id: studioId, studio_name: studioName });
   logEvent({ event_type: 'booking_attempt', studio_id: studioId, studio_name: studioName });
 }
+
+/** 결제 완료 — 실제 예약 확정 */
+export function trackBookingComplete(studioId: string, studioName: string, totalPrice: number | null) {
+  trackGA('booking_complete', {
+    studio_id: studioId,
+    studio_name: studioName,
+    ...(totalPrice != null && { value: totalPrice }),
+  });
+  logEvent({ event_type: 'booking_complete', studio_id: studioId, studio_name: studioName });
+}
