@@ -76,17 +76,12 @@ export default function PWAInstallBanner() {
               style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
             >
               <div className="flex items-start gap-3">
-                <div
-                  className="w-12 h-12 rounded-[12px] bg-[#FF3D77] border-[2px] border-[#0A0A0A] flex items-center justify-center flex-shrink-0 mt-0.5"
+                <img
+                  src="/icon-192.png"
+                  alt="Music Spot"
+                  className="w-12 h-12 rounded-[12px] border-[2px] border-[#0A0A0A] flex-shrink-0 mt-0.5 object-cover"
                   style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
-                >
-                  <span
-                    className="text-white font-black text-[14px]"
-                    style={{ fontFamily: 'Bungee, sans-serif', letterSpacing: -0.5 }}
-                  >
-                    MS
-                  </span>
-                </div>
+                />
                 <div className="flex-1 min-w-0">
                   <p
                     className="text-[13px] font-bold text-[#0A0A0A] leading-tight"
@@ -136,17 +131,12 @@ export default function PWAInstallBanner() {
               className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-4 py-4 flex items-center gap-3"
               style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
             >
-              <div
-                className="w-12 h-12 rounded-[12px] bg-[#FF3D77] border-[2px] border-[#0A0A0A] flex items-center justify-center flex-shrink-0"
+              <img
+                src="/icon-192.png"
+                alt="Music Spot"
+                className="w-12 h-12 rounded-[12px] border-[2px] border-[#0A0A0A] flex-shrink-0 object-cover"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
-              >
-                <span
-                  className="text-white font-black text-[14px]"
-                  style={{ fontFamily: 'Bungee, sans-serif', letterSpacing: -0.5 }}
-                >
-                  MS
-                </span>
-              </div>
+              />
               <div className="flex-1 min-w-0">
                 <p
                   className="text-[13px] font-bold text-[#0A0A0A] leading-tight"
