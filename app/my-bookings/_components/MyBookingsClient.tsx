@@ -80,7 +80,7 @@ export default function MyBookingsClient() {
         >
           <div className="relative flex-shrink-0">
             <div
-              className="w-14 h-14 rounded-full bg-[#FFD600] border-[3px] border-[#0A0A0A] overflow-hidden flex items-center justify-center"
+              className="w-14 h-14 rounded-full bg-[#F5FF4F] border-[3px] border-[#0A0A0A] overflow-hidden flex items-center justify-center"
               style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
             >
               {profileData?.avatar_url ? (

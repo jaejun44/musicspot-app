@@ -5,9 +5,9 @@ import { Category } from '../_data/posts';
 
 const CATEGORIES: { label: string; value: Category | 'all'; emoji: string; color: string }[] = [
   { label: '전체', value: 'all', emoji: '📝', color: '#FF3D77' },
-  { label: '후기', value: '후기', emoji: '⭐', color: '#00D26A' },
+  { label: '후기', value: '후기', emoji: '⭐', color: '#41C66B' },
   { label: '구인', value: '구인', emoji: '🔍', color: '#FF3D77' },
-  { label: '자유', value: '자유', emoji: '💬', color: '#FFD600' },
+  { label: '자유', value: '자유', emoji: '💬', color: '#F5FF4F' },
   { label: '질문', value: '질문', emoji: '❓', color: '#4FC3F7' },
 ];
 

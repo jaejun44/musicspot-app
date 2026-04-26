@@ -121,7 +121,7 @@ export default function BookingDatePicker({
               whileTap={{ scale: 0.92 }}
               className={[
                 'flex-1 py-3 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold transition-colors',
-                duration === d ? 'bg-[#FFD600] text-[#0A0A0A]' : 'bg-[#FFF8F0] text-[#0A0A0A]',
+                duration === d ? 'bg-[#F5FF4F] text-[#0A0A0A]' : 'bg-[#FFF8F0] text-[#0A0A0A]',
               ].join(' ')}
               style={{
                 boxShadow: duration === d ? '3px 3px 0 #0A0A0A' : '2px 2px 0 #0A0A0A',

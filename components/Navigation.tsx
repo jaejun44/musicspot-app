@@ -67,7 +67,7 @@ export default function Navigation() {
               {hoveredItem === item.label && (
                 <motion.div
                   layoutId="hover-bg"
-                  className="absolute inset-0 bg-[#FFD600] -z-0 border-2 border-[#0A0A0A]"
+                  className="absolute inset-0 bg-[#F5FF4F] -z-0 border-2 border-[#0A0A0A]"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 0.2 }}
@@ -151,7 +151,7 @@ export default function Navigation() {
             <Link
               key={item.label}
               href={item.path}
-              className="block px-8 py-4 border-b border-[#0A0A0A] hover:bg-[#FFD600] transition-colors"
+              className="block px-8 py-4 border-b border-[#0A0A0A] hover:bg-[#F5FF4F] transition-colors"
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
               onClick={() => { setMenuOpen(false); item.trackAs && trackComingSoonClick(item.trackAs); }}
             >

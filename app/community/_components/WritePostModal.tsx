@@ -7,9 +7,9 @@ import { supabase } from '@/lib/supabase';
 import { Category } from '../_data/posts';
 
 const CATEGORIES: { value: Category; emoji: string; color: string }[] = [
-  { value: '후기', emoji: '⭐', color: '#00D26A' },
+  { value: '후기', emoji: '⭐', color: '#41C66B' },
   { value: '구인', emoji: '🎤', color: '#FF3D77' },
-  { value: '자유', emoji: '💬', color: '#FFD600' },
+  { value: '자유', emoji: '💬', color: '#F5FF4F' },
   { value: '질문', emoji: '🙋', color: '#4FC3F7' },
 ];
 

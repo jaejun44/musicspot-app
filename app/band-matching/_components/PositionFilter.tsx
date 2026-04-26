@@ -7,8 +7,8 @@ const POSITIONS: { label: string; value: Position | 'all'; emoji: string; color:
   { label: '전체', value: 'all', emoji: '🎵', color: '#FF3D77' },
   { label: '보컬', value: '보컬', emoji: '🎤', color: '#4FC3F7' },
   { label: '기타', value: '기타', emoji: '🎸', color: '#FF3D77' },
-  { label: '베이스', value: '베이스', emoji: '🎵', color: '#00D26A' },
-  { label: '드럼', value: '드럼', emoji: '🥁', color: '#FFD600' },
+  { label: '베이스', value: '베이스', emoji: '🎵', color: '#41C66B' },
+  { label: '드럼', value: '드럼', emoji: '🥁', color: '#F5FF4F' },
   { label: '건반', value: '건반', emoji: '🎹', color: '#4FC3F7' },
 ];
 

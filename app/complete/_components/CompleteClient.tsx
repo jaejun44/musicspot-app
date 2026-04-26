@@ -77,7 +77,7 @@ export default function CompleteClient() {
               transition={{ delay: 0.6 + i * 0.05, type: 'spring' }}
               className="absolute w-3 h-3 rounded-full border-[2px] border-[#0A0A0A]"
               style={{
-                backgroundColor: ['#FFD600', '#4FC3F7', '#FF3D77', '#00D26A', '#FFD600', '#4FC3F7'][i],
+                backgroundColor: ['#F5FF4F', '#4FC3F7', '#FF3D77', '#41C66B', '#F5FF4F', '#4FC3F7'][i],
                 top: `${50 + 55 * Math.sin((deg * Math.PI) / 180)}%`,
                 left: `${50 + 55 * Math.cos((deg * Math.PI) / 180)}%`,
                 transform: 'translate(-50%, -50%)',
@@ -203,7 +203,7 @@ export default function CompleteClient() {
           <motion.button
             onClick={() => router.push('/')}
             whileTap={{ scale: 0.96, y: 2 }}
-            className="w-full py-4 bg-[#FFD600] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[15px]"
+            className="w-full py-4 bg-[#4FC3F7] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[15px]"
             style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
           >
             🏠 홈으로

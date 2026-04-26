@@ -30,7 +30,7 @@ type PaymentMethod = 'card' | 'bank' | 'kakao';
 
 const PAYMENT_METHODS: { id: PaymentMethod; label: string; emoji: string; color: string }[] = [
   { id: 'card', label: '신용/체크카드', emoji: '💳', color: '#4FC3F7' },
-  { id: 'bank', label: '계좌이체', emoji: '🏦', color: '#00D26A' },
+  { id: 'bank', label: '계좌이체', emoji: '🏦', color: '#41C66B' },
   { id: 'kakao', label: '카카오페이', emoji: '💛', color: '#FFD600' },
 ];
 
@@ -163,7 +163,7 @@ export default function PaymentClient() {
                   value={`₩${booking.totalPrice!.toLocaleString()}`}
                 />
                 {couponApplied && (
-                  <Row label="쿠폰 할인" value={`-₩${discount.toLocaleString()}`} valueClass="text-[#00D26A]" />
+                  <Row label="쿠폰 할인" value={`-₩${discount.toLocaleString()}`} valueClass="text-[#41C66B]" />
                 )}
                 <div className="flex justify-between items-center mt-2 pt-2 border-t-[2px] border-[#0A0A0A]">
                   <span
@@ -217,7 +217,7 @@ export default function PaymentClient() {
               onClick={applyCoupon}
               disabled={couponApplied || !coupon.trim()}
               whileTap={{ scale: 0.95 }}
-              className="px-4 py-3 bg-[#FFD600] rounded-[12px] border-[2px] border-[#0A0A0A] font-bold text-[13px] text-[#0A0A0A] disabled:opacity-40"
+              className="px-4 py-3 bg-[#F5FF4F] rounded-[12px] border-[2px] border-[#0A0A0A] font-bold text-[13px] text-[#0A0A0A] disabled:opacity-40"
               style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
             >
               {couponApplied ? '적용됨 ✓' : '적용'}
@@ -259,7 +259,7 @@ export default function PaymentClient() {
                   {m.label}
                 </span>
                 {method === m.id && (
-                  <span className="ml-auto text-[#FFD600] text-[12px] font-bold" style={{ fontFamily: 'Bungee, sans-serif' }}>
+                  <span className="ml-auto text-[#F5FF4F] text-[12px] font-bold" style={{ fontFamily: 'Bungee, sans-serif' }}>
                     ✓
                   </span>
                 )}

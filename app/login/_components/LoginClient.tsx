@@ -240,7 +240,7 @@ export default function LoginClient() {
               className="w-full max-w-sm flex flex-col items-center gap-4"
             >
               <div
-                className="w-20 h-20 rounded-full bg-[#00D26A] border-[4px] border-[#0A0A0A] flex items-center justify-center"
+                className="w-20 h-20 rounded-full bg-[#41C66B] border-[4px] border-[#0A0A0A] flex items-center justify-center"
                 style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
               >
                 <span className="text-[36px]">✉️</span>

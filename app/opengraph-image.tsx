@@ -63,7 +63,7 @@ export default function OGImage() {
             style={{
               marginTop: 24,
               fontSize: 32,
-              color: '#FFD600',
+              color: '#F5FF4F',
               fontWeight: 700,
             }}
           >
@@ -83,7 +83,7 @@ export default function OGImage() {
             <div
               key={tag}
               style={{
-                background: '#FFD600',
+                background: '#F5FF4F',
                 border: '3px solid #0A0A0A',
                 borderRadius: '999px',
                 padding: '10px 24px',

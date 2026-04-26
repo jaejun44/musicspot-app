@@ -137,19 +137,19 @@ export default function HotRooms() {
                           </span>
                         )}
                         {studio.room_type === 'T' && (
-                          <span className="px-2 py-0.5 bg-[#FFD600]/30 border border-[#FFD600] text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">
+                          <span className="px-2 py-0.5 bg-[#F5FF4F]/50 border border-[#0A0A0A]/30 text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">
                             T룸
                           </span>
                         )}
                         {studio.room_type === 'M' && (
-                          <span className="px-2 py-0.5 bg-[#FFD600]/30 border border-[#FFD600] text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">
+                          <span className="px-2 py-0.5 bg-[#F5FF4F]/50 border border-[#0A0A0A]/30 text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">
                             M룸
                           </span>
                         )}
                         {studio.room_type === 'both' && (
                           <>
-                            <span className="px-2 py-0.5 bg-[#FFD600]/30 border border-[#FFD600] text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">T룸</span>
-                            <span className="px-2 py-0.5 bg-[#FFD600]/30 border border-[#FFD600] text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">M룸</span>
+                            <span className="px-2 py-0.5 bg-[#F5FF4F]/50 border border-[#0A0A0A]/30 text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">T룸</span>
+                            <span className="px-2 py-0.5 bg-[#F5FF4F]/50 border border-[#0A0A0A]/30 text-[11px] font-bold text-[#0A0A0A] rounded-[6px]">M룸</span>
                           </>
                         )}
                       </div>

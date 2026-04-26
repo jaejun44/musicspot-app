@@ -22,8 +22,8 @@ const features = [
     name: '밴드 찾기',
     description: '실력·장르로 합주 파트너 찾기',
     image: '/ms_character/mika.png',
-    overlayFrom: 'from-[#00D26A]',
-    overlayColor: '#00D26A',
+    overlayFrom: 'from-[#41C66B]',
+    overlayColor: '#41C66B',
     badgeColor: '#E5FFE8',
     rotation: 2,
     action: 'scroll-band',
@@ -79,7 +79,7 @@ export default function PowerFeatures() {
               style={{
                 color: '#FF3D77',
                 WebkitTextStroke: '2px #0A0A0A',
-                textShadow: '5px 5px 0 #FFD600, 7px 7px 0 #0A0A0A',
+                textShadow: '5px 5px 0 #F5FF4F, 7px 7px 0 #0A0A0A',
                 paintOrder: 'stroke fill',
                 letterSpacing: '0.05em',
               }}
@@ -201,7 +201,7 @@ export default function PowerFeatures() {
                 whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowComingSoon(false)}
-                className="px-8 py-3 bg-[#FFD600] border-[3px] border-[#0A0A0A] rounded-[16px] font-bold text-[16px]"
+                className="px-8 py-3 bg-[#F5FF4F] border-[3px] border-[#0A0A0A] rounded-[16px] font-bold text-[16px]"
                 style={{ boxShadow: '6px 6px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
                 알겠어! 🤘

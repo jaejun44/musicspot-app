@@ -86,7 +86,7 @@ export default function RoomList({
             onClick={() => { trackLoadMore(studios.length); onLoadMore(); }}
             disabled={loading}
             whileTap={{ scale: 0.95, y: 2 }}
-            className="px-8 py-3 bg-[#FFD600] rounded-[16px] border-[3px] border-[#0A0A0A] font-bold text-[14px]"
+            className="px-8 py-3 bg-[#F5FF4F] rounded-[16px] border-[3px] border-[#0A0A0A] font-bold text-[14px]"
             style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
             {loading ? '불러오는 중...' : '더 보기 💥'}

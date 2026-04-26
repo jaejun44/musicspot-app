@@ -204,7 +204,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
           <section className="flex flex-col items-center gap-3">
             <div className="relative">
               <div
-                className="w-20 h-20 rounded-full border-[3px] border-[#0A0A0A] overflow-hidden bg-[#FFD600] flex items-center justify-center"
+                className="w-20 h-20 rounded-full border-[3px] border-[#0A0A0A] overflow-hidden bg-[#F5FF4F] flex items-center justify-center"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
               >
                 {avatarPreview || avatarUrl ? (
@@ -328,7 +328,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
                     whileTap={{ scale: 0.94 }}
                     className={[
                       'px-3 py-2 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold',
-                      active ? 'bg-[#FFD600] text-[#0A0A0A]' : 'bg-white text-[#0A0A0A]',
+                      active ? 'bg-[#F5FF4F] text-[#0A0A0A]' : 'bg-white text-[#0A0A0A]',
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
@@ -386,7 +386,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
                     whileTap={{ scale: 0.94 }}
                     className={[
                       'px-3 py-2 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold',
-                      active ? 'bg-[#00D26A] text-white' : 'bg-white text-[#0A0A0A]',
+                      active ? 'bg-[#41C66B] text-white' : 'bg-white text-[#0A0A0A]',
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >

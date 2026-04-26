@@ -24,7 +24,7 @@ const rooms = [
     title: '정보 제보',
     desc: '틀린 정보 발견했어',
     href: '/feedback?type=correction',
-    bg: '#FFD600',
+    bg: '#F5FF4F',
   },
 ];
 

@@ -114,7 +114,7 @@ export default function BookingClient() {
         <motion.button
           onClick={() => router.back()}
           whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 bg-[#FFD600] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px]"
+          className="px-6 py-3 bg-[#4FC3F7] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px]"
           style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
         >
           돌아가기

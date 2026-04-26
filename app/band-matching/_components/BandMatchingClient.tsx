@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase';
 const POSITION_EMOJIS: Record<string, string> = {
   '보컬': '🎤', '기타': '🎸', '베이스': '🎵', '드럼': '🥁', '건반': '🎹', '기타(other)': '🎶',
 };
-const CARD_COLORS = ['#FF3D77', '#4FC3F7', '#FFD600', '#00D26A'];
+const CARD_COLORS = ['#FF3D77', '#4FC3F7', '#F5FF4F', '#41C66B'];
 
 function profileToMusician(p: {
   id: string;
@@ -26,6 +26,7 @@ function profileToMusician(p: {
   genres: string[];
   region: string | null;
   purposes: string[];
+  looking_for: string | null;
   avatar_url: string | null;
 }, idx: number): Musician {
   const pos = (p.instruments[0] ?? '기타(other)') as Position;
@@ -37,7 +38,7 @@ function profileToMusician(p: {
     location: p.region ?? '미정',
     level: '중급',
     bio: p.bio ?? (p.purposes.join(', ') || '밴드 멤버를 찾고 있어요 🎶'),
-    lookingFor: p.purposes.join(', ') || '함께 연주할 분 구해요',
+    lookingFor: p.looking_for || p.purposes.join(', ') || '함께 연주할 분 구해요',
     emoji: POSITION_EMOJIS[pos] ?? '🎶',
     color: CARD_COLORS[idx % CARD_COLORS.length],
     avatar_url: p.avatar_url ?? undefined,
@@ -67,7 +68,7 @@ export default function BandMatchingClient() {
     async function fetchProfiles() {
       const { data } = await supabase
         .from('user_profiles')
-        .select('id, user_id, display_name, bio, instruments, genres, region, purposes, avatar_url')
+        .select('id, user_id, display_name, bio, instruments, genres, region, purposes, looking_for, avatar_url')
         .eq('is_public', true)
         .not('instruments', 'eq', '{}');
       if (data && data.length > 0) {
@@ -208,7 +209,7 @@ export default function BandMatchingClient() {
             <motion.button
               whileTap={{ scale: 0.96, y: 2 }}
               onClick={handleProfileRegister}
-              className="w-full py-4 bg-[#FFD600] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[15px]"
+              className="w-full py-4 bg-[#242447] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px]"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
               🎵 내 프로필 등록하기
@@ -228,7 +229,7 @@ export default function BandMatchingClient() {
           setShowOnboarding(false);
           supabase
             .from('user_profiles')
-            .select('id, user_id, display_name, bio, instruments, genres, region, purposes, avatar_url, is_public')
+            .select('id, user_id, display_name, bio, instruments, genres, region, purposes, looking_for, avatar_url, is_public')
             .eq('is_public', true)
             .not('instruments', 'eq', '{}')
             .then(({ data }) => {

@@ -49,7 +49,7 @@ export const MUSICIANS: Musician[] = [
     bio: '재즈 드러머. 다양한 장르 가능해요 🥁',
     lookingFor: '재즈/퓨전 밴드 구합니다',
     emoji: '🥁',
-    color: '#FFD600',
+    color: '#F5FF4F',
   },
   {
     id: '4',
@@ -61,7 +61,7 @@ export const MUSICIANS: Musician[] = [
     bio: '피아노 전공. 다양한 장르 편곡 가능 🎹',
     lookingFor: '어쿠스틱 밴드 합류 원해요',
     emoji: '🎹',
-    color: '#00D26A',
+    color: '#41C66B',
   },
   {
     id: '5',
@@ -97,7 +97,7 @@ export const MUSICIANS: Musician[] = [
     bio: '블루스 기타 3년차. 즉흥 연주 좋아해요',
     lookingFor: '블루스/재즈 세션 파트너',
     emoji: '🎸',
-    color: '#FFD600',
+    color: '#F5FF4F',
   },
   {
     id: '8',
@@ -109,6 +109,6 @@ export const MUSICIANS: Musician[] = [
     bio: '드럼 배운 지 1년. 열심히 합니다! 💪',
     lookingFor: '입문자 밴드 찾아요',
     emoji: '🥁',
-    color: '#00D26A',
+    color: '#41C66B',
   },
 ];

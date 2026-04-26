@@ -30,7 +30,7 @@ export default function DecorativeElements({ scrollY }: DecorativeElementsProps)
         className="fixed top-[40%] left-[85%] text-3xl pointer-events-none z-10"
         style={{
           transform: `translateY(${scrollY * 0.08}px)`,
-          color: '#FFD600',
+          color: '#F5FF4F',
         }}
       >
         ⚡
@@ -39,7 +39,7 @@ export default function DecorativeElements({ scrollY }: DecorativeElementsProps)
         className="fixed top-[80%] left-[20%] text-4xl pointer-events-none z-10"
         style={{
           transform: `translateY(${scrollY * 0.12}px)`,
-          color: '#00D26A',
+          color: '#41C66B',
         }}
       >
         ♪

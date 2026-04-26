@@ -122,7 +122,7 @@ export default function RoomDetailClient() {
         <motion.button
           onClick={() => router.back()}
           whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 bg-[#FFD600] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px]"
+          className="px-6 py-3 bg-[#4FC3F7] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px]"
           style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
         >
           돌아가기
@@ -220,7 +220,7 @@ export default function RoomDetailClient() {
                 href={`https://map.kakao.com/link/to/${encodeURIComponent(studio.name)},${studio.lat},${studio.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-4 bg-[#FFD600] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[15px] text-[#0A0A0A] active:scale-95 transition-transform"
+                className="flex items-center justify-center gap-2 w-full py-4 bg-[#4FC3F7] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[15px] text-[#0A0A0A] active:scale-95 transition-transform"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
                 <span className="text-xl">🗺️</span>

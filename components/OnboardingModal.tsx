@@ -43,6 +43,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
   const [genres, setGenres] = useState<string[]>([]);
   const [region, setRegion] = useState('');
   const [purposes, setPurposes] = useState<string[]>([]);
+  const [lookingFor, setLookingFor] = useState('');
   const [saving, setSaving] = useState(false);
 
   const displayName =
@@ -57,6 +58,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
         genres,
         region,
         purposes,
+        looking_for: lookingFor.trim() || null,
         is_public: opts.isPublic,
         updated_at: new Date().toISOString(),
       },
@@ -173,7 +175,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                     whileTap={{ scale: 0.94 }}
                     className={[
                       'px-3 py-2 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold',
-                      active ? 'bg-[#FFD600] text-[#0A0A0A]' : 'bg-white text-[#0A0A0A]',
+                      active ? 'bg-[#F5FF4F] text-[#0A0A0A]' : 'bg-white text-[#0A0A0A]',
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
@@ -231,7 +233,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                     whileTap={{ scale: 0.94 }}
                     className={[
                       'px-3 py-2 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold',
-                      active ? 'bg-[#00D26A] text-white' : 'bg-white text-[#0A0A0A]',
+                      active ? 'bg-[#41C66B] text-white' : 'bg-white text-[#0A0A0A]',
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
@@ -240,6 +242,31 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                 );
               })}
             </div>
+          </section>
+
+          {/* 구하는 멤버 설명 */}
+          <section>
+            <p
+              className="text-[13px] font-bold text-[#0A0A0A] mb-3"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              💬 구하는 멤버 <span className="text-[#0A0A0A]/40">(선택 · 최대 150자)</span>
+            </p>
+            <textarea
+              placeholder="예) 록/인디 좋아하는 드러머 구해요. 주 1회 합주 가능한 분!"
+              value={lookingFor}
+              onChange={(e) => setLookingFor(e.target.value)}
+              maxLength={150}
+              rows={3}
+              className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[13px] font-bold text-[#0A0A0A] resize-none focus:outline-none focus:border-[#FF3D77]"
+              style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+            />
+            <p
+              className="text-right text-[11px] text-[#0A0A0A]/30 mt-1 font-bold"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              {lookingFor.length}/150
+            </p>
           </section>
 
           {/* 저장 */}

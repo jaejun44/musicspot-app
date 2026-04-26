@@ -70,7 +70,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
               'flex-shrink-0 px-4 py-2.5 rounded-[12px] border-[2px] border-[#0A0A0A]',
               'text-[13px] font-bold whitespace-nowrap transition-colors',
               active
-                ? 'bg-[#FFD600] text-[#0A0A0A]'
+                ? 'bg-[#F5FF4F] text-[#0A0A0A]'
                 : 'bg-white text-[#0A0A0A]',
             ].join(' ')}
             style={{ boxShadow: active ? '3px 3px 0 #0A0A0A' : '2px 2px 0 #0A0A0A' }}

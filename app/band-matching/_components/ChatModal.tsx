@@ -270,7 +270,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                     <motion.button
                       whileTap={{ scale: 0.97 }}
                       onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert('카카오 채널 연동 준비 중이에요! 🎸'); }}
-                      className="w-full mt-2 py-2 bg-[#FFD600]/30 rounded-[10px] border-[1px] border-[#0A0A0A]/10 text-[12px] font-bold text-[#0A0A0A]/60"
+                      className="w-full mt-2 py-2 bg-[#F5FF4F]/30 rounded-[10px] border-[1px] border-[#0A0A0A]/10 text-[12px] font-bold text-[#0A0A0A]/60"
                       style={{ fontFamily: 'Pretendard, sans-serif' }}
                     >
                       💛 카카오로 연락하기
@@ -291,7 +291,7 @@ function KakaoButton({ musician }: { musician: Musician }) {
     <motion.button
       whileTap={{ scale: 0.96, y: 2 }}
       onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert('카카오 채널 연동 준비 중이에요! 🎸'); }}
-      className="w-full py-3.5 bg-[#FFD600] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]"
+      className="w-full py-3.5 bg-[#F5FF4F] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]"
       style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
     >
       💛 카카오로 연락하기

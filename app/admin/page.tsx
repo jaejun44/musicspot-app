@@ -377,7 +377,7 @@ export default function AdminPage() {
                 className={`p-4 bg-white border-[2px] space-y-3 ${
                   req.status === 'pending' ? 'border-comic-yellow' : 'border-comic-black/30'
                 }`}
-                style={req.status === 'pending' ? { boxShadow: '3px 3px 0 #FFD600' } : {}}
+                style={req.status === 'pending' ? { boxShadow: '3px 3px 0 #F5FF4F' } : {}}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>

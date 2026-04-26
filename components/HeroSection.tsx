@@ -13,7 +13,7 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 opacity-10"
         style={{
-          backgroundImage: 'radial-gradient(circle, #FFD600 2px, transparent 2px)',
+          backgroundImage: 'radial-gradient(circle, #F5FF4F 2px, transparent 2px)',
           backgroundSize: '20px 20px',
         }}
       />
@@ -23,7 +23,7 @@ export default function HeroSection() {
         {Array.from({ length: 16 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 bg-[#FFD600] opacity-20"
+            className="absolute w-1 bg-[#F5FF4F] opacity-20"
             style={{
               height: '150%',
               transform: `rotate(${i * 22.5}deg)`,
@@ -52,7 +52,7 @@ export default function HeroSection() {
                 color: '#0A0A0A',
                 WebkitTextStroke: '3px #0A0A0A',
                 paintOrder: 'stroke fill',
-                textShadow: '8px 8px 0 #FFD600',
+                textShadow: '8px 8px 0 #F5FF4F',
               }}
             >
               연습실부터<br />

@@ -5,7 +5,7 @@ import { Musician } from '../_data/musicians';
 import { trackBandContact } from '@/lib/analytics';
 
 const LEVEL_COLOR: Record<Musician['level'], string> = {
-  입문: '#00D26A',
+  입문: '#41C66B',
   중급: '#4FC3F7',
   고급: '#FF3D77',
 };

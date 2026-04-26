@@ -25,7 +25,7 @@ interface Booking {
 }
 
 const STATUS_LABEL: Record<string, { label: string; bg: string; color: string }> = {
-  confirmed: { label: '예약 확정', bg: '#00D26A', color: '#fff' },
+  confirmed: { label: '예약 확정', bg: '#41C66B', color: '#fff' },
   cancelled: { label: '취소됨', bg: '#0A0A0A', color: '#fff' },
 };
 
@@ -109,7 +109,7 @@ export default function BookingsTab() {
         className="flex flex-col items-center justify-center py-16 px-4"
       >
         <div
-          className="w-20 h-20 rounded-full bg-[#FFD600] border-[3px] border-[#0A0A0A] flex items-center justify-center mb-5"
+          className="w-20 h-20 rounded-full bg-[#F5FF4F] border-[3px] border-[#0A0A0A] flex items-center justify-center mb-5"
           style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
         >
           <span className="text-[32px]">📋</span>

@@ -105,7 +105,7 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
             )}
             {studio.has_drum && (
               <span
-                className="px-2 py-0.5 bg-[#FFD600] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
+                className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
               >
                 🥁 드럼

@@ -6,9 +6,9 @@ import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Post } from '../_data/posts';
 
 const CATEGORY_STYLE: Record<Post['category'], { bg: string; text: string }> = {
-  후기: { bg: '#00D26A', text: '#FFFFFF' },
+  후기: { bg: '#41C66B', text: '#FFFFFF' },
   구인: { bg: '#FF3D77', text: '#FFFFFF' },
-  자유: { bg: '#FFD600', text: '#0A0A0A' },
+  자유: { bg: '#F5FF4F', text: '#0A0A0A' },
   질문: { bg: '#4FC3F7', text: '#0A0A0A' },
 };
 
