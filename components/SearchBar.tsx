@@ -39,7 +39,7 @@ export default function SearchBar() {
           </div>
 
           {/* Date */}
-          <div className="min-w-0">
+          <div className="min-w-0 overflow-hidden">
             <label
               className="block mb-2"
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
@@ -47,11 +47,9 @@ export default function SearchBar() {
               날짜
             </label>
             <input
-              type="text"
-              placeholder="날짜 선택"
-              readOnly
+              type="date"
               className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
-              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', minWidth: 0, WebkitAppearance: 'none', appearance: 'none', boxSizing: 'border-box' }}
+              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', minWidth: 0, maxWidth: '100%', WebkitAppearance: 'none', appearance: 'none', boxSizing: 'border-box' }}
             />
           </div>
 

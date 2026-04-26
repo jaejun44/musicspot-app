@@ -22,7 +22,7 @@ export default function RoomContactBar({ studio }: RoomContactBarProps) {
             rel="noopener noreferrer"
             onClick={() => trackContactClick('naver', studio.id)}
             whileTap={{ scale: 0.95, y: 1 }}
-            className="flex-1 py-3 bg-[#00D26A] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[14px] font-bold text-center"
+            className="flex-1 py-3 bg-[#F5FF4E] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[14px] font-bold text-center"
             style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
             📍 플레이스
@@ -48,7 +48,7 @@ export default function RoomContactBar({ studio }: RoomContactBarProps) {
             href={`tel:${studio.phone}`}
             onClick={() => trackContactClick('phone', studio.id)}
             whileTap={{ scale: 0.95, y: 1 }}
-            className="flex-1 py-3 bg-[#FF3D77] rounded-[14px] border-[2px] border-[#0A0A0A] text-white text-[14px] font-bold text-center"
+            className="flex-1 py-3 bg-[#4FC3F7] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[14px] font-bold text-center"
             style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
             📞 전화
