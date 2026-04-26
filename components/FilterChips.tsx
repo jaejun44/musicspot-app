@@ -67,7 +67,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
             }}
             whileTap={{ scale: 0.93, y: 1 }}
             className={[
-              'flex-shrink-0 px-4 py-2 rounded-[12px] border-[2px] border-[#0A0A0A]',
+              'flex-shrink-0 px-4 py-2.5 rounded-[12px] border-[2px] border-[#0A0A0A]',
               'text-[13px] font-bold whitespace-nowrap transition-colors',
               active
                 ? 'bg-[#FFD600] text-[#0A0A0A]'

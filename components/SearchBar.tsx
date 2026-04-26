@@ -19,7 +19,7 @@ export default function SearchBar() {
       >
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           {/* Location */}
-          <div>
+          <div className="min-w-0">
             <label
               className="block mb-2"
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
@@ -30,7 +30,7 @@ export default function SearchBar() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
-              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', WebkitAppearance: 'none', appearance: 'none' }}
+              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', minWidth: 0, WebkitAppearance: 'none', appearance: 'none' }}
             >
               <option>서울 전체</option>
               <option>강남구</option>
@@ -39,7 +39,7 @@ export default function SearchBar() {
           </div>
 
           {/* Date */}
-          <div>
+          <div className="min-w-0">
             <label
               className="block mb-2"
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
@@ -47,14 +47,16 @@ export default function SearchBar() {
               날짜
             </label>
             <input
-              type="date"
+              type="text"
+              placeholder="날짜 선택"
+              readOnly
               className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
-              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', WebkitAppearance: 'none', appearance: 'none' }}
+              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', minWidth: 0, WebkitAppearance: 'none', appearance: 'none', boxSizing: 'border-box' }}
             />
           </div>
 
           {/* Time */}
-          <div>
+          <div className="min-w-0">
             <label
               className="block mb-2"
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
@@ -63,7 +65,7 @@ export default function SearchBar() {
             </label>
             <select
               className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
-              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', WebkitAppearance: 'none', appearance: 'none' }}
+              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', minWidth: 0, WebkitAppearance: 'none', appearance: 'none' }}
             >
               <option>오전</option>
               <option>오후</option>
@@ -72,7 +74,7 @@ export default function SearchBar() {
           </div>
 
           {/* People */}
-          <div>
+          <div className="min-w-0">
             <label
               className="block mb-2"
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
@@ -81,7 +83,7 @@ export default function SearchBar() {
             </label>
             <select
               className="w-full px-4 py-3 border-[3px] border-[#0A0A0A] rounded-xl bg-[#FFF8F0]"
-              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', WebkitAppearance: 'none', appearance: 'none' }}
+              style={{ fontFamily: 'Pretendard, sans-serif', display: 'block', width: '100%', minWidth: 0, WebkitAppearance: 'none', appearance: 'none' }}
             >
               <option>1-2명</option>
               <option>3-5명</option>
