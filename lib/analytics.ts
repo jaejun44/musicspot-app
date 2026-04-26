@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase';
 
+declare global {
+  interface Window {
+    gtag: (command: string, eventName: string, params?: Record<string, unknown>) => void;
+  }
+}
+
 type EventParams = Record<string, string | number | boolean>;
 
 // ─── 익명 세션 ID ────────────────────────────────────────────────
@@ -26,7 +32,7 @@ function getReferrer(): string {
 // ─── GA4 이벤트 (기존 유지) ───────────────────────────────────────
 function trackGA(eventName: string, params?: EventParams) {
   if (typeof window !== 'undefined' && 'gtag' in window) {
-    (window as any).gtag('event', eventName, params);
+    window.gtag('event', eventName, params);
   }
 }
 
