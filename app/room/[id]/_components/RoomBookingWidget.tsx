@@ -212,11 +212,11 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => trackContactClick('naver', studio.id, studio.name)}
-                        className="flex items-center gap-3 px-4 py-3 bg-[#00C73C] rounded-[14px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
+                        className="flex items-center gap-3 px-4 py-3 bg-[#F5FF4E] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[13px]"
                         style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                       >
-                        <span className="text-[16px]">🗺</span>
-                        네이버 예약으로 이동
+                        <span className="text-[16px]">🔗</span>
+                        온라인 예약 바로가기
                       </a>
                     )}
                     {hasPhone && (
