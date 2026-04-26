@@ -100,7 +100,7 @@ export default function HeroSection() {
               <motion.button
                 whileHover={{ y: 5, boxShadow: '3px 3px 0 #0A0A0A' }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto px-6 md:px-8 py-4 bg-[#FFD600] text-[#0A0A0A] rounded-[20px] border-[4px] border-[#0A0A0A]"
+                className="w-full sm:w-auto px-6 md:px-8 py-4 bg-[#41C66B] text-[#0A0A0A] rounded-[20px] border-[4px] border-[#0A0A0A]"
                 style={{
                   boxShadow: '8px 8px 0 #0A0A0A',
                   fontFamily: 'Bungee, sans-serif',

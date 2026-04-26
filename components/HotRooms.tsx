@@ -100,7 +100,7 @@ export default function HotRooms() {
                         <motion.div
                           initial={{ rotate: 0 }}
                           animate={{ rotate: -5 }}
-                          className="absolute top-4 right-4 px-3 py-1 bg-[#FFD600] border-[2px] border-[#0A0A0A] rounded-lg"
+                          className="absolute top-4 right-4 px-3 py-1 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] rounded-lg"
                           style={{
                             fontFamily: 'Pretendard, sans-serif',
                             fontWeight: 700,
