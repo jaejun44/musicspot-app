@@ -184,6 +184,7 @@ export default function CommunityClient() {
       {showWrite && (
         <WritePostModal
           user={user}
+          initialCategory={activeCategory === 'all' ? '자유' : activeCategory}
           onClose={() => setShowWrite(false)}
           onSuccess={() => {
             setShowWrite(false);

@@ -19,12 +19,13 @@ const CATEGORY_EMOJIS: Record<Category, string> = {
 
 interface Props {
   user: { id: string; email?: string; user_metadata?: Record<string, string> } | null;
+  initialCategory?: Category;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function WritePostModal({ user, onClose, onSuccess }: Props) {
-  const [category, setCategory] = useState<Category>('자유');
+export default function WritePostModal({ user, initialCategory = '자유', onClose, onSuccess }: Props) {
+  const [category, setCategory] = useState<Category>(initialCategory);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [tagsInput, setTagsInput] = useState('');
