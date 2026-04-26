@@ -126,20 +126,7 @@ export default function Navigation() {
               </Link>
             )
           )}
-          <Link href="/search">
-            <motion.button
-              whileHover={{ y: 5, boxShadow: '2px 2px 0 #0A0A0A' }}
-              whileTap={{ scale: 0.95 }}
-              className="px-6 py-3 bg-[#FF3D77] text-white rounded-2xl border-[3px] border-[#0A0A0A]"
-              style={{
-                boxShadow: '4px 4px 0 #0A0A0A',
-                fontFamily: 'Bungee, sans-serif',
-                fontSize: '14px',
-              }}
-            >
-              시작하기
-            </motion.button>
-          </Link>
+
 
           {/* Mobile Hamburger */}
           <button
