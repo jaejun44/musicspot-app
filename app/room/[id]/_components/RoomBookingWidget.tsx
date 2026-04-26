@@ -55,7 +55,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
 
         {/* 가격 */}
         <div
-          className="bg-[#FFD600] rounded-[14px] border-[2px] border-[#0A0A0A] px-4 py-3 mb-4 flex items-center justify-between"
+          className="bg-[#FA6522] rounded-[14px] border-[2px] border-[#0A0A0A] px-4 py-3 mb-4 flex items-center justify-between"
           style={{ boxShadow: '3px 3px 0 #FF3D77' }}
         >
           <span className="text-[12px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
