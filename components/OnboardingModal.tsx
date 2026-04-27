@@ -45,12 +45,13 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
   const [purposes, setPurposes] = useState<string[]>([]);
   const [lookingFor, setLookingFor] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const displayName =
     user.user_metadata?.full_name || user.email?.split('@')[0] || '뮤지션';
 
-  async function upsertProfile(opts: { isPublic: boolean }) {
-    await supabase.from('user_profiles').upsert(
+  async function upsertProfile(opts: { isPublic: boolean }): Promise<boolean> {
+    const { error } = await supabase.from('user_profiles').upsert(
       {
         user_id: user.id,
         display_name: displayName,
@@ -64,12 +65,22 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
       },
       { onConflict: 'user_id' }
     );
+    if (error) {
+      console.error('[OnboardingModal] upsert error:', error);
+      return false;
+    }
+    return true;
   }
 
   async function handleSave() {
     setSaving(true);
-    await upsertProfile({ isPublic: instruments.length > 0 });
+    setSaveError('');
+    const ok = await upsertProfile({ isPublic: instruments.length > 0 });
     setSaving(false);
+    if (!ok) {
+      setSaveError('저장에 실패했어요. 잠시 후 다시 시도해주세요.');
+      return;
+    }
     onComplete();
   }
 
@@ -268,6 +279,16 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
               {lookingFor.length}/150
             </p>
           </section>
+
+          {/* 저장 에러 */}
+          {saveError && (
+            <p
+              className="text-[13px] font-bold text-[#FF3D77] text-center"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              ⚠️ {saveError}
+            </p>
+          )}
 
           {/* 저장 */}
           <motion.button

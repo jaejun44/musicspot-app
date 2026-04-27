@@ -60,7 +60,7 @@ export default function BandMatchingClient() {
       .from('user_profiles')
       .select('is_public')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }) => setMyProfile(data ?? null));
   }, [user?.id]);
 

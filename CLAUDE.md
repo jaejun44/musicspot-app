@@ -376,6 +376,20 @@ navigate('/room/1')  →  router.push('/room/1')
 - **절대 금지**: square corner (rounded-none), 블러 그림자 (shadow-lg 등), 어두운 다크 배경
 - **필수**: 모든 카드/버튼에 `rounded-[12px]` 이상 + offset 그림자
 
+### 브랜드 컬러 독점 규칙 (2026-04-26 확정)
+- **`#FFD600` (카카오 옐로)**: 실제 카카오 SDK 연결 4곳에만 허용
+  - `LoginClient.tsx` 카카오 OAuth 버튼
+  - `PaymentClient.tsx` 카카오페이 옵션
+  - `RoomBookingWidget.tsx` 카카오 채널 문의 버튼
+  - `RoomContactBar.tsx` 카카오 채널 연락 버튼
+- **`#00D26A` (네이버 그린)**: 코드베이스 전체 사용 금지
+- **Music Spot 고유 팔레트**:
+  - 라임옐로 `#F5FF4F` — 뱃지, 필터칩, 데코, 보조 버튼
+  - 그린 `#41C66B` — 완료/긍정 상태, 아이콘
+  - 블루 `#4FC3F7` — CTA 보조 버튼 (돌아가기 등)
+  - 핑크 `#FF3D77` — 주요 CTA, 강조
+  - 네이비 `#242447` — 다크 배경, 강조 텍스트
+
 ### 알려진 이슈
 - **Supabase 1,000행 제한**: `.limit()` 대신 배치 range 패턴 필수
 - **useSearchParams**: 반드시 Suspense 래핑, 없으면 빌드 에러
@@ -446,6 +460,13 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] HeroSection CTA 버튼 텍스트 줄바꿈 수정 (fontSize 고정 18px + whiteSpace nowrap)
 - [x] SearchBar iOS 날짜 입력 너비 불일치 수정 (appearance-none으로 네이티브 렌더링 해제)
 
+### ✅ Phase 7 — 브랜드 컬러 감사 (완료, 2026-04-26)
+- [x] 전체 코드베이스 #FFD600/#00D26A 완전 감사 (33개 파일)
+- [x] #FFD600 → #F5FF4F (라임옐로) 교체 — 뱃지, 필터칩, 데코 요소, 버튼 등 비 카카오 사용처
+- [x] #FFD600 → #4FC3F7 (블루) 교체 — 주요 CTA 버튼 (돌아가기, 카카오맵 이동 등)
+- [x] #00D26A → #41C66B (그린) 교체 — 전 영역 (상태 뱃지, 아이콘, 칩 등)
+- [x] 카카오 SDK 연결 4곳은 #FFD600 유지 (LoginClient 카카오 OAuth, PaymentClient 카카오페이, RoomBookingWidget/RoomContactBar 채널 버튼)
+
 ---
 
 ## Analytics 이벤트 트래킹 (GA4 + Supabase)
@@ -475,9 +496,9 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ## 다음 세션 즉시 시작할 작업
 
-> **최종 업데이트: 2026-04-26**
+> **최종 업데이트: 2026-04-26 (Phase 7 컬러 감사 완료)**
 
-### ✅ 바로 시작 — 1순위: 커뮤니티 글쓰기 기능
+### 1순위: 커뮤니티 글쓰기 기능
 
 **현재 상태**: `app/community/page.tsx` 읽기 전용 (더미 데이터 + localStorage 좋아요)
 

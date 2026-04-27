@@ -60,7 +60,7 @@ export default function BookingDatePicker({
               ? 'border-[2px] border-[#FF3D77]'
               : 'border-[2px] border-[#0A0A0A] focus:border-[#FF3D77]',
           ].join(' ')}
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
+          style={{ fontFamily: 'Pretendard, sans-serif', WebkitAppearance: 'none', appearance: 'none' }}
         />
         {errors.date && (
           <p className="text-[11px] text-[#FF3D77] font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
