@@ -30,6 +30,7 @@ export default function StemsClient() {
   const { user, loading } = useAuth();
   const [projects, setProjects] = useState<StemProject[]>([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingProject, setEditingProject] = useState<StemProject | null>(null);
   const [selectedProject, setSelectedProject] = useState<StemProject | null>(null);
 
   useEffect(() => {
@@ -55,6 +56,22 @@ export default function StemsClient() {
     }
   }
 
+  async function handleDeleteProject(id: string) {
+    if (!confirm('프로젝트를 삭제하시겠어요? 모든 트랙도 함께 삭제됩니다.')) return;
+    await supabase.from('stem_tracks').delete().eq('project_id', id);
+    await supabase.from('stem_projects').delete().eq('id', id);
+    fetchProjects();
+  }
+
+  function handleEditProject(project: StemProject) {
+    setEditingProject(project);
+  }
+
+  function closeModal() {
+    setShowCreate(false);
+    setEditingProject(null);
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF8F0]">
       <Navigation />
@@ -70,13 +87,13 @@ export default function StemsClient() {
             className="text-[28px] font-bold text-[#0A0A0A]"
             style={{ fontFamily: 'Bungee, sans-serif' }}
           >
-            8마디 주고받기 🎵
+            PASS THE RIFF 🎸
           </h1>
           <p
             className="text-[13px] text-[#0A0A0A]/50 mt-1 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            8마디씩 릴레이로 만들어가는 음악
+            릴레이로 완성하는 우리의 리프
           </p>
         </motion.div>
       </div>
@@ -103,7 +120,10 @@ export default function StemsClient() {
                 key={p.id}
                 project={p}
                 index={i}
+                user={user}
                 onOpen={setSelectedProject}
+                onEdit={handleEditProject}
+                onDelete={handleDeleteProject}
               />
             ))}
           </div>
@@ -146,12 +166,13 @@ export default function StemsClient() {
         </motion.button>
       </div>
 
-      {showCreate && user && (
+      {(showCreate || editingProject) && user && (
         <CreateProjectModal
           user={user}
-          onClose={() => setShowCreate(false)}
+          editProject={editingProject ?? undefined}
+          onClose={closeModal}
           onSuccess={() => {
-            setShowCreate(false);
+            closeModal();
             fetchProjects();
           }}
         />
@@ -163,6 +184,13 @@ export default function StemsClient() {
           user={user}
           onClose={() => setSelectedProject(null)}
           onUpdate={fetchProjects}
+          onEdit={(p) => { setSelectedProject(null); handleEditProject(p); }}
+          onDelete={async (id) => {
+            await supabase.from('stem_tracks').delete().eq('project_id', id);
+            await supabase.from('stem_projects').delete().eq('id', id);
+            setSelectedProject(null);
+            fetchProjects();
+          }}
         />
       )}
     </div>

@@ -126,7 +126,7 @@ guitar.jpg      — 핑크 일렉기타 치비 (포인트용)
 
 ### Navigation (공통 컴포넌트)
 - "MUSIC SPOT" 로고 → `/`
-- 메뉴: 연습실 → `/search` / 밴드찾기 → `/band-matching` / 커뮤니티 → `/community` / 마이 → `/my-bookings`
+- 메뉴: 연습실 → `/search` / 밴드찾기 → `/band-matching` / 내 밴드 → `/my-band` / RIFF → `/stems` / 커뮤니티 → `/community` / 마이 → `/my-bookings`
 - 우측: 로그인 → `/login` / 시작하기(핑크 버튼) → `/search`
 - 스타일: `bg-[#FFF8F0] border-b-[3px]`, 높이 80px, 로고 Bungee 4xl
 

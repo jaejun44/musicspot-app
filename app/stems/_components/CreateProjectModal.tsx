@@ -5,25 +5,29 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
+import { StemProject } from './StemsClient';
 
 const KEY_OPTIONS = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
   'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm',
 ];
-const GENRE_PRESETS = ['팝', '록', '재즈', '힙합', 'R&B', '발라드', '인디', '일렉트로닉', '포크', '클래식'];
+const GENRE_PRESETS = ['팝', '록', '메탈', '재즈', '힙합', 'R&B', '발라드', '인디', '일렉트로닉', '포크', '클래식'];
 
 interface Props {
   user: User;
+  editProject?: StemProject;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function CreateProjectModal({ user, onClose, onSuccess }: Props) {
-  const [title, setTitle] = useState('');
-  const [bpm, setBpm] = useState(120);
-  const [keySignature, setKeySignature] = useState('C');
-  const [genre, setGenre] = useState('');
-  const [description, setDescription] = useState('');
+export default function CreateProjectModal({ user, editProject, onClose, onSuccess }: Props) {
+  const isEdit = !!editProject;
+
+  const [title, setTitle] = useState(editProject?.title ?? '');
+  const [bpm, setBpm] = useState(editProject?.bpm ?? 120);
+  const [keySignature, setKeySignature] = useState(editProject?.key_signature ?? 'C');
+  const [genre, setGenre] = useState(editProject?.genre ?? '');
+  const [description, setDescription] = useState(editProject?.description ?? '');
   const [loading, setLoading] = useState(false);
 
   const creatorName =
@@ -35,17 +39,32 @@ export default function CreateProjectModal({ user, onClose, onSuccess }: Props) 
   async function handleSubmit() {
     if (!title.trim() || loading) return;
     setLoading(true);
-    await supabase.from('stem_projects').insert({
-      title: title.trim(),
-      creator_id: user.id,
-      creator_name: creatorName,
-      creator_emoji: '🎵',
-      bpm,
-      key_signature: keySignature,
-      genre: genre.trim() || null,
-      description: description.trim() || null,
-      is_open: true,
-    });
+
+    if (isEdit) {
+      await supabase
+        .from('stem_projects')
+        .update({
+          title: title.trim(),
+          bpm,
+          key_signature: keySignature,
+          genre: genre.trim() || null,
+          description: description.trim() || null,
+        })
+        .eq('id', editProject!.id);
+    } else {
+      await supabase.from('stem_projects').insert({
+        title: title.trim(),
+        creator_id: user.id,
+        creator_name: creatorName,
+        creator_emoji: '🎵',
+        bpm,
+        key_signature: keySignature,
+        genre: genre.trim() || null,
+        description: description.trim() || null,
+        is_open: true,
+      });
+    }
+
     setLoading(false);
     onSuccess();
   }
@@ -75,7 +94,7 @@ export default function CreateProjectModal({ user, onClose, onSuccess }: Props) 
               className="text-[18px] font-bold text-[#0A0A0A]"
               style={{ fontFamily: 'Bungee, sans-serif' }}
             >
-              새 프로젝트 🎵
+              {isEdit ? '프로젝트 수정 ✏️' : '새 프로젝트 🎵'}
             </h2>
             <button onClick={onClose} className="p-1">
               <X className="w-5 h-5 text-[#0A0A0A]/60" />
@@ -211,7 +230,7 @@ export default function CreateProjectModal({ user, onClose, onSuccess }: Props) 
               className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px] disabled:opacity-60"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              {loading ? '생성 중...' : '🎵 프로젝트 시작!'}
+              {loading ? (isEdit ? '수정 중...' : '생성 중...') : isEdit ? '✅ 수정 완료' : '🎵 프로젝트 시작!'}
             </motion.button>
           </div>
         </motion.div>

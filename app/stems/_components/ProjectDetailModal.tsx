@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Pause, Upload, Music, Mic, Square } from 'lucide-react';
+import { X, Play, Pause, Upload, Music, Mic, Square, Trash2, Pencil } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import { StemProject } from './StemsClient';
@@ -29,10 +29,14 @@ interface Props {
   user: User | null;
   onClose: () => void;
   onUpdate: () => void;
+  onEdit?: (p: StemProject) => void;
+  onDelete?: (id: string) => void;
 }
 
-export default function ProjectDetailModal({ project, user, onClose, onUpdate }: Props) {
+export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete }: Props) {
   const [tracks, setTracks] = useState<StemTrack[]>([]);
+  const [localIsOpen, setLocalIsOpen] = useState(project.is_open);
+  const isOwner = !!user && user.id === project.creator_id;
   const [loadingTracks, setLoadingTracks] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
@@ -77,6 +81,20 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate }:
       .order('track_order', { ascending: true });
     setTracks(data ?? []);
     setLoadingTracks(false);
+  }
+
+  async function handleToggleOpen() {
+    const newVal = !localIsOpen;
+    await supabase.from('stem_projects').update({ is_open: newVal }).eq('id', project.id);
+    setLocalIsOpen(newVal);
+    onUpdate();
+  }
+
+  async function handleDeleteTrack(id: string) {
+    if (!confirm('이 트랙을 삭제할까요?')) return;
+    await supabase.from('stem_tracks').delete().eq('id', id);
+    fetchTracks();
+    onUpdate();
   }
 
   function handlePlayPause(trackId: string) {
@@ -267,11 +285,11 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate }:
                 <span
                   className={[
                     'inline-block px-2 py-0.5 rounded-[8px] border-[2px] border-[#0A0A0A] text-[11px] font-bold mb-2',
-                    project.is_open ? 'bg-[#41C66B] text-white' : 'bg-[#0A0A0A]/10 text-[#0A0A0A]/50',
+                    localIsOpen ? 'bg-[#41C66B] text-white' : 'bg-[#0A0A0A]/10 text-[#0A0A0A]/50',
                   ].join(' ')}
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  {project.is_open ? '🎵 참여중' : '🔒 마감'}
+                  {localIsOpen ? '🎵 참여중' : '🔒 마감'}
                 </span>
                 <h2
                   className="text-[20px] font-bold text-[#0A0A0A] leading-tight"
@@ -320,6 +338,43 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate }:
               >
                 {project.description}
               </p>
+            )}
+
+            {isOwner && (
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={handleToggleOpen}
+                  className={[
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold transition-colors',
+                    localIsOpen ? 'bg-[#F5FF4F] text-[#0A0A0A]' : 'bg-[#41C66B] text-white',
+                  ].join(' ')}
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  {localIsOpen ? '🔒 마감하기' : '🎵 다시 열기'}
+                </button>
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(project)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold bg-white hover:bg-[#FFF8F0] transition-colors"
+                    style={{ fontFamily: 'Pretendard, sans-serif' }}
+                  >
+                    <Pencil className="w-3 h-3" /> 수정
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => {
+                      if (confirm('프로젝트를 삭제할까요? 모든 트랙도 함께 삭제됩니다.')) {
+                        onDelete(project.id);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold bg-white text-[#FF3D77] hover:bg-[#FF3D77]/10 transition-colors"
+                    style={{ fontFamily: 'Pretendard, sans-serif' }}
+                  >
+                    <Trash2 className="w-3 h-3" /> 삭제
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -434,6 +489,15 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate }:
                         >
                           #{track.track_order}
                         </span>
+
+                        {(user?.id === track.user_id || isOwner) && (
+                          <button
+                            onClick={() => handleDeleteTrack(track.id)}
+                            className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[8px] border-[2px] border-[#0A0A0A]/20 hover:bg-[#FF3D77]/10 hover:border-[#FF3D77] transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-[#FF3D77]" />
+                          </button>
+                        )}
                       </motion.div>
                     </div>
                   ))}
@@ -442,7 +506,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate }:
             </div>
 
             {/* Upload / Record section */}
-            {project.is_open && user && (
+            {localIsOpen && user && (
               <div>
                 <h3
                   className="text-[15px] font-bold text-[#0A0A0A] mb-3"
@@ -658,7 +722,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate }:
             )}
 
             {/* Login nudge */}
-            {project.is_open && !user && (
+            {localIsOpen && !user && (
               <div className="flex flex-col items-center py-6 bg-white rounded-[16px] border-[2px] border-[#0A0A0A]/20">
                 <p
                   className="text-[13px] font-bold text-[#0A0A0A]/50 text-center"
