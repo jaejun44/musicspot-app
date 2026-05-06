@@ -15,6 +15,7 @@ import RoomPhotoGallery from './RoomPhotoGallery';
 import RoomInfoCard from './RoomInfoCard';
 import RoomBookingWidget from './RoomBookingWidget';
 import RoomContactBar from './RoomContactBar';
+import ReviewSection from './ReviewSection';
 
 export default function RoomDetailClient() {
   const { id } = useParams<{ id: string }>();
@@ -236,6 +237,9 @@ export default function RoomDetailClient() {
             )}
           </div>
         )}
+
+        {/* 뮤지션 리뷰 */}
+        <ReviewSection studioId={studio.id} />
 
         {/* 카카오 공유 */}
         <KakaoShareButton
