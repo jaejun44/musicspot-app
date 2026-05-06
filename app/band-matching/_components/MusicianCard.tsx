@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Musician } from '../_data/musicians';
 import { trackBandContact } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
@@ -144,7 +145,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
       </div>
 
       {/* 버튼 행 */}
-      <div className={canFollow ? 'flex gap-2' : ''}>
+      <div className="flex gap-2">
         {canFollow && (
           <motion.button
             onClick={handleFollow}
@@ -160,6 +161,16 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
           >
             {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
           </motion.button>
+        )}
+        {isRealUser && (
+          <Link
+            href={`/u/${musician.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-shrink-0 px-3 py-2.5 bg-[#F5FF4F] rounded-[12px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[12px] text-center"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+          >
+            프로필
+          </Link>
         )}
         <motion.button
           onClick={() => { trackBandContact('open_modal', musician.name, musician.position); onContact(musician); }}
