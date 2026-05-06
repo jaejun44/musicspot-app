@@ -4,15 +4,20 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Bell } from 'lucide-react';
 import { trackComingSoonClick } from '@/lib/analytics';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
+import NotificationDropdown from '@/components/NotificationDropdown';
 
 export default function Navigation() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
 
   async function handleSignOut() {
     await signOut();
@@ -85,6 +90,28 @@ export default function Navigation() {
           {!loading && (
             user ? (
               <div className="hidden md:flex items-center gap-3">
+                {/* 알림 벨 */}
+                <div className="relative">
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => setNotifOpen((v) => !v)}
+                    className="relative w-9 h-9 flex items-center justify-center rounded-full border-[2px] border-[#0A0A0A] bg-white"
+                    style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+                    aria-label="알림"
+                  >
+                    <Bell className="w-4 h-4 text-[#0A0A0A]" />
+                    {unreadCount > 0 && (
+                      <span
+                        className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-[#FF3D77] text-white text-[10px] font-bold rounded-full border-[1.5px] border-white"
+                        style={{ fontFamily: 'Bungee, sans-serif' }}
+                      >
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </motion.button>
+                  <NotificationDropdown open={notifOpen} onClose={() => setNotifOpen(false)} />
+                </div>
+
                 <Link href="/my-bookings" className="flex items-center gap-2 group">
                   {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
                     <img

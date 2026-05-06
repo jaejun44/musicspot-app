@@ -83,6 +83,21 @@ export default function PaymentClient() {
         payment_method: method,
         status: 'confirmed',
       });
+
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        type: 'booking_confirmed',
+        title: '예약이 확정되었습니다 🎸',
+        body: `${booking.studioName} · ${booking.date} ${booking.time}`,
+        payload: {
+          studio_id: booking.studioId,
+          studio_name: booking.studioName,
+          date: booking.date,
+          time: booking.time,
+        },
+        read: false,
+      });
+
       trackBookingComplete(booking.studioId, booking.studioName, finalPrice);
     }
 
