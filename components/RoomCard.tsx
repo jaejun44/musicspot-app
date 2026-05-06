@@ -134,11 +134,18 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
           </p>
 
           <div className="flex items-center justify-between">
-            {studio.rating && (
+            {(studio.review_count ?? 0) > 0 ? (
+              <span
+                className="px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
+                style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+              >
+                ⭐ {studio.review_avg?.toFixed(1)} ({studio.review_count})
+              </span>
+            ) : studio.rating ? (
               <span className="text-[13px] font-semibold text-[#0A0A0A]/60">
                 ⭐ {studio.rating}
               </span>
-            )}
+            ) : null}
             <span
               className="ml-auto"
               style={{

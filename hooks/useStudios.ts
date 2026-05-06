@@ -104,6 +104,7 @@ export function useStudios(): UseStudiosReturn {
       .select('*')
       .eq('is_published', true)
       .order('data_quality_score', { ascending: false })
+      .order('review_avg', { ascending: false, nullsFirst: false })
       .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
 
     query = applyFilters(query, filters);

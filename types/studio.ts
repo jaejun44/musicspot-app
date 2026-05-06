@@ -23,6 +23,8 @@ export interface Studio {
   photos: string[] | null;
   notes: string | null;
   data_quality_score: number;
+  review_avg: number | null;
+  review_count: number;
   is_published: boolean;
   created_at: string;
   updated_at: string;

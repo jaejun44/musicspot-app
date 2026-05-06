@@ -93,7 +93,15 @@ export default function RoomInfoCard({ studio, onShare }: RoomInfoCardProps) {
             👥 {studio.capacity}
           </span>
         )}
-        {studio.rating && (
+        {(studio.review_count ?? 0) > 0 && (
+          <span
+            className="px-3 py-1 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[8px]"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            ⭐ {studio.review_avg?.toFixed(1)} ({studio.review_count})
+          </span>
+        )}
+        {studio.rating && (studio.review_count ?? 0) === 0 && (
           <span className="px-3 py-1 bg-[#FFF8F0] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[8px]">
             ⭐ {studio.rating}
           </span>
