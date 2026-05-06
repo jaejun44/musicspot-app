@@ -310,7 +310,7 @@ function WriteReviewModal({
   );
 }
 
-export default function ReviewSection({ studioId }: { studioId: string }) {
+export default function ReviewSection({ studioId, onReviewSaved }: { studioId: string; onReviewSaved?: () => void }) {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
@@ -420,7 +420,7 @@ export default function ReviewSection({ studioId }: { studioId: string }) {
             studioId={studioId}
             user={user}
             onClose={() => setShowModal(false)}
-            onSaved={fetchReviews}
+            onSaved={() => { fetchReviews(); onReviewSaved?.(); }}
           />
         )}
       </AnimatePresence>

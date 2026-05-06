@@ -48,6 +48,16 @@ export default function RoomDetailClient() {
     load();
   }, [id]);
 
+  async function refreshStudio() {
+    const { data } = await supabase
+      .from('studios')
+      .select('*')
+      .eq('id', id)
+      .eq('is_published', true)
+      .single();
+    if (data) setStudio(data as Studio);
+  }
+
   async function handleShare() {
     if (!studio) return;
     const url = `${window.location.origin}/room/${studio.id}`;
@@ -239,7 +249,9 @@ export default function RoomDetailClient() {
         )}
 
         {/* 뮤지션 리뷰 */}
-        <ReviewSection studioId={studio.id} />
+        <div id="reviews">
+          <ReviewSection studioId={studio.id} onReviewSaved={refreshStudio} />
+        </div>
 
         {/* 카카오 공유 */}
         <KakaoShareButton
