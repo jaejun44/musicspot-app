@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Musician } from '../_data/musicians';
 import { trackBandContact } from '@/lib/analytics';
+import { supabase } from '@/lib/supabase';
 
 const LEVEL_COLOR: Record<Musician['level'], string> = {
   입문: '#41C66B',
@@ -10,14 +12,51 @@ const LEVEL_COLOR: Record<Musician['level'], string> = {
   고급: '#FF3D77',
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 interface Props {
   musician: Musician;
   index: number;
   onContact: (m: Musician) => void;
+  currentUserId?: string;
 }
 
-export default function MusicianCard({ musician, index, onContact }: Props) {
+export default function MusicianCard({ musician, index, onContact, currentUserId }: Props) {
   const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
+  const isRealUser = UUID_RE.test(musician.id);
+  const canFollow = !!(currentUserId && isRealUser && currentUserId !== musician.id);
+
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  useEffect(() => {
+    if (!canFollow) return;
+    supabase
+      .from('user_follows')
+      .select('follower_id')
+      .eq('follower_id', currentUserId!)
+      .eq('following_id', musician.id)
+      .maybeSingle()
+      .then(({ data }) => setIsFollowing(!!data));
+  }, [canFollow, currentUserId, musician.id]);
+
+  async function handleFollow(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!canFollow || followLoading) return;
+    setFollowLoading(true);
+    if (isFollowing) {
+      await supabase.from('user_follows')
+        .delete()
+        .eq('follower_id', currentUserId!)
+        .eq('following_id', musician.id);
+      setIsFollowing(false);
+    } else {
+      await supabase.from('user_follows')
+        .insert({ follower_id: currentUserId!, following_id: musician.id });
+      setIsFollowing(true);
+    }
+    setFollowLoading(false);
+  }
 
   return (
     <motion.div
@@ -104,15 +143,33 @@ export default function MusicianCard({ musician, index, onContact }: Props) {
         </p>
       </div>
 
-      {/* 연락 버튼 */}
-      <motion.button
-        onClick={() => { trackBandContact('open_modal', musician.name, musician.position); onContact(musician); }}
-        whileTap={{ scale: 0.95, y: 1 }}
-        className="w-full py-2.5 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
-        style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-      >
-        연락하기 💥
-      </motion.button>
+      {/* 버튼 행 */}
+      <div className={canFollow ? 'flex gap-2' : ''}>
+        {canFollow && (
+          <motion.button
+            onClick={handleFollow}
+            whileTap={{ scale: 0.95, y: 1 }}
+            disabled={followLoading}
+            className={[
+              'flex-shrink-0 px-3 py-2.5 rounded-[12px] border-[2px] border-[#0A0A0A] font-bold text-[12px] transition-colors disabled:opacity-60',
+              isFollowing
+                ? 'bg-[#41C66B] text-white'
+                : 'bg-white text-[#0A0A0A]',
+            ].join(' ')}
+            style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+          >
+            {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
+          </motion.button>
+        )}
+        <motion.button
+          onClick={() => { trackBandContact('open_modal', musician.name, musician.position); onContact(musician); }}
+          whileTap={{ scale: 0.95, y: 1 }}
+          className="flex-1 py-2.5 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
+          style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+        >
+          연락하기 💥
+        </motion.button>
+      </div>
     </motion.div>
   );
 }

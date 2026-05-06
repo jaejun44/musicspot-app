@@ -23,6 +23,7 @@ export default function Navigation() {
     { label: '연습실', path: '/search' },
     { label: '밴드찾기', path: '/band-matching', trackAs: 'band_matching' },
     { label: '내 밴드', path: '/my-band' },
+    { label: '8마디', path: '/stems' },
     { label: '커뮤니티', path: '/community', trackAs: 'community' },
     { label: '마이', path: '/my-bookings' },
   ];

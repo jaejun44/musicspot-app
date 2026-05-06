@@ -3,8 +3,11 @@
 import { motion } from 'framer-motion';
 import { Category } from '../_data/posts';
 
-const CATEGORIES: { label: string; value: Category | 'all'; emoji: string; color: string }[] = [
-  { label: '전체', value: 'all', emoji: '📝', color: '#FF3D77' },
+export type FeedTab = Category | 'all' | '팔로잉';
+
+const CATEGORIES: { label: string; value: FeedTab; emoji: string; color: string }[] = [
+  { label: '팔로잉', value: '팔로잉', emoji: '❤️', color: '#FF3D77' },
+  { label: '전체', value: 'all', emoji: '📝', color: '#4FC3F7' },
   { label: '후기', value: '후기', emoji: '⭐', color: '#41C66B' },
   { label: '구인', value: '구인', emoji: '🔍', color: '#FF3D77' },
   { label: '자유', value: '자유', emoji: '💬', color: '#F5FF4F' },
@@ -12,8 +15,8 @@ const CATEGORIES: { label: string; value: Category | 'all'; emoji: string; color
 ];
 
 interface Props {
-  active: Category | 'all';
-  onChange: (c: Category | 'all') => void;
+  active: FeedTab;
+  onChange: (c: FeedTab) => void;
 }
 
 export default function CategoryFilter({ active, onChange }: Props) {

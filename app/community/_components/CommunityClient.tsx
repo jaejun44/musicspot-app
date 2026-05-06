@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
-import CategoryFilter from './CategoryFilter';
+import CategoryFilter, { FeedTab } from './CategoryFilter';
 import PostCard from './PostCard';
 import WritePostModal from './WritePostModal';
 import { POSTS, Post, Category } from '../_data/posts';
@@ -32,8 +32,9 @@ function mapPost(p: Record<string, unknown>): Post {
 export default function CommunityClient() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<FeedTab>('all');
   const [posts, setPosts] = useState<Post[]>(POSTS);
+  const [followFeed, setFollowFeed] = useState<Post[]>([]);
   const [showWrite, setShowWrite] = useState(false);
   const [editPost, setEditPost] = useState<Post | null>(null);
 
@@ -51,6 +52,27 @@ export default function CommunityClient() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    if (activeTab !== '팔로잉' || !user) return;
+    async function fetchFollowFeed() {
+      const { data: follows } = await supabase
+        .from('user_follows')
+        .select('following_id')
+        .eq('follower_id', user!.id);
+      const ids = (follows ?? []).map((r: { following_id: string }) => r.following_id);
+      if (ids.length === 0) { setFollowFeed([]); return; }
+      const { data } = await supabase
+        .from('posts')
+        .select(SELECT_FIELDS)
+        .eq('is_published', true)
+        .in('author_id', ids)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      setFollowFeed((data ?? []).map(mapPost));
+    }
+    fetchFollowFeed();
+  }, [activeTab, user]);
+
   async function refreshPosts() {
     const { data } = await supabase
       .from('posts')
@@ -66,12 +88,15 @@ export default function CommunityClient() {
   async function handleDelete(postId: string) {
     await supabase.from('posts').delete().eq('id', postId);
     setPosts((prev) => prev.filter((p) => p.id !== postId));
+    setFollowFeed((prev) => prev.filter((p) => p.id !== postId));
   }
 
-  const filtered =
-    activeCategory === 'all'
+  const filtered: Post[] =
+    activeTab === '팔로잉'
+      ? followFeed
+      : activeTab === 'all'
       ? posts
-      : posts.filter((p) => p.category === activeCategory);
+      : posts.filter((p) => p.category === activeTab as Category);
 
   return (
     <div className="min-h-screen bg-[#FFF8F0]">
@@ -106,20 +131,23 @@ export default function CommunityClient() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <CategoryFilter active={activeCategory} onChange={setActiveCategory} />
+          <CategoryFilter active={activeTab} onChange={(tab) => {
+          if (tab === '팔로잉' && !user) { router.push('/login'); return; }
+          setActiveTab(tab);
+        }} />
         </motion.div>
       </div>
 
       {/* 카운트 */}
       <div className="px-4 pb-3 max-w-2xl mx-auto">
         <motion.p
-          key={`${activeCategory}-${filtered.length}`}
+          key={`${activeTab}-${filtered.length}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-[12px] text-[#0A0A0A]/40 font-bold"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          게시물 {filtered.length}개
+          {activeTab === '팔로잉' ? `팔로잉 피드 ${filtered.length}개` : `게시물 ${filtered.length}개`}
         </motion.p>
       </div>
 
@@ -127,7 +155,7 @@ export default function CommunityClient() {
       <div className="px-4 pb-28 max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeCategory}
+            key={activeTab}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -184,7 +212,7 @@ export default function CommunityClient() {
       {showWrite && (
         <WritePostModal
           user={user}
-          initialCategory={activeCategory === 'all' ? '자유' : activeCategory}
+          initialCategory={activeTab === 'all' || activeTab === '팔로잉' ? '자유' : activeTab}
           onClose={() => setShowWrite(false)}
           onSuccess={() => {
             setShowWrite(false);

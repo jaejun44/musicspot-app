@@ -163,6 +163,7 @@ export default function BandMatchingClient() {
                 musician={m}
                 index={i}
                 onContact={setContactTarget}
+                currentUserId={user?.id}
               />
             ))}
           </div>
