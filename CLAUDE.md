@@ -318,10 +318,13 @@ lib/                          # 기존 모두 유지
 - `studio_reports` — 정보 제보
 - `studio_requests` — 업체 등록 신청
 
-### 향후 추가 예정
-- `bookings` — 예약 정보 (Phase 4)
-- `musicians` — 밴드매칭 뮤지션 프로필 (Phase 4)
-- `posts` — 커뮤니티 게시물 (Phase 4)
+### 추가된 테이블
+- `bookings` — 예약 정보 (Phase 5 완료)
+- `user_profiles` — 밴드매칭 뮤지션 프로필 (Phase 5 완료)
+- `direct_messages` — 밴드매칭 1:1 채팅 (Phase 5 완료)
+- `bands`, `band_members`, `band_schedules` — 내 밴드 스케줄러 (Phase 8 완료)
+- `studio_reviews` — 연습실 뮤지션 리뷰 (Phase 8 완료, columns: id/studio_id/user_id/user_name/user_emoji/rating/sub_ratings/tags/body/created_at)
+- `posts` — 커뮤니티 게시물 (Phase 8 완료, columns: id/author_id/author_name/author_emoji/author_avatar_url/category/title/body/tags/is_published/created_at, RLS disabled)
 
 ---
 
@@ -467,6 +470,11 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] #00D26A → #41C66B (그린) 교체 — 전 영역 (상태 뱃지, 아이콘, 칩 등)
 - [x] 카카오 SDK 연결 4곳은 #FFD600 유지 (LoginClient 카카오 OAuth, PaymentClient 카카오페이, RoomBookingWidget/RoomContactBar 채널 버튼)
 
+### ✅ Phase 8 — 커뮤니티 · 리뷰 · 밴드 스케줄러 (완료, 2026-05-06)
+- [x] 커뮤니티 글쓰기 — `posts` Supabase 테이블 생성 + WritePostModal/EditPostModal/PostCard 완성
+- [x] 연습실 뮤지션 리뷰 — `studio_reviews` 테이블 + ReviewSection 컴포넌트 (별점/서브평점/뮤지션태그)
+- [x] 내 밴드 스케줄러 — `bands`/`band_members`/`band_schedules` 테이블 + `/my-band` 페이지
+
 ---
 
 ## Analytics 이벤트 트래킹 (GA4 + Supabase)
@@ -496,46 +504,24 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ## 다음 세션 즉시 시작할 작업
 
-> **최종 업데이트: 2026-04-26 (Phase 7 컬러 감사 완료)**
+> **최종 업데이트: 2026-05-06 (Phase 8 완료 — 커뮤니티 글쓰기 · 연습실 리뷰 · 밴드 스케줄러)**
 
-### 1순위: 커뮤니티 글쓰기 기능
+### 1순위: 뮤지션 활동 피드 (팔로우/타임라인)
 
-**현재 상태**: `app/community/page.tsx` 읽기 전용 (더미 데이터 + localStorage 좋아요)
-
-**할 일**:
-1. Supabase에서 아래 SQL 실행 (posts 테이블 생성)
-2. `app/community/page.tsx`에서 더미 데이터 → Supabase `posts` 테이블 read로 교체
-3. "글쓰기" 버튼 클릭 → WritePostModal 컴포넌트 (로그인 필요)
-4. 글 작성 완료 → Supabase insert → 목록 자동 갱신
-
-```sql
-create table if not exists public.posts (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  author text not null,
-  author_avatar_url text,
-  category text not null check (category in ('후기','구인','자유','질문')),
-  title text not null,
-  body text not null,
-  tags text[] default '{}',
-  likes integer default 0,
-  created_at timestamptz default now() not null
-);
-alter table public.posts enable row level security;
-create policy "Anyone can read posts" on public.posts for select using (true);
-create policy "Users can insert own posts" on public.posts for insert with check (auth.uid() = user_id);
-create policy "Users can delete own posts" on public.posts for delete using (auth.uid() = user_id);
-```
+**개요**: 밴드매칭에서 유저를 팔로우하면 타임라인에 활동이 표시되는 피드
+- `user_follows` 테이블 (follower_id, following_id)
+- `/feed` 또는 `/community` 탭 확장
+- 팔로우한 사람의 posts + band_schedules 등 통합 표시
 
 ---
 
-### 2순위: 모바일 UI 전체 점검
+### 2순위: 8마디 주고받기 A버전 (파일 업로드 방식)
 
-2026-04-26에 iOS 버그 2건 수정 완료 (HeroSection 버튼 텍스트 줄바꿈, SearchBar 날짜 너비). 나머지 페이지들도 iPhone Safari에서 확인 필요:
-- `app/search/page.tsx` — 필터 칩, 카드 레이아웃
-- `app/room/[id]` — 갤러리, ContactBar 버튼
-- `app/band-matching/page.tsx` — 뮤지션 카드
-- `app/booking/page.tsx`, `app/payment/page.tsx` — 폼 입력 요소
+**개요**: 유저가 8마디 오디오/MIDI를 업로드 → 다른 유저가 이어서 녹음
+- Supabase Storage 버킷 (`stems`) 생성
+- `stem_projects` 테이블 (id, title, creator_id, bpm, key, created_at)
+- `stem_tracks` 테이블 (id, project_id, user_id, file_url, order, created_at)
+- `/stems` 페이지 신규
 
 ---
 
@@ -551,24 +537,6 @@ create policy "Users can delete own posts" on public.posts for delete using (aut
 ### 장기 대기 (B2B 계약 후)
 - 실결제 PG 연동 (토스페이먼츠 / 아임포트) — Payment 시뮬레이션 교체
 - 연습실 업체 대시보드 (`/partner`)
-- bookings 테이블 SQL (아직 Supabase에 안 만들었다면 아래 실행):
-
-```sql
-create table if not exists public.bookings (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  studio_id text not null, studio_name text not null, studio_address text,
-  room_type text, date text not null, time text not null,
-  duration integer not null default 2, persons integer not null default 2,
-  band_name text, contact text, purpose text,
-  total_price integer, price_info text, payment_method text,
-  status text not null default 'confirmed',
-  created_at timestamptz default now() not null
-);
-alter table public.bookings enable row level security;
-create policy "Users can read own bookings" on public.bookings for select using (auth.uid() = user_id);
-create policy "Users can insert own bookings" on public.bookings for insert with check (auth.uid() = user_id);
-```
 
 ---
 
