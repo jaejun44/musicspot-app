@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'booking_confirmed' | 'booking_cancelled' | 'review_reply' | 'band_message' | 'system';
+  type: 'follow' | 'comment' | 'like' | 'match';
   title: string | null;
   body: string | null;
   payload: Record<string, unknown> | null;
@@ -39,6 +39,30 @@ export function useNotifications() {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newNotif = payload.new as Notification;
+          setNotifications((prev) => [newNotif, ...prev].slice(0, 30));
+          setUnreadCount((prev) => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   const markAllRead = useCallback(async () => {
     if (!user) return;

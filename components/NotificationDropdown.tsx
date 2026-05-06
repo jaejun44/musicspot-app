@@ -6,11 +6,10 @@ import { X, Bell } from 'lucide-react';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
 
 const TYPE_EMOJI: Record<Notification['type'], string> = {
-  booking_confirmed: '✅',
-  booking_cancelled: '❌',
-  review_reply: '⭐',
-  band_message: '🎸',
-  system: '📣',
+  follow: '👤',
+  comment: '💬',
+  like: '❤️',
+  match: '🎸',
 };
 
 function timeAgo(iso: string) {
