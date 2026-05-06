@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { MoreVertical, Pencil, Trash2, MessageCircle } from 'lucide-react';
 import { Post } from '../_data/posts';
+import { supabase } from '@/lib/supabase';
+import CommentSection from './CommentSection';
 
 const CATEGORY_STYLE: Record<Post['category'], { bg: string; text: string }> = {
   후기: { bg: '#41C66B', text: '#FFFFFF' },
@@ -12,26 +15,38 @@ const CATEGORY_STYLE: Record<Post['category'], { bg: string; text: string }> = {
   질문: { bg: '#4FC3F7', text: '#0A0A0A' },
 };
 
-const LIKE_KEY = (id: string) => `musicspot_like_${id}`;
-
 interface Props {
   post: Post;
   index: number;
   currentUserId?: string;
+  currentUserName?: string;
+  currentUserEmoji?: string;
+  currentUserAvatarUrl?: string;
+  initialLiked?: boolean;
+  onLikeToggle?: (postId: string, liked: boolean) => void;
+  onCommentAdded?: (postId: string) => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
-export default function PostCard({ post, index, currentUserId, onEdit, onDelete }: Props) {
-  const [liked, setLiked] = useState(false);
-  const parsed = parseInt(post.id);
-  const [likeCount, setLikeCount] = useState(isNaN(parsed) ? 5 : Math.floor(parsed * 7 + 3));
+export default function PostCard({
+  post, index, currentUserId, currentUserName, currentUserEmoji, currentUserAvatarUrl,
+  initialLiked, onLikeToggle, onCommentAdded, onEdit, onDelete,
+}: Props) {
+  const [liked, setLiked] = useState(initialLiked ?? false);
+  const [likeCount, setLikeCount] = useState(post.likes_count ?? 0);
+  const [commentCount, setCommentCount] = useState(post.comments_count ?? 0);
+  const [showComments, setShowComments] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const rotate = index % 3 === 0 ? -1 : index % 3 === 1 ? 0 : 1;
   const style = CATEGORY_STYLE[post.category];
   const isOwn = !!currentUserId && currentUserId === post.author_id;
+
+  useEffect(() => {
+    setLiked(initialLiked ?? false);
+  }, [initialLiked]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -44,19 +59,22 @@ export default function PostCard({ post, index, currentUserId, onEdit, onDelete 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
-  useEffect(() => {
-    setLiked(localStorage.getItem(LIKE_KEY(post.id)) === '1');
-  }, [post.id]);
-
-  function toggleLike() {
+  async function toggleLike() {
+    if (!currentUserId) return;
     const next = !liked;
     setLiked(next);
-    setLikeCount((c) => c + (next ? 1 : -1));
+    setLikeCount((c) => Math.max(0, c + (next ? 1 : -1)));
+    onLikeToggle?.(post.id, next);
     if (next) {
-      localStorage.setItem(LIKE_KEY(post.id), '1');
+      await supabase.from('post_likes').insert({ post_id: post.id, user_id: currentUserId });
     } else {
-      localStorage.removeItem(LIKE_KEY(post.id));
+      await supabase.from('post_likes').delete().eq('post_id', post.id).eq('user_id', currentUserId);
     }
+  }
+
+  function handleCommentAdded() {
+    setCommentCount((c) => c + 1);
+    onCommentAdded?.(post.id);
   }
 
   return (
@@ -75,7 +93,6 @@ export default function PostCard({ post, index, currentUserId, onEdit, onDelete 
           style={{ backgroundColor: style.bg, color: style.text, fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
         >
           {post.category}
-
         </span>
         <div className="flex items-center gap-2">
           <span
@@ -184,43 +201,102 @@ export default function PostCard({ post, index, currentUserId, onEdit, onDelete 
 
       {/* 하단 바 */}
       <div className="flex items-center justify-between pt-1 border-t-[1px] border-[#0A0A0A]/10">
-        <div className="flex items-center gap-2">
-          {post.author_avatar_url ? (
-            <img
-              src={post.author_avatar_url}
-              alt={post.author}
-              className="w-6 h-6 rounded-full border border-[#0A0A0A]/20 object-cover flex-shrink-0"
-            />
-          ) : (
-            <span className="text-[14px]">{post.authorEmoji}</span>
-          )}
-          <span
-            className="text-[12px] text-[#0A0A0A]/50 font-bold"
-            style={{ fontFamily: 'Pretendard, sans-serif' }}
+        {post.author_id ? (
+          <Link href={`/u/${post.author_id}`} className="flex items-center gap-2 group">
+            {post.author_avatar_url ? (
+              <img
+                src={post.author_avatar_url}
+                alt={post.author}
+                className="w-6 h-6 rounded-full border border-[#0A0A0A]/20 object-cover flex-shrink-0"
+              />
+            ) : (
+              <span className="text-[14px]">{post.authorEmoji}</span>
+            )}
+            <span
+              className="text-[12px] text-[#0A0A0A]/50 font-bold group-hover:text-[#FF3D77] transition-colors"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              {post.author}
+            </span>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-2">
+            {post.author_avatar_url ? (
+              <img
+                src={post.author_avatar_url}
+                alt={post.author}
+                className="w-6 h-6 rounded-full border border-[#0A0A0A]/20 object-cover flex-shrink-0"
+              />
+            ) : (
+              <span className="text-[14px]">{post.authorEmoji}</span>
+            )}
+            <span
+              className="text-[12px] text-[#0A0A0A]/50 font-bold"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              {post.author}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center gap-3">
+          {/* 댓글 버튼 */}
+          <motion.button
+            onClick={() => setShowComments((v) => !v)}
+            whileTap={{ scale: 0.8 }}
+            className="flex items-center gap-1.5 p-2 -m-2"
           >
-            {post.author}
-          </span>
+            <MessageCircle className={`w-4 h-4 ${showComments ? 'text-[#4FC3F7]' : 'text-[#0A0A0A]/30'}`} />
+            <span
+              className={`text-[12px] font-bold ${showComments ? 'text-[#4FC3F7]' : 'text-[#0A0A0A]/40'}`}
+              style={{ fontFamily: 'Bungee, sans-serif' }}
+            >
+              {commentCount}
+            </span>
+          </motion.button>
+          {/* 좋아요 버튼 */}
+          <motion.button
+            onClick={toggleLike}
+            whileTap={{ scale: 0.8 }}
+            className="flex items-center gap-1.5 p-2 -m-2"
+          >
+            <motion.span
+              animate={{ scale: liked ? [1, 1.4, 1] : 1 }}
+              transition={{ duration: 0.3 }}
+              className="text-[16px]"
+            >
+              {liked ? '❤️' : '🤍'}
+            </motion.span>
+            <span
+              className={`text-[12px] font-bold ${liked ? 'text-[#FF3D77]' : 'text-[#0A0A0A]/40'}`}
+              style={{ fontFamily: 'Bungee, sans-serif' }}
+            >
+              {likeCount}
+            </span>
+          </motion.button>
         </div>
-        <motion.button
-          onClick={toggleLike}
-          whileTap={{ scale: 0.8 }}
-          className="flex items-center gap-1.5 p-2 -m-2"
-        >
-          <motion.span
-            animate={{ scale: liked ? [1, 1.4, 1] : 1 }}
-            transition={{ duration: 0.3 }}
-            className="text-[16px]"
-          >
-            {liked ? '❤️' : '🤍'}
-          </motion.span>
-          <span
-            className={`text-[12px] font-bold ${liked ? 'text-[#FF3D77]' : 'text-[#0A0A0A]/40'}`}
-            style={{ fontFamily: 'Bungee, sans-serif' }}
-          >
-            {likeCount}
-          </span>
-        </motion.button>
       </div>
+
+      {/* 댓글 섹션 */}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <CommentSection
+              postId={post.id}
+              currentUserId={currentUserId}
+              currentUserName={currentUserName}
+              currentUserEmoji={currentUserEmoji}
+              currentUserAvatarUrl={currentUserAvatarUrl}
+              onCommentAdded={handleCommentAdded}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

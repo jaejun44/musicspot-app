@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import EditPostModal from './EditPostModal';
 
-const SELECT_FIELDS = 'id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags';
+const SELECT_FIELDS = 'id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, post_likes(post_id), post_comments(id)';
 
 function mapPost(p: Record<string, unknown>): Post {
   return {
@@ -26,6 +26,8 @@ function mapPost(p: Record<string, unknown>): Post {
     author_avatar_url: (p.author_avatar_url as string) ?? undefined,
     createdAt: (p.created_at as string).slice(0, 10),
     tags: (p.tags as string[]) ?? [],
+    likes_count: Array.isArray(p.post_likes) ? (p.post_likes as unknown[]).length : 0,
+    comments_count: Array.isArray(p.post_comments) ? (p.post_comments as unknown[]).length : 0,
   };
 }
 
@@ -37,6 +39,9 @@ export default function CommunityClient() {
   const [followFeed, setFollowFeed] = useState<Post[]>([]);
   const [showWrite, setShowWrite] = useState(false);
   const [editPost, setEditPost] = useState<Post | null>(null);
+  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
+  const [myDisplayName, setMyDisplayName] = useState<string | null>(null);
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -51,6 +56,31 @@ export default function CommunityClient() {
     }
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setLikedPostIds(new Set());
+      setMyDisplayName(null);
+      setMyAvatarUrl(null);
+      return;
+    }
+    supabase
+      .from('post_likes')
+      .select('post_id')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        setLikedPostIds(new Set((data ?? []).map((r: { post_id: string }) => r.post_id)));
+      });
+    supabase
+      .from('user_profiles')
+      .select('display_name, avatar_url')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setMyDisplayName(data?.display_name ?? (user.user_metadata?.full_name as string) ?? null);
+        setMyAvatarUrl(data?.avatar_url ?? null);
+      });
+  }, [user?.id]);
 
   useEffect(() => {
     if (activeTab !== '팔로잉' || !user) return;
@@ -89,6 +119,22 @@ export default function CommunityClient() {
     await supabase.from('posts').delete().eq('id', postId);
     setPosts((prev) => prev.filter((p) => p.id !== postId));
     setFollowFeed((prev) => prev.filter((p) => p.id !== postId));
+  }
+
+  function handleLikeToggle(postId: string, liked: boolean) {
+    setLikedPostIds((prev) => {
+      const next = new Set(prev);
+      if (liked) next.add(postId); else next.delete(postId);
+      return next;
+    });
+    const delta = liked ? 1 : -1;
+    setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: Math.max(0, (p.likes_count ?? 0) + delta) } : p));
+    setFollowFeed((prev) => prev.map((p) => p.id === postId ? { ...p, likes_count: Math.max(0, (p.likes_count ?? 0) + delta) } : p));
+  }
+
+  function handleCommentAdded(postId: string) {
+    setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments_count: (p.comments_count ?? 0) + 1 } : p));
+    setFollowFeed((prev) => prev.map((p) => p.id === postId ? { ...p, comments_count: (p.comments_count ?? 0) + 1 } : p));
   }
 
   const filtered: Post[] =
@@ -169,6 +215,12 @@ export default function CommunityClient() {
                   post={post}
                   index={i}
                   currentUserId={user?.id}
+                  currentUserName={myDisplayName ?? (user?.user_metadata?.full_name as string) ?? undefined}
+                  currentUserEmoji="🎵"
+                  currentUserAvatarUrl={myAvatarUrl ?? undefined}
+                  initialLiked={likedPostIds.has(post.id)}
+                  onLikeToggle={handleLikeToggle}
+                  onCommentAdded={handleCommentAdded}
                   onEdit={() => setEditPost(post)}
                   onDelete={() => handleDelete(post.id)}
                 />

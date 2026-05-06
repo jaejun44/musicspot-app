@@ -11,6 +11,8 @@ export interface Post {
   author_avatar_url?: string;
   createdAt: string;
   tags: string[];
+  likes_count?: number;
+  comments_count?: number;
 }
 
 export const POSTS: Post[] = [
