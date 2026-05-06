@@ -46,19 +46,25 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
       .single();
 
     if (bandErr || !bandData) {
-      setError('밴드 생성에 실패했어요. 다시 시도해 주세요.');
+      console.error('[CreateBand] bands insert error:', bandErr);
+      setError(`밴드 생성에 실패했어요: ${bandErr?.message ?? '알 수 없는 오류'}`);
       setSaving(false);
       return;
     }
 
     const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || '뮤지션';
-    await supabase.from('band_members').insert({
+    const { error: memberErr } = await supabase.from('band_members').insert({
       band_id: bandData.id,
       user_id: user.id,
       role: 'leader',
       display_name: displayName,
-      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
     });
+    if (memberErr) {
+      console.error('[CreateBand] band_members insert error:', memberErr);
+      setError(`멤버 등록에 실패했어요: ${memberErr.message}`);
+      setSaving(false);
+      return;
+    }
 
     setSaving(false);
     onCreated({ ...bandData, member_count: 1, my_role: 'leader' });
