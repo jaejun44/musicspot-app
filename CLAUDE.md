@@ -325,6 +325,12 @@ lib/                          # 기존 모두 유지
 - `bands`, `band_members`, `band_schedules` — 내 밴드 스케줄러 (Phase 8 완료)
 - `studio_reviews` — 연습실 뮤지션 리뷰 (Phase 8 완료, columns: id/studio_id/user_id/user_name/user_emoji/rating/sub_ratings/tags/body/created_at)
 - `posts` — 커뮤니티 게시물 (Phase 8 완료, columns: id/author_id/author_name/author_emoji/author_avatar_url/category/title/body/tags/is_published/created_at, RLS disabled)
+- `post_likes` — 커뮤니티 좋아요 (Phase 11 완료, PK: post_id+user_id, RLS disabled)
+- `post_comments` — 커뮤니티 댓글 (Phase 11 완료, columns: id/post_id/user_id/user_name/user_emoji/user_avatar_url/body/created_at, RLS disabled)
+- `notifications` — 실시간 알림 (Phase 10 완료, columns: id/user_id/type/title/body/payload/read/created_at, RLS enabled, Realtime 구독)
+- `stem_projects` — 8마디 프로젝트 (Phase 10 완료, columns: id/title/creator_id/bpm/key/created_at)
+- `stem_tracks` — 8마디 트랙 (Phase 10 완료, columns: id/project_id/user_id/file_url/order/created_at)
+- Storage: `stems` 버킷 — 오디오 파일 (30MB 제한, MP3/WAV/OGG/M4A/FLAC)
 
 ---
 
@@ -475,6 +481,37 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] 연습실 뮤지션 리뷰 — `studio_reviews` 테이블 + ReviewSection 컴포넌트 (별점/서브평점/뮤지션태그)
 - [x] 내 밴드 스케줄러 — `bands`/`band_members`/`band_schedules` 테이블 + `/my-band` 페이지
 
+### ✅ Phase 9 — 뮤지션 활동 피드 (완료, 2026-05-06)
+- [x] `app/feed/page.tsx` — 서버 컴포넌트 + OG 메타태그
+- [x] `app/feed/_components/FeedClient.tsx` — 팔로우 기반 타임라인 (posts + stem_tracks 통합)
+- [x] `user_follows` 테이블 쿼리 → following_ids → 병렬 posts/tracks/profiles fetch
+- [x] FeedPost / FeedTrack 유니온 타입 + created_at 내림차순 정렬
+- [x] PostCard: 카테고리 뱃지, 제목, 본문, 태그
+- [x] TrackCard: 8마디 뱃지, 오디오 플레이어, 프로젝트 정보
+- [x] 비로그인 / 팔로우 없음 / 피드 비어있음 빈 상태 처리
+- [x] Navigation에 '피드' 메뉴 추가 (`/feed`)
+
+### ✅ Phase 10 — SEO 강화 + 8마디 백엔드 + 알림 시스템 (완료, 2026-05-06)
+- [x] SEO: `app/sitemap.ts` Next.js 방식 (studios 동적 라우트 포함)
+- [x] SEO: `app/my-band/page.tsx` OG 메타태그 추가
+- [x] 8마디 주고받기: `stem_projects`/`stem_tracks` 테이블 + `stems` Storage 버킷 확인 및 설정 (file_size_limit 30MB, mime types)
+- [x] 8마디 주고받기: `StemsClient.tsx` 프론트엔드 완성 (CreateProjectModal, ProjectDetailModal, 오디오 플레이어)
+- [x] 알림 시스템: `notifications` 테이블 + RLS + Realtime 구독 (`useNotifications` 훅)
+- [x] 알림 시스템: `NotificationDropdown.tsx` UI + Navigation Bell 뱃지 연결
+- [x] 알림 시스템: `trg_notify_user_follow` 트리거 (`user_follows` INSERT → follow 알림, title/body 포함)
+- [x] 알림 시스템: `trg_notify_direct_message` 트리거 (`direct_messages` INSERT → match 알림, 첫 메시지만)
+
+### ✅ Phase 11 — 커뮤니티 인터랙션 + 뮤지션 프로필 페이지 (완료, 2026-05-06)
+- [x] `post_likes` 테이블 — PK(post_id, user_id), Supabase 좋아요 저장
+- [x] `post_comments` 테이블 — id/post_id/user_id/user_name/user_emoji/user_avatar_url/body/created_at
+- [x] DB 트리거 `trg_notify_post_like` — `post_likes` INSERT → 원글 작성자에게 `like` 알림
+- [x] DB 트리거 `trg_notify_post_comment` — `post_comments` INSERT → 원글 작성자에게 `comment` 알림
+- [x] `CommentSection.tsx` 신규 — 댓글 목록 fetch + 댓글 입력창 (Enter 전송, Shift+Enter 줄바꿈)
+- [x] `PostCard.tsx` 전면 재작성 — localStorage 제거, Supabase post_likes 연동, CommentSection 인라인 토글
+- [x] `CommunityClient.tsx` 전면 재작성 — likedPostIds Set, myDisplayName/myAvatarUrl, SELECT_FIELDS에 post_likes/post_comments 집계 포함
+- [x] `app/u/[id]/page.tsx` — 뮤지션 공개 프로필 서버 컴포넌트 (generateMetadata OG 태그)
+- [x] `app/u/[id]/UserProfileClient.tsx` — 팔로우/언팔로우(낙관적 UI), 8마디 트랙 탭, 커뮤니티 게시물 탭, 오디오 플레이어
+
 ---
 
 ## Analytics 이벤트 트래킹 (GA4 + Supabase)
@@ -504,33 +541,30 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ## 다음 세션 즉시 시작할 작업
 
-> **최종 업데이트: 2026-05-06 (Phase 8 완료 — 커뮤니티 글쓰기 · 연습실 리뷰 · 밴드 스케줄러)**
+> **최종 업데이트: 2026-05-06 (Phase 11 완료 — 커뮤니티 인터랙션 + 뮤지션 프로필)**
 
-### 1순위: 뮤지션 활동 피드 (팔로우/타임라인)
+### 1순위: 커뮤니티 PostCard → 프로필 링크 연결
 
-**개요**: 밴드매칭에서 유저를 팔로우하면 타임라인에 활동이 표시되는 피드
-- `user_follows` 테이블 (follower_id, following_id)
-- `/feed` 또는 `/community` 탭 확장
-- 팔로우한 사람의 posts + band_schedules 등 통합 표시
-
----
-
-### 2순위: 8마디 주고받기 A버전 (파일 업로드 방식)
-
-**개요**: 유저가 8마디 오디오/MIDI를 업로드 → 다른 유저가 이어서 녹음
-- Supabase Storage 버킷 (`stems`) 생성
-- `stem_projects` 테이블 (id, title, creator_id, bpm, key, created_at)
-- `stem_tracks` 테이블 (id, project_id, user_id, file_url, order, created_at)
-- `/stems` 페이지 신규
+현재 PostCard에서 작성자 이름/아바타 클릭 시 `/u/[author_id]`로 이동하지 않음.
+- `PostCard.tsx`: 작성자 영역을 `<Link href={/u/${post.author_id}}>` 로 감싸기
+- `post.author_id`가 없는 더미 데이터 게시물은 링크 비활성화 (조건부)
+- `FeedClient.tsx` PostCard 아이템도 동일하게 적용
 
 ---
 
-### 3순위: SEO 강화
+### 2순위: 뮤지션 프로필 → 팔로우 알림 버그 확인
 
-현재 `app/room/[id]/page.tsx`만 `generateMetadata` 있음. 나머지 추가:
-- `app/page.tsx` — Landing OG 태그
-- `app/search/page.tsx` — Search OG 태그
-- `public/sitemap.xml` 생성 또는 `app/sitemap.ts` Next.js 방식 추가
+`UserProfileClient.tsx`에서 팔로우 시 `notifications` 트리거가 정상 발화하는지 확인.
+- `user_follows` INSERT → `trg_notify_user_follow` → 팔로우 대상 알림 수신 여부 테스트
+- 알림 미수신 시 트리거 SECURITY DEFINER 권한 확인
+
+---
+
+### 3순위: 검색 페이지 연습실 카드 → 리뷰 카운트 표시
+
+`studio_reviews` 테이블에 데이터가 쌓이고 있으므로:
+- RoomCard에 별점 평균 + 리뷰 수 배지 추가 (`⭐ 4.5 (12)` 형태)
+- `/room/[id]` RoomDetail에 리뷰 섹션 스크롤 앵커 추가
 
 ---
 

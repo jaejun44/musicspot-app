@@ -164,6 +164,7 @@ export default function BandMatchingClient() {
                 index={i}
                 onContact={setContactTarget}
                 currentUserId={user?.id}
+                currentUserName={user?.user_metadata?.full_name ?? undefined}
               />
             ))}
           </div>

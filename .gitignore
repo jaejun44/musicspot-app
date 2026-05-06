@@ -39,3 +39,4 @@ scripts/__pycache__/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+ms_character/

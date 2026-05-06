@@ -20,9 +20,10 @@ interface Props {
   index: number;
   onContact: (m: Musician) => void;
   currentUserId?: string;
+  currentUserName?: string;
 }
 
-export default function MusicianCard({ musician, index, onContact, currentUserId }: Props) {
+export default function MusicianCard({ musician, index, onContact, currentUserId, currentUserName }: Props) {
   const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
   const isRealUser = UUID_RE.test(musician.id);
   const canFollow = !!(currentUserId && isRealUser && currentUserId !== musician.id);
@@ -55,6 +56,14 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
       await supabase.from('user_follows')
         .insert({ follower_id: currentUserId!, following_id: musician.id });
       setIsFollowing(true);
+      // 팔로우 대상에게 알림 삽입 (오류 무시)
+      supabase.from('notifications').insert({
+        user_id: musician.id,
+        type: 'follow',
+        title: '새 팔로워',
+        body: `${currentUserName ?? '누군가'}님이 회원님을 팔로우했습니다`,
+        payload: { follower_id: currentUserId },
+      }).then(() => {});
     }
     setFollowLoading(false);
   }
