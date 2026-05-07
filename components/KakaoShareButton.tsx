@@ -85,13 +85,13 @@ export default function KakaoShareButton({
   return (
     <button
       onClick={handleShare}
-      className="w-full py-3 bg-comic-yellow border-[3px] border-comic-black text-comic-black text-sm font-bold flex items-center justify-center gap-2 transition-transform active:translate-x-[2px] active:translate-y-[2px]"
-      style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+      className="w-full py-3 rounded-[14px] border-[3px] border-[#0A0A0A] text-sm font-bold flex items-center justify-center gap-2 transition-transform active:translate-x-[2px] active:translate-y-[2px]"
+      style={{ backgroundColor: '#FEE500', color: 'rgba(0,0,0,0.85)', boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
     >
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 3C6.5 3 2 6.58 2 11c0 2.83 1.87 5.32 4.68 6.73l-.96 3.57c-.09.32.25.59.54.42L10.6 19.1c.45.06.92.1 1.4.1 5.5 0 10-3.58 10-8s-4.5-8-10-8z" />
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.87 5.32 4.68 6.73l-.96 3.57c-.09.32.25.59.54.42l4.26-2.69c.47.07.96.11 1.48.11 5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
       </svg>
-      💬 카카오톡 공유
+      카카오톡 공유
     </button>
   );
 }

@@ -231,10 +231,12 @@ export default function RoomDetailClient() {
                 href={`https://map.kakao.com/link/to/${encodeURIComponent(studio.name)},${studio.lat},${studio.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-4 bg-[#4FC3F7] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[15px] text-[#0A0A0A] active:scale-95 transition-transform"
-                style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                className="flex items-center justify-center gap-2 w-full py-4 rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[15px] active:scale-95 transition-transform"
+                style={{ backgroundColor: '#FEE500', color: 'rgba(0,0,0,0.85)', boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
-                <span className="text-xl">🗺️</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.87 5.32 4.68 6.73l-.96 3.57c-.09.32.25.59.54.42l4.26-2.69c.47.07.96.11 1.48.11 5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+                </svg>
                 카카오맵에서 길찾기
               </a>
             ) : (
