@@ -8,9 +8,10 @@ interface RoomContactBarProps {
   studio: Studio;
 }
 
-function resolveNaverUrl(url: string, name: string): string {
+function resolveNaverUrl(url: string, lat?: number | null, lng?: number | null): string {
   if (url.includes('modoo.at')) {
-    return `https://map.naver.com/v5/search/${encodeURIComponent(name)}`;
+    if (lat && lng) return `https://map.naver.com/v5/?c=${lng},${lat},17,0,0,0,dh`;
+    return url;
   }
   return url;
 }
@@ -20,7 +21,7 @@ export default function RoomContactBar({ studio }: RoomContactBarProps) {
   if (!hasAny) return null;
 
   const naverUrl = studio.naver_place_url
-    ? resolveNaverUrl(studio.naver_place_url, studio.name)
+    ? resolveNaverUrl(studio.naver_place_url, studio.lat, studio.lng)
     : null;
 
   return (
