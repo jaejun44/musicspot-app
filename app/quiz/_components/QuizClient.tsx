@@ -180,11 +180,11 @@ const RESULTS: Record<InstrumentKey, Result> = {
 
 // ─── 캐릭터 이미지 맵 ─────────────────────────────────────────────────────────
 const CHARACTER_IMAGES: Record<string, string> = {
-  trio: '/ms_character/Leonardo_Anime_XL_three_cute_chibi_rockstar_kids_standing_toge_1_3418649b-25bc-4055-a8f1-4ad72f27c7a6.jpg',
-  diva: '/ms_character/Leonardo_Anime_XL_cute_chibi_character_elegant_diva_little_key_3.jpg',
-  rocker: '/ms_character/lucid-origin_cute_chibi_character_mischievous_little_rockstar_kid_holding_a_hot_pink_electric-0.jpg',
-  girl: '/ms_character/Leonardo_Anime_XL_cute_chibi_character_tough_strong_little_gir_2.jpg',
-  guitar: '/ms_character/Leonardo_Anime_XL_cute_chibi_character_mischievous_little_rock_2.jpg',
+  trio: '/ms_character/starbeat.png',
+  diva: '/ms_character/mika.png',
+  rocker: '/ms_character/lucky.png',
+  girl: '/ms_character/doll.png',
+  guitar: '/ms_character/joy.png',
 };
 
 // ─── 점수 계산 ────────────────────────────────────────────────────────────────
