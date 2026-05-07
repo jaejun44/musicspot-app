@@ -39,8 +39,8 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
   const naverUrl = studio.naver_place_url
     ? NAVER_PLACE_DOMAINS.some((d) => studio.naver_place_url!.includes(d))
       ? studio.naver_place_url
-      : studio.lat && studio.lng
-        ? `https://map.naver.com/v5/?c=${studio.lng},${studio.lat},17,0,0,0,dh`
+      : studio.address
+        ? `https://map.naver.com/v5/search/${encodeURIComponent(studio.address)}`
         : studio.naver_place_url
     : null;
   const hasNaverUrl = !!naverUrl;

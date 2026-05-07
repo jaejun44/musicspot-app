@@ -10,10 +10,10 @@ interface RoomContactBarProps {
 
 const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com'];
 
-function resolveNaverUrl(url: string, lat?: number | null, lng?: number | null): string {
+function resolveNaverUrl(url: string, address?: string | null): string {
   const isNaverPlace = NAVER_PLACE_DOMAINS.some((d) => url.includes(d));
   if (isNaverPlace) return url;
-  if (lat && lng) return `https://map.naver.com/v5/?c=${lng},${lat},17,0,0,0,dh`;
+  if (address) return `https://map.naver.com/v5/search/${encodeURIComponent(address)}`;
   return url;
 }
 
@@ -22,7 +22,7 @@ export default function RoomContactBar({ studio }: RoomContactBarProps) {
   if (!hasAny) return null;
 
   const naverUrl = studio.naver_place_url
-    ? resolveNaverUrl(studio.naver_place_url, studio.lat, studio.lng)
+    ? resolveNaverUrl(studio.naver_place_url, studio.address)
     : null;
 
   return (
