@@ -331,9 +331,15 @@ export default function QuizClient() {
             <motion.div
               animate={{ rotate: [-2, 2, -2] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-              className="text-6xl mb-4"
+              className="mb-4 flex justify-center"
             >
-              🎸
+              <Image
+                src="/ms_character/starbeat.png"
+                alt="Music Spot 캐릭터"
+                width={160}
+                height={160}
+                className="w-40 h-40 object-contain"
+              />
             </motion.div>
             <h1 className="font-bungee text-3xl md:text-4xl text-[#0A0A0A] leading-tight mb-3">
               나에게 어울리는<br />
