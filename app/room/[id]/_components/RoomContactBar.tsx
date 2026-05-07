@@ -8,7 +8,7 @@ interface RoomContactBarProps {
   studio: Studio;
 }
 
-const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com'];
+const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com', 'spacecloud.kr'];
 
 function resolveNaverUrl(url: string, address?: string | null): string {
   const isNaverPlace = NAVER_PLACE_DOMAINS.some((d) => url.includes(d));

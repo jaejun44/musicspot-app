@@ -35,7 +35,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
     router.push(`/booking?${params.toString()}`);
   }
 
-  const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com'];
+  const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com', 'spacecloud.kr'];
   const naverUrl = studio.naver_place_url
     ? NAVER_PLACE_DOMAINS.some((d) => studio.naver_place_url!.includes(d))
       ? studio.naver_place_url
