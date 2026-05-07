@@ -7,6 +7,7 @@ import HeroSection from '@/components/HeroSection';
 import SearchBar from '@/components/SearchBar';
 import PowerFeatures from '@/components/PowerFeatures';
 import HotRooms from '@/components/HotRooms';
+import QuizBanner from '@/components/QuizBanner';
 import FinalCTA from '@/components/FinalCTA';
 import SiteFooter from '@/components/SiteFooter';
 
@@ -27,6 +28,7 @@ export default function HomeClient() {
       <PowerFeatures />
       <SearchBar />
       <HotRooms />
+      <QuizBanner />
       <FinalCTA />
       <SiteFooter />
     </div>
