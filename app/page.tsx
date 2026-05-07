@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: 'Music Spot — 내 밴드에 맞는 연습실 찾기',
     description: '국내 1,000개+ 합주실·연습실을 지도와 목록으로 한눈에 확인하세요.',
     url: SITE_URL,
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Music Spot' }],
+    images: [{ url: '/ms_character/starbeat.png', width: 1200, height: 630, alt: 'Music Spot' }],
   },
 };
 
