@@ -35,10 +35,13 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
     router.push(`/booking?${params.toString()}`);
   }
 
+  const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com'];
   const naverUrl = studio.naver_place_url
-    ? studio.naver_place_url.includes('modoo.at') && studio.lat && studio.lng
-      ? `https://map.naver.com/v5/?c=${studio.lng},${studio.lat},17,0,0,0,dh`
-      : studio.naver_place_url
+    ? NAVER_PLACE_DOMAINS.some((d) => studio.naver_place_url!.includes(d))
+      ? studio.naver_place_url
+      : studio.lat && studio.lng
+        ? `https://map.naver.com/v5/?c=${studio.lng},${studio.lat},17,0,0,0,dh`
+        : studio.naver_place_url
     : null;
   const hasNaverUrl = !!naverUrl;
   const hasPhone = !!studio.phone;

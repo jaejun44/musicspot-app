@@ -8,11 +8,12 @@ interface RoomContactBarProps {
   studio: Studio;
 }
 
+const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com'];
+
 function resolveNaverUrl(url: string, lat?: number | null, lng?: number | null): string {
-  if (url.includes('modoo.at')) {
-    if (lat && lng) return `https://map.naver.com/v5/?c=${lng},${lat},17,0,0,0,dh`;
-    return url;
-  }
+  const isNaverPlace = NAVER_PLACE_DOMAINS.some((d) => url.includes(d));
+  if (isNaverPlace) return url;
+  if (lat && lng) return `https://map.naver.com/v5/?c=${lng},${lat},17,0,0,0,dh`;
   return url;
 }
 
