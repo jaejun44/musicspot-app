@@ -8,16 +8,27 @@ interface RoomContactBarProps {
   studio: Studio;
 }
 
+function resolveNaverUrl(url: string, name: string): string {
+  if (url.includes('modoo.at')) {
+    return `https://map.naver.com/v5/search/${encodeURIComponent(name)}`;
+  }
+  return url;
+}
+
 export default function RoomContactBar({ studio }: RoomContactBarProps) {
   const hasAny = studio.naver_place_url || studio.kakao_channel || studio.phone;
   if (!hasAny) return null;
 
+  const naverUrl = studio.naver_place_url
+    ? resolveNaverUrl(studio.naver_place_url, studio.name)
+    : null;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 py-3">
       <div className="flex gap-2 max-w-lg mx-auto">
-        {studio.naver_place_url && (
+        {naverUrl && (
           <motion.a
-            href={studio.naver_place_url}
+            href={naverUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackContactClick('naver', studio.id)}

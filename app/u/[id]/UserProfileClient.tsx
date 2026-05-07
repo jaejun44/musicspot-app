@@ -485,9 +485,13 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                         {post.created_at.slice(0, 10)}
                       </span>
                     </div>
-                    <p className="text-[14px] font-bold text-[#0A0A0A] mb-1 leading-snug" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                    <Link
+                      href={`/community/${post.id}`}
+                      className="text-[14px] font-bold text-[#0A0A0A] mb-1 leading-snug hover:text-[#FF3D77] transition-colors block"
+                      style={{ fontFamily: 'Pretendard, sans-serif' }}
+                    >
                       {post.title}
-                    </p>
+                    </Link>
                     <p className="text-[12px] text-[#0A0A0A]/60 font-bold line-clamp-2 leading-relaxed" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       {post.body}
                     </p>

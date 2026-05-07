@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import CategoryFilter, { FeedTab } from './CategoryFilter';
 import PostCard from './PostCard';
@@ -31,10 +31,19 @@ function mapPost(p: Record<string, unknown>): Post {
   };
 }
 
+const VALID_TABS: FeedTab[] = ['all', '팔로잉', '후기', '구인', '자유', '질문'];
+
 export default function CommunityClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<FeedTab>('all');
+
+  const initialTab = (): FeedTab => {
+    const raw = searchParams.get('category') as FeedTab | null;
+    return raw && VALID_TABS.includes(raw) ? raw : 'all';
+  };
+
+  const [activeTab, setActiveTab] = useState<FeedTab>(initialTab);
   const [posts, setPosts] = useState<Post[]>(POSTS);
   const [followFeed, setFollowFeed] = useState<Post[]>([]);
   const [showWrite, setShowWrite] = useState(false);
@@ -180,6 +189,10 @@ export default function CommunityClient() {
           <CategoryFilter active={activeTab} onChange={(tab) => {
           if (tab === '팔로잉' && !user) { router.push('/login'); return; }
           setActiveTab(tab);
+          const params = new URLSearchParams(searchParams.toString());
+          if (tab === 'all') params.delete('category');
+          else params.set('category', tab);
+          router.replace(`/community${params.toString() ? '?' + params.toString() : ''}`, { scroll: false });
         }} />
         </motion.div>
       </div>

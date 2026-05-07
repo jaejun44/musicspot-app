@@ -35,7 +35,12 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
     router.push(`/booking?${params.toString()}`);
   }
 
-  const hasNaverUrl = !!studio.naver_place_url;
+  const naverUrl = studio.naver_place_url
+    ? studio.naver_place_url.includes('modoo.at')
+      ? `https://map.naver.com/v5/search/${encodeURIComponent(studio.name)}`
+      : studio.naver_place_url
+    : null;
+  const hasNaverUrl = !!naverUrl;
   const hasPhone = !!studio.phone;
   const hasKakao = !!studio.kakao_channel;
   const hasAlternatives = hasNaverUrl || hasPhone || hasKakao;
@@ -208,7 +213,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
                   <div className="flex flex-col gap-2">
                     {hasNaverUrl && (
                       <a
-                        href={studio.naver_place_url!}
+                        href={naverUrl!}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => trackContactClick('naver', studio.id, studio.name)}

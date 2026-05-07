@@ -171,12 +171,22 @@ export default function PostCard({
       </div>
 
       {/* 제목 */}
-      <p
-        className="text-[15px] font-bold text-[#0A0A0A] leading-tight"
-        style={{ fontFamily: 'Pretendard, sans-serif' }}
-      >
-        {post.title}
-      </p>
+      {post.author_id ? (
+        <Link
+          href={`/community/${post.id}`}
+          className="text-[15px] font-bold text-[#0A0A0A] leading-tight hover:text-[#FF3D77] transition-colors"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          {post.title}
+        </Link>
+      ) : (
+        <p
+          className="text-[15px] font-bold text-[#0A0A0A] leading-tight"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          {post.title}
+        </p>
+      )}
 
       {/* 본문 */}
       <p
