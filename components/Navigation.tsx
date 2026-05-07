@@ -31,6 +31,7 @@ export default function Navigation() {
     { label: '8마디', path: '/stems' },
     { label: '피드', path: '/feed' },
     { label: '커뮤니티', path: '/community', trackAs: 'community' },
+    { label: '악기테스트', path: '/quiz' },
     { label: '마이', path: '/my-bookings' },
   ];
 
