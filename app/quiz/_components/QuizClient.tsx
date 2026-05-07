@@ -227,6 +227,32 @@ async function copyLink(result: Result) {
   }
 }
 
+// ─── 미니사이트 헤더 ──────────────────────────────────────────────────────────
+function QuizHeader() {
+  return (
+    <header className="w-full flex items-center justify-between px-5 py-3 border-b-[2px] border-[#0A0A0A]/10">
+      <Link href="/" className="flex items-center gap-2 group">
+        <Image
+          src="/ms_character/cutout_clean.png"
+          alt="Music Spot"
+          width={36}
+          height={36}
+          className="object-contain"
+        />
+        <span
+          className="font-bungee text-sm text-[#0A0A0A] group-hover:text-[#FF3D77] transition-colors"
+          style={{ letterSpacing: '0.05em' }}
+        >
+          MUSIC SPOT
+        </span>
+      </Link>
+      <span className="bg-[#F5FF4F] font-bold text-[10px] text-[#0A0A0A] px-2.5 py-0.5 rounded-full border-[2px] border-[#0A0A0A]">
+        악기 테스트
+      </span>
+    </header>
+  );
+}
+
 // ─── 컴포넌트 ─────────────────────────────────────────────────────────────────
 type Phase = 'intro' | 'quiz' | 'result';
 
@@ -284,7 +310,9 @@ export default function QuizClient() {
   // ── 인트로 ──────────────────────────────────────────────────────────────────
   if (phase === 'intro') {
     return (
-      <div className="min-h-screen bg-[#FFF8F0] flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-[#FFF8F0] flex flex-col">
+        <QuizHeader />
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -367,6 +395,7 @@ export default function QuizClient() {
 
           <p className="text-center text-[#0A0A0A]/40 text-xs mt-4">약 1분 소요</p>
         </motion.div>
+        </div>
       </div>
     );
   }
@@ -377,7 +406,9 @@ export default function QuizClient() {
     const progress = ((current) / QUESTIONS.length) * 100;
 
     return (
-      <div className="min-h-screen bg-[#FFF8F0] flex flex-col items-center px-4 py-8">
+      <div className="min-h-screen bg-[#FFF8F0] flex flex-col">
+        <QuizHeader />
+        <div className="flex-1 flex flex-col items-center px-4 py-8">
         <div className="w-full max-w-lg">
           {/* 프로그레스 */}
           <div className="mb-6">
@@ -469,6 +500,7 @@ export default function QuizClient() {
             </motion.div>
           </AnimatePresence>
         </div>
+        </div>
       </div>
     );
   }
@@ -481,9 +513,11 @@ export default function QuizClient() {
 
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
+        className="min-h-screen flex flex-col"
         style={{ background: result.bg }}
       >
+        <QuizHeader />
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -634,6 +668,7 @@ export default function QuizClient() {
             Music Spot — 뮤지션을 위한 연습실 플랫폼
           </p>
         </motion.div>
+        </div>
       </div>
     );
   }
