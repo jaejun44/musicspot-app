@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: '나에게 어울리는 악기는? 🎸',
     description: '락·메탈 밴드 악기 유형 테스트! 7가지 질문으로 알아보는 나의 악기 DNA.',
     url: `${SITE_URL}/quiz`,
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Music Spot 악기 테스트' }],
+    images: [{ url: '/ms_character/starbeat.png', width: 1200, height: 630, alt: 'Music Spot 악기 테스트' }],
   },
   twitter: {
     card: 'summary_large_image',
