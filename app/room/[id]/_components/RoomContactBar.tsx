@@ -10,20 +10,14 @@ interface RoomContactBarProps {
 
 const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com', 'spacecloud.kr'];
 
-function resolveNaverUrl(url: string, address?: string | null): string {
-  const isNaverPlace = NAVER_PLACE_DOMAINS.some((d) => url.includes(d));
-  if (isNaverPlace) return url;
-  if (address) return `https://map.naver.com/v5/search/${encodeURIComponent(address)}`;
-  return url;
+function resolveNaverUrl(url: string): string | null {
+  return NAVER_PLACE_DOMAINS.some((d) => url.includes(d)) ? url : null;
 }
 
 export default function RoomContactBar({ studio }: RoomContactBarProps) {
-  const hasAny = studio.naver_place_url || studio.kakao_channel || studio.phone;
+  const naverUrl = studio.naver_place_url ? resolveNaverUrl(studio.naver_place_url) : null;
+  const hasAny = naverUrl || studio.kakao_channel || studio.phone;
   if (!hasAny) return null;
-
-  const naverUrl = studio.naver_place_url
-    ? resolveNaverUrl(studio.naver_place_url, studio.address)
-    : null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 py-3">

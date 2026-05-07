@@ -36,12 +36,8 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
   }
 
   const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com', 'spacecloud.kr'];
-  const naverUrl = studio.naver_place_url
-    ? NAVER_PLACE_DOMAINS.some((d) => studio.naver_place_url!.includes(d))
-      ? studio.naver_place_url
-      : studio.address
-        ? `https://map.naver.com/v5/search/${encodeURIComponent(studio.address)}`
-        : studio.naver_place_url
+  const naverUrl = studio.naver_place_url && NAVER_PLACE_DOMAINS.some((d) => studio.naver_place_url!.includes(d))
+    ? studio.naver_place_url
     : null;
   const hasNaverUrl = !!naverUrl;
   const hasPhone = !!studio.phone;
