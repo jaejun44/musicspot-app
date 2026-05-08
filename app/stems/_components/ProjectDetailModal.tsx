@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Pause, Upload, Music, Mic, Square, Trash2, Pencil } from 'lucide-react';
+import { X, Play, Pause, Upload, Music, Mic, Square, Trash2, Pencil, Download } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import { StemProject } from './StemsClient';
@@ -489,6 +489,15 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                         >
                           #{track.track_order}
                         </span>
+
+                        <a
+                          href={track.file_url}
+                          download={`track${track.track_order}_${track.user_name}.mp3`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[8px] border-[2px] border-[#0A0A0A]/20 hover:bg-[#4FC3F7]/20 hover:border-[#4FC3F7] transition-colors"
+                        >
+                          <Download className="w-3.5 h-3.5 text-[#4FC3F7]" />
+                        </a>
 
                         {(user?.id === track.user_id || isOwner) && (
                           <button
