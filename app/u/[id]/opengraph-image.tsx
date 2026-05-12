@@ -53,7 +53,7 @@ export default async function OGImage({ params }: Props) {
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: 'radial-gradient(#0A0A0A22 2px, transparent 2px)',
+            backgroundImage: 'radial-gradient(rgba(10,10,10,0.13) 2px, transparent 2px)',
             backgroundSize: '32px 32px',
           }}
         />
@@ -140,12 +140,11 @@ export default async function OGImage({ params }: Props) {
           <div
             style={{
               fontSize: 32,
-              color: '#0A0A0A99',
+              color: 'rgba(10,10,10,0.6)',
               fontWeight: 500,
               marginBottom: 48,
               maxWidth: '800px',
               overflow: 'hidden',
-              display: '-webkit-box',
             }}
           >
             {bio.length > 60 ? bio.slice(0, 60) + '…' : bio}
