@@ -2,45 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 import { StudioReport } from '@/types/report';
+import {
+  Feedback,
+  StudioRequest,
+  KpiData,
+  adminFetchStudios,
+  adminFetchFeedbacks,
+  adminFetchReports,
+  adminFetchRequests,
+  adminTogglePublish,
+  adminToggleReportStatus,
+  adminApproveRequest,
+  adminRejectRequest,
+  adminFetchKpi,
+} from './actions';
 
-interface Feedback {
-  id: string;
-  name: string | null;
-  content: string;
-  rating: number | null;
-  page_path: string | null;
-  created_at: string;
-}
-
-interface StudioRequest {
-  id: string;
-  name: string;
-  address: string;
-  region: string | null;
-  phone: string | null;
-  room_type: string | null;
-  has_drum: boolean;
-  price_per_hour: number | null;
-  price_info: string | null;
-  hours: string | null;
-  naver_place_url: string | null;
-  kakao_channel: string | null;
-  options: string | null;
-  notes: string | null;
-  applicant_name: string | null;
-  applicant_contact: string | null;
-  status: string;
-  created_at: string;
-}
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
-  const [tab, setTab] = useState<'studios' | 'feedbacks' | 'reports' | 'requests'>('studios');
+  const [tab, setTab] = useState<'studios' | 'feedbacks' | 'reports' | 'requests' | 'kpi'>('studios');
   const [studios, setStudios] = useState<Studio[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [reports, setReports] = useState<StudioReport[]>([]);
@@ -50,6 +34,9 @@ export default function AdminPage() {
   const [publishedFilter, setPublishedFilter] = useState<'all' | 'true' | 'false'>('all');
   const [approvingId, setApprovingId] = useState<string | null>(null);
 
+  const [kpiData, setKpiData] = useState<KpiData | null>(null);
+  const [kpiLoading, setKpiLoading] = useState(false);
+
   useEffect(() => {
     if (localStorage.getItem('admin_auth') === 'true') {
       setAuthed(true);
@@ -58,10 +45,11 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (authed) {
-      fetchStudios();
-      fetchFeedbacks();
-      fetchReports();
-      fetchRequests();
+      loadStudios();
+      loadFeedbacks();
+      loadReports();
+      loadRequests();
+      loadKpi();
     }
   }, [authed]);
 
@@ -111,59 +99,32 @@ export default function AdminPage() {
     );
   }
 
-  async function fetchStudios() {
+  async function loadStudios() {
     setLoading(true);
-    const all: Studio[] = [];
-    let offset = 0;
-    while (true) {
-      const { data, error } = await supabase
-        .from('studios')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(offset, offset + 999);
-      if (error || !data) break;
-      all.push(...(data as Studio[]));
-      if (data.length < 1000) break;
-      offset += 1000;
-    }
-    setStudios(all);
+    const data = await adminFetchStudios();
+    setStudios(data);
     setLoading(false);
   }
 
-  async function fetchFeedbacks() {
-    const { data } = await supabase
-      .from('feedbacks')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(500);
-    if (data) setFeedbacks(data as Feedback[]);
+  async function loadFeedbacks() {
+    const data = await adminFetchFeedbacks();
+    setFeedbacks(data);
   }
 
-  async function fetchReports() {
-    const { data } = await supabase
-      .from('studio_reports')
-      .select('*, studios(name)')
-      .order('created_at', { ascending: false })
-      .limit(500);
-    if (data) setReports(data as StudioReport[]);
+  async function loadReports() {
+    const data = await adminFetchReports();
+    setReports(data);
   }
 
-  async function fetchRequests() {
-    const { data } = await supabase
-      .from('studio_requests')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(500);
-    if (data) setRequests(data as StudioRequest[]);
+  async function loadRequests() {
+    const data = await adminFetchRequests();
+    setRequests(data);
   }
 
   async function toggleReportStatus(id: string, current: string) {
     const next = current === 'pending' ? 'resolved' : 'pending';
-    const { error } = await supabase
-      .from('studio_reports')
-      .update({ status: next })
-      .eq('id', id);
-    if (!error) {
+    const result = await adminToggleReportStatus(id, current);
+    if (!result.error) {
       setReports((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: next as 'pending' | 'resolved' } : r))
       );
@@ -171,11 +132,8 @@ export default function AdminPage() {
   }
 
   async function togglePublish(id: string, current: boolean) {
-    const { error } = await supabase
-      .from('studios')
-      .update({ is_published: !current, updated_at: new Date().toISOString() })
-      .eq('id', id);
-    if (!error) {
+    const result = await adminTogglePublish(id, current);
+    if (!result.error) {
       setStudios((prev) =>
         prev.map((s) => (s.id === id ? { ...s, is_published: !current } : s))
       );
@@ -184,35 +142,12 @@ export default function AdminPage() {
 
   async function approveRequest(req: StudioRequest) {
     setApprovingId(req.id);
-    const { error } = await supabase.from('studios').insert({
-      name: req.name,
-      address: req.address,
-      region: req.region,
-      phone: req.phone,
-      room_type: req.room_type,
-      has_drum: req.has_drum,
-      price_per_hour: req.price_per_hour,
-      price_info: req.price_info,
-      hours: req.hours,
-      naver_place_url: req.naver_place_url,
-      kakao_channel: req.kakao_channel,
-      options: req.options,
-      notes: req.notes,
-      is_published: true,
-      data_quality_score: 30,
-    });
-
-    if (error) {
-      alert('승인 중 오류가 발생했습니다: ' + error.message);
+    const result = await adminApproveRequest(req);
+    if (result.error) {
+      alert('승인 중 오류가 발생했습니다: ' + result.error);
       setApprovingId(null);
       return;
     }
-
-    await supabase
-      .from('studio_requests')
-      .update({ status: 'approved' })
-      .eq('id', req.id);
-
     setRequests((prev) =>
       prev.map((r) => (r.id === req.id ? { ...r, status: 'approved' } : r))
     );
@@ -220,13 +155,17 @@ export default function AdminPage() {
   }
 
   async function rejectRequest(id: string) {
-    await supabase
-      .from('studio_requests')
-      .update({ status: 'rejected' })
-      .eq('id', id);
+    await adminRejectRequest(id);
     setRequests((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r))
     );
+  }
+
+  async function loadKpi() {
+    setKpiLoading(true);
+    const data = await adminFetchKpi();
+    setKpiData(data);
+    setKpiLoading(false);
   }
 
   const filtered = studios.filter((s) => {
@@ -248,6 +187,7 @@ export default function AdminPage() {
     { key: 'requests' as const, label: `등록신청 (${requests.length})`, badge: pendingRequests.length },
     { key: 'feedbacks' as const, label: `피드백 (${feedbacks.length})` },
     { key: 'reports' as const, label: `제보 (${reports.length})` },
+    { key: 'kpi' as const, label: 'KPI 📊' },
   ];
 
   return (
@@ -525,6 +465,140 @@ export default function AdminPage() {
                 ))}
               </tbody>
             </table>
+          )}
+        </div>
+      )}
+
+      {tab === 'kpi' && (
+        <div>
+          {kpiLoading || !kpiData ? (
+            <div className="flex justify-center py-20">
+              <div className="bg-comic-yellow border-[2px] border-comic-black px-6 py-3 font-bold text-sm animate-pulse">
+                집계 중...
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* 기본 카운트 */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { label: '총 유저', value: kpiData.totalUsers, color: '#4FC3F7' },
+                  { label: '이번 주 신규', value: kpiData.newUsersThisWeek, color: '#F5FF4F' },
+                  { label: '8마디 프로젝트', value: kpiData.totalProjects, color: '#FF3D77' },
+                  { label: '8마디 트랙', value: kpiData.totalTracks, color: '#FF3D77' },
+                  { label: '예약 횟수', value: kpiData.totalBookings, color: '#41C66B' },
+                  { label: '커뮤니티 게시물', value: kpiData.totalPosts, color: '#4FC3F7' },
+                ].map(({ label, value, color }) => (
+                  <div
+                    key={label}
+                    className="bg-white border-[2px] border-comic-black p-4 rounded-[12px]"
+                    style={{ boxShadow: `3px 3px 0 ${color}` }}
+                  >
+                    <p className="text-[10px] font-bold text-comic-black/50 mb-1">{label}</p>
+                    <p className="text-[28px] font-bungee text-comic-black">{value.toLocaleString()}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* 핵심 KPI */}
+              <div className="bg-white border-[2px] border-comic-black p-4 rounded-[12px]" style={{ boxShadow: '4px 4px 0 #FF3D77' }}>
+                <p className="text-[12px] font-bold text-comic-black mb-3">🎯 핵심 KPI</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-comic-black/50">응답률</p>
+                    <p className={`text-[24px] font-bungee ${kpiData.responseRate >= 30 ? 'text-[#41C66B]' : 'text-comic-pink'}`}>
+                      {kpiData.responseRate}%
+                    </p>
+                    <p className="text-[9px] text-comic-black/40">목표: 30%+</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-comic-black/50">활성화율</p>
+                    <p className={`text-[24px] font-bungee ${kpiData.activationRate >= 30 ? 'text-[#41C66B]' : 'text-comic-pink'}`}>
+                      {kpiData.activationRate}%
+                    </p>
+                    <p className="text-[9px] text-comic-black/40">활성 유저 {kpiData.activeUsers}명</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-comic-black/50">평균 챌린지 점수</p>
+                    <p className="text-[24px] font-bungee text-comic-black">{kpiData.avgChallengeScore}</p>
+                    <p className="text-[9px] text-comic-black/40">트랙 전체 평균</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-comic-black/50">K-factor (근사치)</p>
+                    <p className={`text-[24px] font-bungee ${kpiData.kFactor >= 1.0 ? 'text-[#41C66B]' : 'text-comic-pink'}`}>
+                      {kpiData.kFactor}
+                    </p>
+                    <p className="text-[9px] text-comic-black/40">목표: 1.0+</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-comic-black/50">D7 잔존율</p>
+                    <p className={`text-[24px] font-bungee ${kpiData.d7CohortSize === 0 ? 'text-comic-black/30' : kpiData.d7Retention >= 20 ? 'text-[#41C66B]' : 'text-comic-pink'}`}>
+                      {kpiData.d7CohortSize === 0 ? '—' : `${kpiData.d7Retention}%`}
+                    </p>
+                    <p className="text-[9px] text-comic-black/40">코호트 {kpiData.d7CohortSize}명 · 목표: 20%+</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* challenge_score 분포 */}
+              <div className="bg-white border-[2px] border-comic-black p-4 rounded-[12px]" style={{ boxShadow: '4px 4px 0 #F5FF4F' }}>
+                <p className="text-[12px] font-bold text-comic-black mb-3">📊 챌린지 점수 분포</p>
+                {(() => {
+                  const dist = kpiData.scoreDistribution;
+                  const total = dist.zero + dist.low + dist.mid + dist.high + dist.elite || 1;
+                  const buckets = [
+                    { label: '0점', value: dist.zero, color: '#0A0A0A20' },
+                    { label: '1-5점', value: dist.low, color: '#4FC3F7' },
+                    { label: '6-20점', value: dist.mid, color: '#F5FF4F' },
+                    { label: '21-100점', value: dist.high, color: '#FF3D77' },
+                    { label: '100점+', value: dist.elite, color: '#41C66B' },
+                  ];
+                  return (
+                    <div className="space-y-2">
+                      {buckets.map(({ label, value, color }) => (
+                        <div key={label} className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-comic-black/60 w-14 shrink-0">{label}</span>
+                          <div className="flex-1 h-4 bg-comic-cream border border-comic-black/10 rounded-[4px] overflow-hidden">
+                            <div
+                              className="h-full rounded-[4px]"
+                              style={{ width: `${Math.round((value / total) * 100)}%`, backgroundColor: color }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-bold text-comic-black/60 w-8 text-right">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* 조기 경보 */}
+              <div className="bg-white border-[2px] border-comic-black p-4 rounded-[12px]" style={{ boxShadow: '4px 4px 0 #0A0A0A' }}>
+                <p className="text-[12px] font-bold text-comic-black mb-3">🚨 조기 경보</p>
+                <div className="space-y-2">
+                  <div className={`flex items-center gap-2 px-3 py-2 border-[2px] border-comic-black rounded-[8px] ${kpiData.responseRate >= 30 ? 'bg-[#41C66B]/10' : 'bg-comic-pink/10'}`}>
+                    <span>{kpiData.responseRate >= 30 ? '✅' : '🚨'}</span>
+                    <span className="text-[11px] font-bold">응답률 {kpiData.responseRate}% {kpiData.responseRate >= 30 ? '— 정상' : '— 주의 (30% 미만)'}</span>
+                  </div>
+                  <div className={`flex items-center gap-2 px-3 py-2 border-[2px] border-comic-black rounded-[8px] ${kpiData.activationRate >= 20 ? 'bg-[#41C66B]/10' : 'bg-comic-pink/10'}`}>
+                    <span>{kpiData.activationRate >= 20 ? '✅' : '⚠️'}</span>
+                    <span className="text-[11px] font-bold">활성화율 {kpiData.activationRate}% {kpiData.activationRate >= 20 ? '— 정상' : '— 확인 필요'}</span>
+                  </div>
+                  <div className={`flex items-center gap-2 px-3 py-2 border-[2px] border-comic-black rounded-[8px] ${kpiData.newUsersThisWeek >= 10 ? 'bg-[#41C66B]/10' : 'bg-[#F5FF4F]/30'}`}>
+                    <span>{kpiData.newUsersThisWeek >= 10 ? '✅' : 'ℹ️'}</span>
+                    <span className="text-[11px] font-bold">이번 주 신규 {kpiData.newUsersThisWeek}명 {kpiData.newUsersThisWeek >= 10 ? '— 양호' : '— 유입 강화 고려'}</span>
+                  </div>
+                  <div className={`flex items-center gap-2 px-3 py-2 border-[2px] border-comic-black rounded-[8px] ${kpiData.kFactor >= 1.0 ? 'bg-[#41C66B]/10' : 'bg-comic-pink/10'}`}>
+                    <span>{kpiData.kFactor >= 1.0 ? '✅' : '🚨'}</span>
+                    <span className="text-[11px] font-bold">K-factor {kpiData.kFactor} {kpiData.kFactor >= 1.0 ? '— 정상' : '— 주의 (1.0 미만 → 바이럴 기능 재검토)'}</span>
+                  </div>
+                  <div className={`flex items-center gap-2 px-3 py-2 border-[2px] border-comic-black rounded-[8px] ${kpiData.d7CohortSize === 0 ? 'bg-[#F5FF4F]/30' : kpiData.d7Retention >= 20 ? 'bg-[#41C66B]/10' : 'bg-comic-pink/10'}`}>
+                    <span>{kpiData.d7CohortSize === 0 ? 'ℹ️' : kpiData.d7Retention >= 20 ? '✅' : '🚨'}</span>
+                    <span className="text-[11px] font-bold">D7 잔존 {kpiData.d7CohortSize === 0 ? '— 코호트 없음' : `${kpiData.d7Retention}% ${kpiData.d7Retention >= 20 ? '— 정상' : '— 주의 (20% 미만 → 온보딩 강화)'}`}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}

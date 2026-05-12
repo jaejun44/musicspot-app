@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
+import { adminFetchStudio, adminSaveStudio, adminUploadStudioPhoto } from '../actions';
 
 const inputClass =
   'w-full px-3 py-2.5 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/30 focus:outline-none focus:border-comic-pink';
@@ -23,8 +23,8 @@ export default function AdminEditPage() {
       return;
     }
     async function load() {
-      const { data } = await supabase.from('studios').select('*').eq('id', id).single();
-      if (data) setStudio(data as Studio);
+      const data = await adminFetchStudio(id);
+      if (data) setStudio(data);
       setLoading(false);
     }
     load();
@@ -34,29 +34,25 @@ export default function AdminEditPage() {
     if (!studio) return;
     setSaving(true);
 
-    const { error } = await supabase
-      .from('studios')
-      .update({
-        name: studio.name,
-        address: studio.address,
-        phone: studio.phone,
-        hours: studio.hours,
-        room_type: studio.room_type,
-        has_drum: studio.has_drum,
-        price_per_hour: studio.price_per_hour,
-        kakao_channel: studio.kakao_channel,
-        naver_place_url: studio.naver_place_url,
-        notes: studio.notes,
-        photos: studio.photos,
-        is_published: studio.is_published,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
+    const result = await adminSaveStudio(id, {
+      name: studio.name,
+      address: studio.address,
+      phone: studio.phone,
+      hours: studio.hours,
+      room_type: studio.room_type,
+      has_drum: studio.has_drum,
+      price_per_hour: studio.price_per_hour,
+      kakao_channel: studio.kakao_channel,
+      naver_place_url: studio.naver_place_url,
+      notes: studio.notes,
+      photos: studio.photos,
+      is_published: studio.is_published,
+    });
 
     setSaving(false);
 
-    if (error) {
-      alert('저장 실패: ' + error.message);
+    if (result.error) {
+      alert('저장 실패: ' + result.error);
     } else {
       alert('저장 완료');
     }
@@ -67,26 +63,21 @@ export default function AdminEditPage() {
     if (!file || !studio) return;
 
     setUploading(true);
-    const ext = file.name.split('.').pop();
-    const path = `${studio.id}/${Date.now()}.${ext}`;
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('studioId', studio.id);
 
-    const { error: uploadError } = await supabase.storage
-      .from('studio-photos')
-      .upload(path, file);
+    const result = await adminUploadStudioPhoto(fd);
 
-    if (uploadError) {
-      alert('업로드 실패: ' + uploadError.message);
+    if (result.error) {
+      alert('업로드 실패: ' + result.error);
       setUploading(false);
       return;
     }
 
-    const { data: urlData } = supabase.storage
-      .from('studio-photos')
-      .getPublicUrl(path);
-
     setStudio({
       ...studio,
-      photos: [...(studio.photos ?? []), urlData.publicUrl],
+      photos: [...(studio.photos ?? []), result.url!],
     });
     setUploading(false);
   }
