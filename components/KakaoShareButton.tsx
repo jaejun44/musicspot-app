@@ -1,24 +1,26 @@
 'use client';
 
 import { trackEvent } from '@/lib/analytics';
+import { buildShareUrl, type ShareCampaign } from '@/lib/share-utm';
 
 interface Props {
   studioName: string;
   studioAddress: string;
   studioId: string;
   imageUrl?: string;
+  campaign?: ShareCampaign;
 }
-
-const BASE_URL = 'https://musicspotapp.vercel.app';
 
 export default function KakaoShareButton({
   studioName,
   studioAddress,
   studioId,
   imageUrl,
+  campaign = 'studio',
 }: Props) {
   async function handleShare() {
-    const url = `${BASE_URL}/room/${studioId}`;
+    const kakaoUrl = buildShareUrl(`/room/${studioId}`, 'kakao', campaign, studioId);
+    const linkUrl = buildShareUrl(`/room/${studioId}`, 'link', campaign, studioId);
 
     // 1순위: 카카오 SDK
     if (window.Kakao?.isInitialized()) {
@@ -28,13 +30,13 @@ export default function KakaoShareButton({
           content: {
             title: studioName,
             description: studioAddress || '연습실 정보 보기',
-            imageUrl: imageUrl || `${BASE_URL}/hero-bg.png`,
-            link: { mobileWebUrl: url, webUrl: url },
+            imageUrl: imageUrl || 'https://musicspotapp.vercel.app/hero-bg.png',
+            link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl },
           },
           buttons: [
             {
               title: '연습실 보기',
-              link: { mobileWebUrl: url, webUrl: url },
+              link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl },
             },
           ],
         });
@@ -55,7 +57,7 @@ export default function KakaoShareButton({
         await navigator.share({
           title: studioName,
           text: `${studioName} - ${studioAddress}`,
-          url,
+          url: linkUrl,
         });
         trackEvent('share_click', {
           studio_id: studioId,
@@ -70,7 +72,7 @@ export default function KakaoShareButton({
 
     // 3순위: 클립보드 복사
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(linkUrl);
       alert('링크가 복사되었습니다!');
       trackEvent('share_click', {
         studio_id: studioId,

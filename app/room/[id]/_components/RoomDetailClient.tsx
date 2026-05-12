@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 import { trackStudioView } from '@/lib/analytics';
+import { buildShareUrl } from '@/lib/share-utm';
 import { addRecentlyViewed } from '@/lib/recentlyViewed';
 import Navigation from '@/components/Navigation';
 import ReportModal from '@/components/ReportModal';
@@ -60,7 +61,8 @@ export default function RoomDetailClient() {
 
   async function handleShare() {
     if (!studio) return;
-    const url = `${window.location.origin}/room/${studio.id}`;
+    const kakaoUrl = buildShareUrl(`/room/${studio.id}`, 'kakao', 'studio', studio.id);
+    const linkUrl = buildShareUrl(`/room/${studio.id}`, 'link', 'studio', studio.id);
 
     if (window.Kakao?.isInitialized()) {
       try {
@@ -69,10 +71,10 @@ export default function RoomDetailClient() {
           content: {
             title: studio.name,
             description: studio.address || '연습실 정보 보기',
-            imageUrl: studio.photos?.[0] || `${window.location.origin}/hero-bg.png`,
-            link: { mobileWebUrl: url, webUrl: url },
+            imageUrl: studio.photos?.[0] || 'https://musicspotapp.vercel.app/hero-bg.png',
+            link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl },
           },
-          buttons: [{ title: '연습실 보기', link: { mobileWebUrl: url, webUrl: url } }],
+          buttons: [{ title: '연습실 보기', link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl } }],
         });
         return;
       } catch {
@@ -82,14 +84,14 @@ export default function RoomDetailClient() {
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: studio.name, text: studio.address ?? '', url });
+        await navigator.share({ title: studio.name, text: studio.address ?? '', url: linkUrl });
         return;
       } catch {
         // user cancelled
       }
     }
 
-    await navigator.clipboard.writeText(url).catch(() => null);
+    await navigator.clipboard.writeText(linkUrl).catch(() => null);
     alert('링크가 복사되었습니다!');
   }
 
