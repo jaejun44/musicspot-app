@@ -90,7 +90,7 @@ export default async function OGImage({ params }: Props) {
               fontSize: 24,
               fontWeight: 700,
               color: '#0A0A0A',
-              display: 'inline-flex',
+              display: 'flex',
               alignSelf: 'flex-start',
               marginBottom: 36,
               boxShadow: '4px 4px 0 #0A0A0A',

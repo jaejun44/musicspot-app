@@ -100,7 +100,7 @@ export default async function OGImage({ params }: Props) {
               fontSize: 24,
               fontWeight: 700,
               color: '#FFFFFF',
-              display: 'inline-flex',
+              display: 'flex',
               alignSelf: 'flex-start',
               marginBottom: 32,
               boxShadow: '4px 4px 0 #0A0A0A',
@@ -150,7 +150,6 @@ export default async function OGImage({ params }: Props) {
                 fontSize: 22,
                 fontWeight: 900,
                 color: '#F5FF4F',
-                letterSpacing: '1px',
               }}
             >
               MUSIC SPOT
