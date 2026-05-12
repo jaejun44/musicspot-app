@@ -36,8 +36,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `₩${data.price_per_hour.toLocaleString()}/h`
     : data.price_info ?? '';
   const description = [data.address, price, '합주 연습실 예약'].filter(Boolean).join(' · ');
-  const imageUrl = data.photos?.[0] ?? `${SITE_URL}/og-default.png`;
-
   return {
     title,
     description,
@@ -47,7 +45,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: pageUrl,
       siteName: 'Music Spot',
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: data.name }],
       type: 'website',
       locale: 'ko_KR',
     },
@@ -55,7 +52,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title,
       description,
-      images: [imageUrl],
     },
   };
 }
