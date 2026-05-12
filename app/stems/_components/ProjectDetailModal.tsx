@@ -2,15 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Pause, Upload, Music, Mic, Square, Trash2, Pencil, Download } from 'lucide-react';
+import { X, Play, Pause, Music, Trash2, Pencil, Download, Video, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import { StemProject } from './StemsClient';
-
-const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
-const MAX_FILE_BYTES = 30 * 1024 * 1024;
-
-type UploadMode = 'file' | 'record';
+import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 
 interface StemTrack {
   id: string;
@@ -18,7 +14,8 @@ interface StemTrack {
   user_id: string | null;
   user_name: string;
   user_emoji: string;
-  file_url: string;
+  file_url: string | null;
+  youtube_url: string | null;
   instrument: string | null;
   track_order: number;
   created_at: string;
@@ -41,34 +38,14 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   const [playingId, setPlayingId] = useState<string | null>(null);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
-  // Upload / Record shared state
-  const [uploadMode, setUploadMode] = useState<UploadMode>('file');
-  const [file, setFile] = useState<File | null>(null);
-  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
-  const [instrument, setInstrument] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
-
-  // Recording state
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const previewUrlRef = useRef<string | null>(null);
-
   useEffect(() => {
     fetchTracks();
   }, [project.id]);
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+      audioRefs.current.forEach((audio) => { audio.pause(); audio.src = ''; });
+      audioRefs.current.clear();
     };
   }, []);
 
@@ -126,140 +103,6 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
       audioRefs.current.delete(trackId);
     }
   }
-
-  function setPreview(url: string | null) {
-    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-    previewUrlRef.current = url;
-    setPreviewUrl(url);
-  }
-
-  function switchMode(mode: UploadMode) {
-    if (mode === uploadMode) return;
-    if (isRecording) stopRecording();
-    setFile(null);
-    setRecordedBlob(null);
-    setPreview(null);
-    setUploadError('');
-    setUploadMode(mode);
-  }
-
-  async function startRecording() {
-    setUploadError('');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      audioChunksRef.current = [];
-      setRecordedBlob(null);
-      setPreview(null);
-
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-        ? 'audio/webm;codecs=opus'
-        : MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : '';
-
-      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-      mediaRecorderRef.current = mr;
-
-      mr.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-
-      mr.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setRecordedBlob(blob);
-        setPreview(URL.createObjectURL(blob));
-        streamRef.current?.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
-      };
-
-      mr.start(250);
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      timerRef.current = setInterval(() => {
-        setRecordingTime((t) => t + 1);
-      }, 1000);
-    } catch {
-      setUploadError('마이크 접근 권한이 필요합니다. 브라우저 설정에서 허용해주세요.');
-    }
-  }
-
-  function stopRecording() {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }
-
-  function formatTime(seconds: number) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
-
-  async function handleUpload() {
-    const source: File | Blob | null = uploadMode === 'file' ? file : recordedBlob;
-    if (!source || !user || uploading) return;
-    setUploadError('');
-
-    if (source.size > MAX_FILE_BYTES) {
-      setUploadError('파일 크기는 30MB 이하여야 합니다.');
-      return;
-    }
-
-    setUploading(true);
-    const ext = uploadMode === 'file' ? ((file as File).name.split('.').pop() ?? 'mp3') : 'webm';
-    const path = `${project.id}/${user.id}_${Date.now()}.${ext}`;
-    const contentType = uploadMode === 'file' ? (file as File).type : 'audio/webm';
-
-    const { error: uploadErr } = await supabase.storage
-      .from('stems')
-      .upload(path, source, { contentType });
-
-    if (uploadErr) {
-      setUploadError('업로드 실패: ' + uploadErr.message);
-      setUploading(false);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from('stems').getPublicUrl(path);
-    const fileUrl = urlData.publicUrl;
-
-    const userName =
-      user.user_metadata?.full_name ||
-      user.user_metadata?.name ||
-      user.email?.split('@')[0] ||
-      '익명';
-
-    const { error: insertErr } = await supabase.from('stem_tracks').insert({
-      project_id: project.id,
-      user_id: user.id,
-      user_name: userName,
-      user_emoji: '🎵',
-      file_url: fileUrl,
-      instrument: instrument.trim() || null,
-      track_order: tracks.length + 1,
-    });
-
-    if (insertErr) {
-      setUploadError('트랙 저장 실패: ' + insertErr.message);
-      setUploading(false);
-      return;
-    }
-
-    setFile(null);
-    setRecordedBlob(null);
-    setPreview(null);
-    setInstrument('');
-    setUploading(false);
-    fetchTracks();
-    onUpdate();
-  }
-
-  const canSubmit = uploadMode === 'file' ? !!file : !!recordedBlob;
 
   return (
     <AnimatePresence>
@@ -407,114 +250,213 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {tracks.map((track) => (
-                    <div key={track.id}>
-                      <audio
-                        ref={(el) => setAudioRef(track.id, el)}
-                        src={track.file_url}
-                        onEnded={() => handleAudioEnded(track.id)}
-                        preload="metadata"
-                      />
-                      <motion.div
-                        whileHover={{ y: -2 }}
-                        className="flex items-center gap-3 p-3 bg-white rounded-[14px] border-[2px] border-[#0A0A0A]"
-                        style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
-                      >
-                        {/* Track number */}
-                        <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[#0A0A0A] flex items-center justify-center">
-                          <span
-                            className="text-white text-[12px] font-bold"
-                            style={{ fontFamily: 'Bungee, sans-serif' }}
-                          >
-                            {track.track_order}
-                          </span>
-                        </div>
+                  {tracks.map((track) => {
+                    const youtubeId = track.youtube_url ? extractYoutubeId(track.youtube_url) : null;
 
-                        {/* Play/Pause */}
-                        <button
-                          onClick={() => handlePlayPause(track.id)}
-                          className="w-9 h-9 flex-shrink-0 rounded-full bg-[#FF3D77] border-[2px] border-[#0A0A0A] flex items-center justify-center"
-                          style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+                    if (youtubeId) {
+                      // YouTube track card
+                      return (
+                        <motion.div
+                          key={track.id}
+                          whileHover={{ y: -2 }}
+                          className="flex flex-col gap-2 p-3 bg-white rounded-[14px] border-[2px] border-[#0A0A0A]"
+                          style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
                         >
-                          {playingId === track.id ? (
-                            <Pause className="w-4 h-4 text-white fill-white" />
-                          ) : (
-                            <Play className="w-4 h-4 text-white fill-white ml-0.5" />
-                          )}
-                        </button>
+                          {/* Thumbnail row */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[#0A0A0A] flex items-center justify-center">
+                              <span
+                                className="text-white text-[12px] font-bold"
+                                style={{ fontFamily: 'Bungee, sans-serif' }}
+                              >
+                                {track.track_order}
+                              </span>
+                            </div>
 
-                        {/* Playing indicator */}
-                        {playingId === track.id && (
-                          <div className="flex items-end gap-[2px] h-5 flex-shrink-0">
-                            {[0, 1, 2].map((i) => (
-                              <motion.div
-                                key={i}
-                                className="w-[3px] bg-[#FF3D77] rounded-full"
-                                animate={{ height: ['6px', '16px', '6px'] }}
-                                transition={{
-                                  duration: 0.6,
-                                  repeat: Infinity,
-                                  delay: i * 0.15,
-                                  ease: 'easeInOut',
-                                }}
+                            {/* YouTube thumbnail */}
+                            <div className="w-14 h-10 flex-shrink-0 rounded-[8px] overflow-hidden border-[2px] border-[#0A0A0A]">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
+                                alt="YouTube thumbnail"
+                                className="w-full h-full object-cover"
                               />
-                            ))}
-                          </div>
-                        )}
+                            </div>
 
-                        {/* User info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[14px]">{track.user_emoji}</span>
-                            <p
-                              className="text-[12px] font-bold text-[#0A0A0A] truncate"
-                              style={{ fontFamily: 'Pretendard, sans-serif' }}
-                            >
-                              {track.user_name}
-                            </p>
+                            {/* User info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[14px]">{track.user_emoji}</span>
+                                <p
+                                  className="text-[12px] font-bold text-[#0A0A0A] truncate"
+                                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                                >
+                                  {track.user_name}
+                                </p>
+                              </div>
+                              {track.instrument && (
+                                <span
+                                  className="text-[10px] font-bold text-[#0A0A0A]/50"
+                                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                                >
+                                  {track.instrument}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <span
+                                className="text-[10px] text-[#0A0A0A]/30 font-bold"
+                                style={{ fontFamily: 'Pretendard, sans-serif' }}
+                              >
+                                #{track.track_order}
+                              </span>
+
+                              <a
+                                href={track.youtube_url!}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-7 h-7 flex items-center justify-center rounded-[8px] border-[2px] border-[#FF3D77]/40 hover:bg-[#FF3D77]/10 hover:border-[#FF3D77] transition-colors"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5 text-[#FF3D77]" />
+                              </a>
+
+                              {(user?.id === track.user_id || isOwner) && (
+                                <button
+                                  onClick={() => handleDeleteTrack(track.id)}
+                                  className="w-7 h-7 flex items-center justify-center rounded-[8px] border-[2px] border-[#0A0A0A]/20 hover:bg-[#FF3D77]/10 hover:border-[#FF3D77] transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-[#FF3D77]" />
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          {track.instrument && (
+
+                          {/* YouTube badge */}
+                          <div className="flex items-center gap-1.5 px-2 py-1 bg-[#FF3D77]/5 rounded-[8px] border-[1px] border-[#FF3D77]/20">
+                            <Video className="w-3 h-3 text-[#FF3D77]" />
                             <span
-                              className="text-[10px] font-bold text-[#0A0A0A]/50"
+                              className="text-[10px] font-bold text-[#FF3D77]"
                               style={{ fontFamily: 'Pretendard, sans-serif' }}
                             >
-                              {track.instrument}
+                              YouTube 백킹 트랙
                             </span>
-                          )}
-                        </div>
+                          </div>
+                        </motion.div>
+                      );
+                    }
 
-                        <span
-                          className="text-[10px] text-[#0A0A0A]/30 font-bold flex-shrink-0"
-                          style={{ fontFamily: 'Pretendard, sans-serif' }}
+                    // Audio track card
+                    return (
+                      <div key={track.id}>
+                        <audio
+                          ref={(el) => setAudioRef(track.id, el)}
+                          src={track.file_url ?? ''}
+                          onEnded={() => handleAudioEnded(track.id)}
+                          preload="metadata"
+                        />
+                        <motion.div
+                          whileHover={{ y: -2 }}
+                          className="flex items-center gap-3 p-3 bg-white rounded-[14px] border-[2px] border-[#0A0A0A]"
+                          style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
                         >
-                          #{track.track_order}
-                        </span>
+                          {/* Track number */}
+                          <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[#0A0A0A] flex items-center justify-center">
+                            <span
+                              className="text-white text-[12px] font-bold"
+                              style={{ fontFamily: 'Bungee, sans-serif' }}
+                            >
+                              {track.track_order}
+                            </span>
+                          </div>
 
-                        <a
-                          href={track.file_url}
-                          download={`track${track.track_order}_${track.user_name}.mp3`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[8px] border-[2px] border-[#0A0A0A]/20 hover:bg-[#4FC3F7]/20 hover:border-[#4FC3F7] transition-colors"
-                        >
-                          <Download className="w-3.5 h-3.5 text-[#4FC3F7]" />
-                        </a>
-
-                        {(user?.id === track.user_id || isOwner) && (
+                          {/* Play/Pause */}
                           <button
-                            onClick={() => handleDeleteTrack(track.id)}
-                            className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[8px] border-[2px] border-[#0A0A0A]/20 hover:bg-[#FF3D77]/10 hover:border-[#FF3D77] transition-colors"
+                            onClick={() => handlePlayPause(track.id)}
+                            className="w-9 h-9 flex-shrink-0 rounded-full bg-[#FF3D77] border-[2px] border-[#0A0A0A] flex items-center justify-center"
+                            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-[#FF3D77]" />
+                            {playingId === track.id ? (
+                              <Pause className="w-4 h-4 text-white fill-white" />
+                            ) : (
+                              <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                            )}
                           </button>
-                        )}
-                      </motion.div>
-                    </div>
-                  ))}
+
+                          {/* Playing indicator */}
+                          {playingId === track.id && (
+                            <div className="flex items-end gap-[2px] h-5 flex-shrink-0">
+                              {[0, 1, 2].map((i) => (
+                                <motion.div
+                                  key={i}
+                                  className="w-[3px] bg-[#FF3D77] rounded-full"
+                                  animate={{ height: ['6px', '16px', '6px'] }}
+                                  transition={{
+                                    duration: 0.6,
+                                    repeat: Infinity,
+                                    delay: i * 0.15,
+                                    ease: 'easeInOut',
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          )}
+
+                          {/* User info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[14px]">{track.user_emoji}</span>
+                              <p
+                                className="text-[12px] font-bold text-[#0A0A0A] truncate"
+                                style={{ fontFamily: 'Pretendard, sans-serif' }}
+                              >
+                                {track.user_name}
+                              </p>
+                            </div>
+                            {track.instrument && (
+                              <span
+                                className="text-[10px] font-bold text-[#0A0A0A]/50"
+                                style={{ fontFamily: 'Pretendard, sans-serif' }}
+                              >
+                                {track.instrument}
+                              </span>
+                            )}
+                          </div>
+
+                          <span
+                            className="text-[10px] text-[#0A0A0A]/30 font-bold flex-shrink-0"
+                            style={{ fontFamily: 'Pretendard, sans-serif' }}
+                          >
+                            #{track.track_order}
+                          </span>
+
+                          <a
+                            href={track.file_url ?? '#'}
+                            download={`track${track.track_order}_${track.user_name}.mp3`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[8px] border-[2px] border-[#0A0A0A]/20 hover:bg-[#4FC3F7]/20 hover:border-[#4FC3F7] transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5 text-[#4FC3F7]" />
+                          </a>
+
+                          {(user?.id === track.user_id || isOwner) && (
+                            <button
+                              onClick={() => handleDeleteTrack(track.id)}
+                              className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-[8px] border-[2px] border-[#0A0A0A]/20 hover:bg-[#FF3D77]/10 hover:border-[#FF3D77] transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-[#FF3D77]" />
+                            </button>
+                          )}
+                        </motion.div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Upload / Record section */}
+            {/* Upload panel */}
             {localIsOpen && user && (
               <div>
                 <h3
@@ -523,210 +465,15 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 >
                   내 8마디 올리기 ➕
                 </h3>
-
-                {/* Mode toggle */}
-                <div
-                  className="flex mb-4 rounded-[12px] border-[2px] border-[#0A0A0A] overflow-hidden"
-                  style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
-                >
-                  {(['file', 'record'] as UploadMode[]).map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => switchMode(mode)}
-                      className={[
-                        'flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[12px] font-bold transition-colors',
-                        uploadMode === mode
-                          ? 'bg-[#0A0A0A] text-white'
-                          : 'bg-white text-[#0A0A0A]/50 hover:bg-[#0A0A0A]/5',
-                      ].join(' ')}
-                      style={{ fontFamily: 'Pretendard, sans-serif' }}
-                    >
-                      {mode === 'file' ? (
-                        <><Upload className="w-3.5 h-3.5" /> 파일 올리기</>
-                      ) : (
-                        <><Mic className="w-3.5 h-3.5" /> 바로 녹음</>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  {/* FILE MODE */}
-                  {uploadMode === 'file' && (
-                    <label
-                      className={[
-                        'flex flex-col items-center justify-center p-6 rounded-[16px] border-[3px] border-dashed cursor-pointer transition-colors',
-                        file
-                          ? 'border-[#41C66B] bg-[#41C66B]/10'
-                          : 'border-[#0A0A0A]/30 bg-white hover:border-[#FF3D77] hover:bg-[#FF3D77]/5',
-                      ].join(' ')}
-                    >
-                      <Upload className={`w-8 h-8 mb-2 ${file ? 'text-[#41C66B]' : 'text-[#0A0A0A]/30'}`} />
-                      <p
-                        className={`text-[13px] font-bold text-center ${file ? 'text-[#41C66B]' : 'text-[#0A0A0A]/50'}`}
-                        style={{ fontFamily: 'Pretendard, sans-serif' }}
-                      >
-                        {file ? `✅ ${file.name}` : '오디오 파일 선택\nMP3, WAV, OGG, M4A, FLAC (30MB 이하)'}
-                      </p>
-                      <input
-                        type="file"
-                        accept=".mp3,.wav,.ogg,.m4a,.aac,.flac,audio/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0] ?? null;
-                          setFile(f);
-                          setUploadError('');
-                        }}
-                      />
-                    </label>
-                  )}
-
-                  {/* RECORD MODE */}
-                  {uploadMode === 'record' && (
-                    <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-[16px] border-[3px] border-dashed border-[#0A0A0A]/30">
-                      {/* Idle — not recording, no blob yet */}
-                      {!isRecording && !recordedBlob && (
-                        <>
-                          <div className="w-16 h-16 rounded-full bg-[#FF3D77]/10 border-[3px] border-[#FF3D77] flex items-center justify-center">
-                            <Mic className="w-7 h-7 text-[#FF3D77]" />
-                          </div>
-                          <p
-                            className="text-[12px] text-[#0A0A0A]/50 font-bold text-center"
-                            style={{ fontFamily: 'Pretendard, sans-serif' }}
-                          >
-                            버튼을 눌러 녹음을 시작하세요
-                          </p>
-                          <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={startRecording}
-                            className="px-6 py-3 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px] flex items-center gap-2"
-                            style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
-                          >
-                            <Mic className="w-4 h-4" /> 녹음 시작 🎙️
-                          </motion.button>
-                        </>
-                      )}
-
-                      {/* Recording */}
-                      {isRecording && (
-                        <>
-                          <div className="relative flex items-center justify-center w-24 h-24">
-                            <motion.div
-                              className="absolute inset-0 rounded-full bg-[#FF3D77]/20"
-                              animate={{ scale: [1, 1.3, 1] }}
-                              transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
-                            />
-                            <motion.div
-                              className="absolute w-16 h-16 rounded-full bg-[#FF3D77]/30"
-                              animate={{ scale: [1, 1.2, 1] }}
-                              transition={{ duration: 1, repeat: Infinity, delay: 0.1, ease: 'easeInOut' }}
-                            />
-                            <div className="w-12 h-12 rounded-full bg-[#FF3D77] border-[3px] border-[#0A0A0A] flex items-center justify-center z-10">
-                              <Mic className="w-5 h-5 text-white" />
-                            </div>
-                          </div>
-                          <p
-                            className="text-[26px] font-bold text-[#FF3D77]"
-                            style={{ fontFamily: 'Bungee, sans-serif' }}
-                          >
-                            {formatTime(recordingTime)}
-                          </p>
-                          <p
-                            className="text-[11px] text-[#0A0A0A]/40 font-bold -mt-2"
-                            style={{ fontFamily: 'Pretendard, sans-serif' }}
-                          >
-                            녹음 중...
-                          </p>
-                          <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={stopRecording}
-                            className="px-6 py-3 bg-[#0A0A0A] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px] flex items-center gap-2"
-                            style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
-                          >
-                            <Square className="w-4 h-4 fill-white" /> 녹음 중지 ⏹
-                          </motion.button>
-                        </>
-                      )}
-
-                      {/* Done — preview */}
-                      {!isRecording && recordedBlob && (
-                        <>
-                          <div className="w-16 h-16 rounded-full bg-[#41C66B]/20 border-[3px] border-[#41C66B] flex items-center justify-center">
-                            <span className="text-[28px]">✅</span>
-                          </div>
-                          <p
-                            className="text-[13px] font-bold text-[#41C66B]"
-                            style={{ fontFamily: 'Pretendard, sans-serif' }}
-                          >
-                            녹음 완료!
-                          </p>
-                          {previewUrl && (
-                            <audio
-                              src={previewUrl}
-                              controls
-                              className="w-full rounded-[10px]"
-                            />
-                          )}
-                          <button
-                            onClick={() => {
-                              setRecordedBlob(null);
-                              setPreview(null);
-                              setUploadError('');
-                            }}
-                            className="text-[12px] font-bold text-[#0A0A0A]/40 underline"
-                            style={{ fontFamily: 'Pretendard, sans-serif' }}
-                          >
-                            다시 녹음하기
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Instrument chips */}
-                  <div>
-                    <p
-                      className="text-[11px] font-bold text-[#0A0A0A]/50 mb-2"
-                      style={{ fontFamily: 'Pretendard, sans-serif' }}
-                    >
-                      파트 (선택)
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {INSTRUMENTS.map((inst) => (
-                        <button
-                          key={inst}
-                          onClick={() => setInstrument(instrument === inst ? '' : inst)}
-                          className={[
-                            'px-2.5 py-1 rounded-[8px] border-[2px] border-[#0A0A0A] text-[11px] font-bold transition-colors',
-                            instrument === inst ? 'bg-[#4FC3F7] text-[#0A0A0A]' : 'bg-white text-[#0A0A0A]',
-                          ].join(' ')}
-                          style={{ fontFamily: 'Pretendard, sans-serif' }}
-                        >
-                          {inst}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {uploadError && (
-                    <p
-                      className="text-[12px] font-bold text-[#FF3D77]"
-                      style={{ fontFamily: 'Pretendard, sans-serif' }}
-                    >
-                      ⚠️ {uploadError}
-                    </p>
-                  )}
-
-                  <motion.button
-                    whileTap={{ scale: 0.96, y: 2 }}
-                    onClick={handleUpload}
-                    disabled={!canSubmit || uploading}
-                    className="w-full py-3.5 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px] disabled:opacity-50"
-                    style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-                  >
-                    {uploading ? '업로드 중...' : '🎵 트랙 추가!'}
-                  </motion.button>
-                </div>
+                <TrackUploadPanel
+                  user={user}
+                  projectId={project.id}
+                  trackOrder={tracks.length + 1}
+                  onUploaded={() => {
+                    fetchTracks();
+                    onUpdate();
+                  }}
+                />
               </div>
             )}
 
