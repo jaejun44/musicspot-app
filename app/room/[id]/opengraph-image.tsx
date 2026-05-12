@@ -39,23 +39,27 @@ export default async function OGImage({ params }: Props) {
         <div
           style={{
             position: 'absolute',
-            inset: 0,
-            backgroundImage: 'radial-gradient(rgba(10,10,10,0.13) 2px, transparent 2px)',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundImage: 'radial-gradient(rgba(10,10,10,0.13) 2px, rgba(0,0,0,0) 2px)',
             backgroundSize: '32px 32px',
           }}
         />
 
         {/* 사진 영역 (있을 때만) */}
         {photo && (
-          <img
-            src={photo}
+          <div
             style={{
               position: 'absolute',
               right: 0,
               top: 0,
               width: '480px',
               height: '100%',
-              objectFit: 'cover',
+              backgroundImage: `url(${photo})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
               opacity: 0.85,
             }}
           />
@@ -66,8 +70,11 @@ export default async function OGImage({ params }: Props) {
           <div
             style={{
               position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(to right, #FFF8F0 55%, transparent 80%)',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              background: 'linear-gradient(to right, #FFF8F0 55%, rgba(255,248,240,0) 80%)',
             }}
           />
         )}
@@ -110,7 +117,6 @@ export default async function OGImage({ params }: Props) {
               color: '#0A0A0A',
               lineHeight: 1.1,
               marginBottom: 24,
-              letterSpacing: '-1px',
             }}
           >
             {name}

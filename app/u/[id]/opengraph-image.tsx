@@ -52,8 +52,11 @@ export default async function OGImage({ params }: Props) {
         <div
           style={{
             position: 'absolute',
-            inset: 0,
-            backgroundImage: 'radial-gradient(rgba(10,10,10,0.13) 2px, transparent 2px)',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundImage: 'radial-gradient(rgba(10,10,10,0.13) 2px, rgba(0,0,0,0) 2px)',
             backgroundSize: '32px 32px',
           }}
         />
@@ -129,7 +132,6 @@ export default async function OGImage({ params }: Props) {
                 fontWeight: 900,
                 color: '#0A0A0A',
                 lineHeight: 1.1,
-                letterSpacing: '-1px',
               }}
             >
               {name}
