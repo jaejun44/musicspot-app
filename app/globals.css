@@ -2,8 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+JP:wght@400;500;700&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+
+:root {
+  --font-body: 'Pretendard Variable', Pretendard, sans-serif;
+  --font-headline: 'Bungee', sans-serif;
+}
+
+:root[lang="ja"] {
+  --font-body: 'Noto Sans JP', sans-serif;
+}
 
 * {
   box-sizing: border-box;
@@ -12,7 +21,7 @@
 }
 
 body {
-  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-family: var(--font-body);
   background-color: #FFF8F0;
   color: #0A0A0A;
   -webkit-font-smoothing: antialiased;

@@ -31,6 +31,7 @@ export default function HotRooms() {
         .eq('is_published', true)
         .not('photos', 'is', null)
         .gt('data_quality_score', 0)
+        .or('category.ilike.%악기%,category.ilike.%보컬%,category.ilike.%녹음%,category.ilike.%합주%,category.ilike.%개인연습실%')
         .order('data_quality_score', { ascending: false })
         .limit(8);
 

@@ -41,15 +41,16 @@ interface PostDetail {
 
 interface Props {
   postId: string;
+  initialPost?: PostDetail | null;
 }
 
-export default function PostDetailClient({ postId }: Props) {
+export default function PostDetailClient({ postId, initialPost }: Props) {
   const router = useRouter();
   const { user } = useAuth();
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
 
-  const [post, setPost] = useState<PostDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [post, setPost] = useState<PostDetail | null>(initialPost ?? null);
+  const [loading, setLoading] = useState(!initialPost);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
@@ -105,13 +106,19 @@ export default function PostDetailClient({ postId }: Props) {
   }
 
   useEffect(() => {
+    if (initialPost) {
+      setLikeCount(initialPost.likes_count);
+      setCommentCount(initialPost.comments_count);
+      return;
+    }
+
     async function load() {
       const { data, error } = await supabase
         .from('posts')
         .select('id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, post_likes(post_id), post_comments(id)')
         .eq('id', postId)
         .eq('is_published', true)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         setLoading(false);
@@ -121,7 +128,7 @@ export default function PostDetailClient({ postId }: Props) {
       const likesArr = (data.post_likes as { post_id: string }[]) ?? [];
       const commentsArr = (data.post_comments as { id: string }[]) ?? [];
 
-      const post: PostDetail = {
+      const loaded: PostDetail = {
         id: data.id,
         category: data.category,
         title: data.title,
@@ -136,7 +143,7 @@ export default function PostDetailClient({ postId }: Props) {
         comments_count: commentsArr.length,
       };
 
-      setPost(post);
+      setPost(loaded);
       setLikeCount(likesArr.length);
       setCommentCount(commentsArr.length);
       setLoading(false);

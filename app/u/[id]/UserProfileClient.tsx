@@ -45,6 +45,15 @@ interface Post {
   created_at: string;
 }
 
+interface HonorTitle {
+  id: string;
+  title_key: string;
+  season_year: number;
+  season_quarter: number | null;
+  country: string;
+  awarded_at: string;
+}
+
 const POSITION_EMOJIS: Record<string, string> = {
   보컬: '🎤', 기타: '🎸', 베이스: '🎵', 드럼: '🥁', 건반: '🎹', '기타(other)': '🎶',
 };
@@ -68,6 +77,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
   const [tab, setTab] = useState<Tab>('tracks');
   const [pageLoading, setPageLoading] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [honorTitles, setHonorTitles] = useState<HonorTitle[]>([]);
 
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
@@ -78,7 +88,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
     async function load() {
       setPageLoading(true);
 
-      const [profileRes, tracksRes, postsRes, followerRes, followingRes] = await Promise.all([
+      const [profileRes, tracksRes, postsRes, followerRes, followingRes, honorRes] = await Promise.all([
         supabase.from('user_profiles').select('*').eq('user_id', userId).maybeSingle(),
         supabase
           .from('stem_tracks')
@@ -95,6 +105,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
           .limit(20),
         supabase.from('user_follows').select('follower_id', { count: 'exact', head: true }).eq('following_id', userId),
         supabase.from('user_follows').select('following_id', { count: 'exact', head: true }).eq('follower_id', userId),
+        supabase.from('user_titles').select('id, title_key, season_year, season_quarter, country, awarded_at').eq('user_id', userId).order('awarded_at', { ascending: false }),
       ]);
 
       setProfile(profileRes.data ?? null);
@@ -102,11 +113,19 @@ export default function UserProfileClient({ userId }: { userId: string }) {
       setPosts(postsRes.data ?? []);
       setFollowerCount(followerRes.count ?? 0);
       setFollowingCount(followingRes.count ?? 0);
+      setHonorTitles(honorRes.data ?? []);
       setPageLoading(false);
     }
 
     load();
   }, [userId]);
+
+  useEffect(() => {
+    return () => {
+      audioRefs.current.forEach((audio) => { audio.pause(); audio.src = ''; });
+      audioRefs.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     if (!user || !canFollow) return;
@@ -278,6 +297,21 @@ export default function UserProfileClient({ userId }: { userId: string }) {
               </div>
             </div>
           </div>
+
+          {/* 명예 타이틀 */}
+          {honorTitles.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {honorTitles.map((ht) => (
+                <span
+                  key={ht.id}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[10px]"
+                  style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+                >
+                  🏆 {ht.title_key}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* 뱃지 행 */}
           <div className="flex flex-wrap gap-1.5 mb-3">

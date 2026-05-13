@@ -4,6 +4,34 @@
 
 ---
 
+## 0. 회사 비전 (개발 의사결정 기준)
+
+> 기능 구현 시 "왜 이 기능을 만드는가"의 기준. 마케팅·재무 상세는 `/Users/jaejunlee/Desktop/Music-Spot/music spot/` 폴더 참조.
+
+### Music Spot 4단계 깔때기
+
+| Stage | 이름 | 핵심 기능 | 진입 조건 |
+|-------|------|---------|---------|
+| Stage 1 | 플레이어 유입 | 8마디 챌린지 + 합주실 예약 | MAU 1,000+, K-factor 1.0+ |
+| Stage 2 | 밴드 활성화 | 밴드 매칭 + 합주실 락인 + 일본 진출 | MAU KR 5,000+ (3개월 유지), K-factor 1.2+ (2개월), MS 결성 밴드 30+, 합주실 수익 운영비 50%+ 커버 |
+| Stage 3 | 팬 유입 | 마이크로 공연 + 팬덤 기능 | Stage 2 KPI 달성 |
+| Stage 4 | 페스티벌 | Music Spot 커뮤니티 기반 자체 페스티벌 | Stage 3 KPI 달성 |
+
+### UVP
+"커뮤니티에서 자란 밴드가 페스티벌 무대까지 가는 한국·일본 음악인의 커리어 인프라"
+
+### 최종 비전
+아시아 최대 락 페스티벌 — 라인업 70%+가 Music Spot에서 자란 밴드.
+> 외부 메시지는 "뮤지션 놀이터" 톤. 페스티벌 비전은 내부 의사결정 기준으로만 사용.
+
+### 개발 의사결정 원칙
+- **대관은 수단, 커뮤니티가 목적** — 합주실 예약은 입구, 커뮤니티 데이터 누적이 진짜 목적
+- Stage N 진입 조건 미충족 → Stage N+1 기능 개발 금지
+- 기능 추가 시 "이게 4단계 깔때기 중 어디에 해당하는가?" 반드시 확인
+- **확정 정체성 (2026-05-12)**: Music Spot은 음악인 커뮤니티 회사다. 8마디 챌린지가 OS, 합주실은 마중물, 페스티벌이 목적지. B2B SaaS 대시보드 / 17개 사업자 필드 입력 폼 / M→T 전환 자동화는 Y2 이후 검토 대상이며 현재 단계 우선순위 아님.
+
+---
+
 ## 프로젝트 비전
 
 **Music Spot** — 뮤지션을 위한 합주/연습실 올인원 플랫폼
@@ -41,6 +69,47 @@ NEXT_PUBLIC_KAKAO_JS_KEY       # Kakao JS SDK (공유용)
 NEXT_PUBLIC_GA_ID              # GA4 측정 ID
 NEXT_PUBLIC_ADMIN_PASSWORD     # 관리자 페이지 비밀번호
 ```
+
+---
+
+## 한일 동시 설계 원칙 ⚠️ 지금부터 박아둘 것
+
+> "한국 먼저, 일본 나중에" ❌ → 처음부터 한일 동시 설계 ✅
+> 지금 무시하면 나중에 DB 마이그레이션 비용 폭증.
+> 상세 계획: `/Users/jaejunlee/Desktop/Music-Spot/music spot/05_일본_진출_계획.txt`
+
+### 신규 테이블 필수 컬럼
+**모든 신규 Supabase 테이블에 반드시 추가:**
+- `country TEXT NOT NULL DEFAULT 'KR'` — `'KR'` | `'JP'` | `'GLOBAL'`
+- `region TEXT` — 지역 (서울/도쿄 등)
+- `language TEXT NOT NULL DEFAULT 'ko'` — `'ko'` | `'ja'` | `'en'`
+- `created_at TIMESTAMPTZ DEFAULT now()` — 반드시 UTC 저장
+
+**기존 테이블 추가 예정 (Phase 12 이후):**
+- `user_profiles`, `stem_projects`, `stem_tracks`, `posts`, `post_comments`, `notifications` → `country` 컬럼 추가
+
+### i18n 구조
+- **현재**: Pretendard (한국어)
+- **Phase 2 추가**: Noto Sans JP (일본어) — 코드 변경 없이 폰트 전환 가능하도록 CSS 변수 구조 준비
+- URL 로케일: `/` (KR default), `/ja/` (JP) — 라우팅 준비
+- 해시태그: 한국 `#8마디챌린지` / 일본 `#8小節チャレンジ` / 글로벌 `#MusicSpot8Bar`
+
+### 명예 시스템 3트랙
+- 한국: 🇰🇷 [YYYY]년 베스트 8마디 챌린저 (KR)
+- 일본: 🇯🇵 [YYYY]年ベスト8小節チャレンジャー (JP)
+- 글로벌: 🌏 [YYYY] Music Spot Global Legend
+
+> ❌ 타이틀 삭제·회수 기능 절대 만들지 말 것 — 시간 가치 파괴 = 플랫폼 신뢰 파괴
+
+### 법무·결제
+- **저작권**: JASRAC 협의 (Stage 1 종료 전) + KOMCA+JASRAC 이중 자문 (Stage 2 전)
+- **개인정보**: 한국 PIPA + 일본 APPI 동시 준수 (Stage 2 전)
+- **결제**: KRW 현재 사용 → JPY Stage 2 추가 (Stripe 글로벌 계정)
+
+### 일본 진출 절대 원칙
+- 한국 Stage 1 진입 조건 미충족 → 일본 공식 투자·기능 개발 금지
+- Phase 0~1: 비공식 준비 (현지 시드 파악, 라이브하우스 리서치)
+- 일본 시드 운영자: 일본인 또는 일본 거주 한국인 채용 필수
 
 ---
 
@@ -100,6 +169,68 @@ guitar.jpg      — 핑크 일렉기타 치비 (포인트용)
 ```
 
 > 실제 파일명은 Leonardo_Anime_XL_... 형태. `/public/ms_character/` 폴더에서 직접 참조.
+
+---
+
+## 8마디 챌린지 = Music Spot OS (개발 우선순위 최상위)
+
+> 8마디 챌린지는 단순 기능이 아니라 플랫폼 전체의 엔진.
+> 상세 설계: `/Users/jaejunlee/Desktop/Music-Spot/music spot/03_8마디_챌린지_설계.txt`
+
+### 4단계 전체에서의 역할
+
+| Stage | 8마디 챌린지 역할 |
+|-------|----------------|
+| Stage 1 | 신규 유저 온보딩 + K-factor 1.2+ 달성 |
+| Stage 2 | 밴드 결성 신호 (mutual_responses ≥ 5 → 밴드 추천) + 일본 챌린지 |
+| Stage 3 | 공연 라인업 후보 선별 기준 (challenge_score 누적) |
+| Stage 4 | 페스티벌 헤드라이너 후보 데이터 (시즌 기록) |
+
+### 핵심 DB 필드 (stem_tracks / stem_projects 확장 시 참조)
+```
+challenge_score     — 챌린지 누적 점수 (삭제 불가 필드)
+mutual_responses    — 상호 응답 횟수 (밴드 매칭 신호)
+pass_chain          — 패스 연결 길이 (바이럴 지표)
+country             — 'KR' | 'JP' | 'GLOBAL'
+season              — 시즌 구분 (명예 시스템 집계 기준)
+```
+
+### 응답 5단계 옵션 (항상 유지)
+1. 녹음 응답 (가장 높은 참여)
+2. 악보/TAB 응답
+3. 텍스트 응답
+4. 감상평 응답
+5. 패스 (부담 최소화 — 제거 금지)
+
+### 핵심 KPI (매주 모니터링)
+- **응답률 30%+ 유지** — 2주 연속 미달 시 즉시 UX 재설계
+- **K-factor 1.0+ 유지** — 1개월 미달 시 바이럴 기능 재검토
+- **D7 잔존 20%+ 유지** — 미달 시 온보딩 동선 강화
+
+### 바이럴 비대칭 설계 원칙
+- 8마디 던지기: 부담 낮음 → 뿌리기 쉬움
+- 답마디: 5단계 옵션 → 참여 장벽 최소화
+- 공개 기본 → SNS 확산 자동화 (UTM 자동 삽입)
+
+### 이번 주 우선 작업 (2026-05-12 확정)
+
+**A. 8마디 챌린지 데이터 필드 확장**
+- `stem_projects`/`stem_tracks`에 컬럼 추가: `country` (default 'KR'), `language` (default 'ko'), `genre_tags JSONB`, `mood_tags JSONB`, `pass_count INT`, `share_count INT`, `featured_flag BOOLEAN`, `difficulty_level INT`
+
+**B. 한일 i18n 구조**
+- `user_profiles`/`posts`/`studios`/`stem_projects` 테이블에 `country`, `language` 필드 추가
+- next-i18next 도입 (한일 2개 언어만)
+- Pretendard + Noto Sans JP 동시 로드 가능 구조
+
+**C. 명예 시스템 DB 스키마 (활성화는 Stage 2, 스키마는 지금)**
+- `user_titles` (id, user_id, title_key, season_year, season_quarter, country, awarded_at, metadata JSONB)
+- `user_challenge_score` (user_id, total_score, weekly_score, genre_scores JSONB, response_rate, updated_at)
+- `challenge_pass_chain` (challenge_id, from_user_id, to_user_id, chain_depth, created_at)
+
+**D. 공유 자산 워터마크 시스템**
+- 8마디 챌린지 결과물 영상(9:16, 30초) 우상단 "Music Spot" 워터마크
+- OG 이미지 생성 시 워터마크 자동 삽입
+- KakaoShareButton, 외부 SNS 공유 흐름 전체 점검
 
 ---
 
@@ -379,6 +510,46 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ---
 
+## 전략 원칙 (개발 의사결정 시 적용)
+
+> 기술 구현 중 방향이 흔들릴 때 이 원칙으로 판단.
+> 전략 문서 전체: `/Users/jaejunlee/Desktop/Music-Spot/music spot/`
+
+### 개발 금지 사항
+- ❌ 명예 시스템 타이틀 삭제·회수 기능 (시간 가치 = 플랫폼 자산)
+- ❌ K-POP / 비-밴드 장르 콘텐츠 유도 기능 (타겟 페르소나 훼손)
+- ❌ 광고성 팝업·배너 (커뮤니티 톤 훼손)
+- ❌ 단일 채널 의존 기능 설계 (뮬/큐오넷 직접 CTA 절대 금지)
+- ❌ 고인물 권력 구조 강화 기능 (신입 친화 원칙 위배)
+- ❌ 일본 진출 관련 기능 (한국 Stage 1 조건 달성 전)
+
+### 개발 필수 사항
+- ✅ 모든 유저 활동에 `timestamp + user_id + country` 기록
+- ✅ 8마디 챌린지 관련 기능은 항상 4단계 깔때기 기여도 명시
+- ✅ challenge_score / mutual_responses / pass_chain 필드 — 어떤 이유로도 삭제 불가
+- ✅ 신규 테이블 생성 시 `country`, `language`, `created_at(UTC)` 컬럼 포함
+- ✅ 응답 5단계 옵션 유지 — '패스' 옵션 제거 금지
+
+### 경쟁 방어 원칙
+- 뮬·큐오넷·페스티벌 회사를 코드/UI에서 절대 직접 언급 금지
+- "신입 친화적" 포지셔닝 — 고인물 검열 구조 모방 금지
+- 데이터 누적 속도 > 기능 화려함 (해자 구축 우선)
+- 카피 가능 기능(UI)보다 카피 불가 자산(데이터/네트워크) 중심 설계
+
+### 채널·마케팅 코드 원칙
+- UTM 파라미터: `utm_source` / `utm_medium` / `utm_campaign` / `utm_content` 표준 준수
+- 모든 공유 버튼에 UTM 자동 삽입 (현재 KakaoShareButton 참조)
+- 인플루언서 UTM: `utm_content={influencer_id}` 형태 준수
+
+### 조기 경보 → 즉시 코드 대응
+| 신호 | 기준 | 개발 대응 |
+|------|------|---------|
+| 응답률 저하 | 30% 미만 2주 | 패스/감상평 옵션 UI 강조 강화 |
+| K-factor 저하 | 1.0 미만 1개월 | 공유 버튼 동선 재설계 |
+| D7 잔존 저하 | 15% 미만 | 온보딩 첫 챌린지 강제 동선 강화 |
+
+---
+
 ## 주의사항 / 트러블슈팅
 
 ### 핵심 원칙 위반 주의
@@ -411,6 +582,21 @@ navigate('/room/1')  →  router.push('/room/1')
 - 기존 `/studios` → 새 경로 `/search`로 변경됨
 - 기존 `/studios/[id]` → 새 경로 `/room/[id]`로 변경됨
 - 기존 경로에서 리다이렉트 처리 필요 (`next.config.js` redirects)
+
+### 전략 정합성 체크리스트
+
+새 기능 추가 시 반드시 확인:
+
+- [ ] 이 기능이 4단계 깔때기 중 어느 Stage에 해당하는가?
+- [ ] 현재 Stage 진입 조건이 충족된 상태인가?
+- [ ] 8마디 챌린지 OS와 연결 고리가 있는가?
+- [ ] 신규 테이블에 `country` / `language` / `created_at(UTC)` 포함했는가?
+- [ ] 명예 시스템 타이틀 삭제·회수 로직이 없는가?
+- [ ] 뮬·큐오넷·경쟁사 직접 언급 없는가?
+- [ ] 공유 기능에 UTM 자동 삽입이 포함됐는가?
+- [ ] 모든 유저 활동에 `user_id + country + created_at` 기록되는가?
+- [ ] "신입 친화적" 톤을 해치는 요소가 없는가?
+- [ ] K-POP·비-밴드 장르 유입 유도 요소가 없는가?
 
 ---
 
@@ -565,6 +751,28 @@ navigate('/room/1')  →  router.push('/room/1')
 `studio_reviews` 테이블에 데이터가 쌓이고 있으므로:
 - RoomCard에 별점 평균 + 리뷰 수 배지 추가 (`⭐ 4.5 (12)` 형태)
 - `/room/[id]` RoomDetail에 리뷰 섹션 스크롤 앵커 추가
+
+---
+
+### 전략 차원 우선순위 (위 개발 작업 완료 후 순서대로)
+
+**A. 8마디 챌린지 KPI 대시보드 (내부용)**
+- `/admin` 또는 별도 내부 페이지에 핵심 지표 표시
+- 응답률, K-factor, D7 잔존, challenge_score 분포
+- 이 지표가 없으면 전략 의사결정 불가
+
+**B. 명예 시스템 시즌 1 설계 (DB + UI)**
+- `season` 컬럼 + 시즌별 집계 뷰 생성
+- 한국 트랙 타이틀 자동 부여 로직
+- 타이틀 공개 프로필 표시 (`/u/[id]` 연동)
+
+**C. 합주실 → 챌린지 온보딩 연결 강화**
+- 합주실 예약 완료 후 → 8마디 챌린지 CTA 노출
+- `bookings` INSERT 후 → 챌린지 유도 알림 (notifications 트리거)
+
+**D. 밴드 자동 추천 로직 (Stage 2 준비)**
+- `mutual_responses ≥ 5` → 밴드 매칭 추천 트리거
+- `BandMatching` 페이지에 "함께 자주 호흡 맞춘 뮤지션" 섹션 추가
 
 ---
 

@@ -185,6 +185,33 @@ export default function CompleteClient() {
           </p>
         </motion.div>
 
+        {/* 8마디 챌린지 CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+          className="w-full max-w-sm bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5 mb-4"
+          style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl">🎸</span>
+            <p className="text-[14px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
+              합주 끝나고 8마디 도전?
+            </p>
+          </div>
+          <p className="text-[12px] text-[#0A0A0A]/60 mb-4 leading-relaxed" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            8마디 챌린지로 새로운 밴드원을 찾아보세요. 던지기만 해도 연결이 시작돼요!
+          </p>
+          <motion.button
+            onClick={() => router.push('/stems')}
+            whileTap={{ scale: 0.96, y: 2 }}
+            className="w-full py-3 bg-[#FF3D77] rounded-[14px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
+            style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+          >
+            🎵 8마디 챌린지 시작하기
+          </motion.button>
+        </motion.div>
+
         {/* 버튼 */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

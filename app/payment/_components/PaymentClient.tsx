@@ -98,6 +98,19 @@ export default function PaymentClient() {
         read: false,
       });
 
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        type: 'challenge_cta',
+        title: '합주 끝나고 8마디 도전해보세요! 🎸',
+        body: '합주실 예약이 완료됐어요. 8마디 챌린지로 새로운 밴드원을 찾아보세요.',
+        payload: {
+          studio_id: booking.studioId,
+          studio_name: booking.studioName,
+          cta_url: '/stems',
+        },
+        read: false,
+      });
+
       trackBookingComplete(booking.studioId, booking.studioName, finalPrice);
     }
 

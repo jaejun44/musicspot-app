@@ -147,7 +147,7 @@ export default function StemsClient() {
       </div>
 
       {/* FAB */}
-      <div className="fixed bottom-6 right-4 z-40">
+      <div className="fixed bottom-6 right-4 z-40" style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
         <motion.button
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}

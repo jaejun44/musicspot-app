@@ -20,7 +20,7 @@ export default function RoomContactBar({ studio }: RoomContactBarProps) {
   if (!hasAny) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 py-3">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
       <div className="flex gap-2 max-w-lg mx-auto">
         {naverUrl && (
           <motion.a

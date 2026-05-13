@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "search": "연습실",
+    "bandMatching": "밴드찾기",
+    "myBand": "내 밴드",
+    "stems": "RIFF",
+    "community": "커뮤니티",
+    "myBookings": "마이",
+    "login": "로그인",
+    "start": "시작하기"
+  },
+  "landing": {
+    "headline": "연습실부터 무대까지!",
+    "subheadline": "뮤지션을 위한 합주·연습실 올인원 플랫폼",
+    "ctaSearch": "🔥 연습실 찾기",
+    "ctaBand": "🎤 밴드 만들기",
+    "hotRooms": "HOT 합주실 🔥",
+    "stems": "8마디 챌린지 🎸"
+  },
+  "search": {
+    "placeholder": "지역, 연습실명 검색",
+    "button": "검색 💥",
+    "gps": "내 위치",
+    "noResults": "검색 결과가 없어요",
+    "filterT": "T룸",
+    "filterM": "M룸",
+    "filterDrum": "드럼가능"
+  },
+  "booking": {
+    "title": "예약 정보",
+    "bandName": "밴드명",
+    "contact": "대표자 연락처",
+    "persons": "인원",
+    "purpose": "이용 목적",
+    "next": "다음 단계 💥",
+    "complete": "BOOKED! 🎸",
+    "completeMsg": "예약이 완료되었어요!",
+    "viewBookings": "📋 내 예약 보기",
+    "home": "🏠 홈으로"
+  },
+  "stems": {
+    "title": "8마디 챌린지",
+    "subtitle": "8마디를 던지고 뮤지션을 찾아보세요",
+    "newProject": "새 프로젝트",
+    "pass": "패스",
+    "respond": "응답하기",
+    "upload": "트랙 올리기",
+    "challengeBadge": "8마디"
+  },
+  "community": {
+    "title": "커뮤니티",
+    "write": "글쓰기",
+    "like": "좋아요",
+    "comment": "댓글",
+    "noposts": "아직 게시물이 없어요"
+  },
+  "profile": {
+    "follow": "팔로우",
+    "unfollow": "언팔로우",
+    "followers": "팔로워",
+    "following": "팔로잉",
+    "tracks": "트랙",
+    "posts": "게시물"
+  },
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류가 발생했어요",
+    "retry": "다시 시도",
+    "save": "저장",
+    "cancel": "취소",
+    "close": "닫기",
+    "more": "더 보기"
+  }
+}

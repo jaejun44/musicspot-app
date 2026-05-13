@@ -40,6 +40,15 @@ export function useStudios(): UseStudiosReturn {
   /** Supabase 쿼리에 공통 필터 적용 */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function applyFilters(query: any, filters?: StudioFilters) {
+    // 음악(악기·보컬·녹음·합주·개인연습실) 연습실만 표시
+    query = query.or(
+      'category.ilike.%악기%,' +
+      'category.ilike.%보컬%,' +
+      'category.ilike.%녹음%,' +
+      'category.ilike.%합주%,' +
+      'category.ilike.%개인연습실%'
+    );
+
     if (!filters) return query;
     if (filters.room_type) {
       query = query.or(`room_type.eq.${filters.room_type},room_type.eq.both`);

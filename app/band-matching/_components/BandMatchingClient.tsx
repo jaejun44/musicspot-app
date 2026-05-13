@@ -53,6 +53,7 @@ export default function BandMatchingClient() {
   const [musicians, setMusicians] = useState<Musician[]>(MUSICIANS);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [myProfile, setMyProfile] = useState<{ is_public: boolean } | null>(null);
+  const [chemistryMusicians, setChemistryMusicians] = useState<Musician[]>([]);
 
   useEffect(() => {
     if (!user) { setMyProfile(null); return; }
@@ -79,6 +80,29 @@ export default function BandMatchingClient() {
     }
     fetchProfiles();
   }, []);
+
+  useEffect(() => {
+    if (!user) { setChemistryMusicians([]); return; }
+    async function fetchChemistry() {
+      const { data: myTracks } = await supabase
+        .from('stem_tracks').select('project_id').eq('user_id', user!.id);
+      const projectIds = myTracks?.map((t: { project_id: string }) => t.project_id) ?? [];
+      if (projectIds.length === 0) return;
+      const { data: chemTracks } = await supabase
+        .from('stem_tracks').select('user_id')
+        .in('project_id', projectIds).neq('user_id', user!.id).gte('mutual_responses', 5);
+      const chemUserIds = [...new Set(chemTracks?.map((t: { user_id: string }) => t.user_id) ?? [])];
+      if (chemUserIds.length === 0) return;
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('id, user_id, display_name, bio, instruments, genres, region, purposes, looking_for, avatar_url')
+        .in('user_id', chemUserIds).eq('is_public', true);
+      if (profiles && profiles.length > 0) {
+        setChemistryMusicians(profiles.map((p, i) => profileToMusician(p, i)));
+      }
+    }
+    fetchChemistry();
+  }, [user?.id]);
 
   async function handleCancelProfile() {
     if (!user) return;
@@ -153,6 +177,35 @@ export default function BandMatchingClient() {
         </motion.p>
       </div>
 
+      {/* 함께 자주 호흡 맞춘 뮤지션 */}
+      {user && chemistryMusicians.length > 0 && (
+        <div className="px-4 pb-4 max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[16px]">🔥</span>
+              <h2 className="text-[14px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
+                함께 자주 호흡 맞춘 뮤지션
+              </h2>
+              <span
+                className="px-2 py-0.5 bg-[#FF3D77] text-white text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+                style={{ boxShadow: '1px 1px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+              >
+                8마디 케미
+              </span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {chemistryMusicians.map((m, i) => (
+                <ChemistryCard key={m.id} musician={m} index={i} onContact={setContactTarget} />
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* 카드 그리드 */}
       <div className="px-4 pb-16 max-w-2xl mx-auto">
         {filtered.length > 0 ? (
@@ -186,7 +239,7 @@ export default function BandMatchingClient() {
       </div>
 
       {/* 프로필 등록/관리 배너 */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 py-3">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
         <div className="max-w-2xl mx-auto">
           {user && myProfile?.is_public ? (
             <div className="flex gap-2">
@@ -240,7 +293,7 @@ export default function BandMatchingClient() {
               }
               // refresh my own profile state
               if (user) {
-                supabase.from('user_profiles').select('is_public').eq('user_id', user.id).single()
+                supabase.from('user_profiles').select('is_public').eq('user_id', user.id).maybeSingle()
                   .then(({ data: pd }) => setMyProfile(pd ?? null));
               }
             });
@@ -248,5 +301,48 @@ export default function BandMatchingClient() {
       />
     )}
     </>
+  );
+}
+
+function ChemistryCard({ musician, index, onContact }: {
+  musician: Musician;
+  index: number;
+  onContact: (m: Musician) => void;
+}) {
+  const colors = ['#FF3D77', '#4FC3F7', '#F5FF4F', '#41C66B'];
+  const bg = colors[index % colors.length];
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.3 + index * 0.05, type: 'spring' }}
+      className="flex-shrink-0 w-[140px] bg-white rounded-[16px] border-[2px] border-[#0A0A0A] p-3"
+      style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
+    >
+      <div
+        className="w-10 h-10 rounded-[10px] border-[2px] border-[#0A0A0A] flex items-center justify-center text-[20px] mb-2 overflow-hidden"
+        style={{ backgroundColor: bg }}
+      >
+        {musician.avatar_url ? (
+          <img src={musician.avatar_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          musician.emoji
+        )}
+      </div>
+      <p className="text-[12px] font-bold text-[#0A0A0A] truncate mb-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+        {musician.name}
+      </p>
+      <p className="text-[10px] text-[#0A0A0A]/50 font-bold mb-2 truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+        {musician.position}
+      </p>
+      <motion.button
+        onClick={() => onContact(musician)}
+        whileTap={{ scale: 0.95 }}
+        className="w-full py-1.5 bg-[#FF3D77] rounded-[8px] border-[1.5px] border-[#0A0A0A] text-white text-[10px] font-bold"
+        style={{ boxShadow: '1px 1px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+      >
+        연락하기
+      </motion.button>
+    </motion.div>
   );
 }

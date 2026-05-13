@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "search": "スタジオ",
+    "bandMatching": "バンド探し",
+    "myBand": "マイバンド",
+    "stems": "RIFF",
+    "community": "コミュニティ",
+    "myBookings": "マイ",
+    "login": "ログイン",
+    "start": "はじめる"
+  },
+  "landing": {
+    "headline": "スタジオからステージまで！",
+    "subheadline": "ミュージシャンのための合奏・練習スタジオ統合プラットフォーム",
+    "ctaSearch": "🔥 スタジオを探す",
+    "ctaBand": "🎤 バンドを作る",
+    "hotRooms": "HOT スタジオ 🔥",
+    "stems": "8小節チャレンジ 🎸"
+  },
+  "search": {
+    "placeholder": "エリア、スタジオ名で検索",
+    "button": "検索 💥",
+    "gps": "現在地",
+    "noResults": "検索結果がありません",
+    "filterT": "Tルーム",
+    "filterM": "Mルーム",
+    "filterDrum": "ドラム可"
+  },
+  "booking": {
+    "title": "予約情報",
+    "bandName": "バンド名",
+    "contact": "代表者連絡先",
+    "persons": "人数",
+    "purpose": "利用目的",
+    "next": "次のステップ 💥",
+    "complete": "BOOKED! 🎸",
+    "completeMsg": "予約が完了しました！",
+    "viewBookings": "📋 予約を確認",
+    "home": "🏠 ホームへ"
+  },
+  "stems": {
+    "title": "8小節チャレンジ",
+    "subtitle": "8小節を投げてミュージシャンを探しましょう",
+    "newProject": "新規プロジェクト",
+    "pass": "パス",
+    "respond": "応答する",
+    "upload": "トラックをアップ",
+    "challengeBadge": "8小節"
+  },
+  "community": {
+    "title": "コミュニティ",
+    "write": "投稿する",
+    "like": "いいね",
+    "comment": "コメント",
+    "noposts": "まだ投稿がありません"
+  },
+  "profile": {
+    "follow": "フォロー",
+    "unfollow": "フォロー解除",
+    "followers": "フォロワー",
+    "following": "フォロー中",
+    "tracks": "トラック",
+    "posts": "投稿"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "retry": "もう一度試す",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "more": "もっと見る"
+  }
+}

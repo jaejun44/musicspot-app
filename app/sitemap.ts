@@ -40,5 +40,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     offset += 1000;
   }
 
-  return [...staticRoutes, ...studioRoutes];
+  // Community post pages
+  const postRoutes: MetadataRoute.Sitemap = [];
+  const { data: posts } = await supabase
+    .from('posts')
+    .select('id, created_at')
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (posts) {
+    for (const post of posts) {
+      postRoutes.push({
+        url: `${SITE_URL}/community/${post.id}`,
+        lastModified: new Date(post.created_at),
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      });
+    }
+  }
+
+  return [...staticRoutes, ...studioRoutes, ...postRoutes];
 }
