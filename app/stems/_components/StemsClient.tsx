@@ -72,6 +72,18 @@ export default function StemsClient() {
     setEditingProject(null);
   }
 
+  const steps = [
+    { icon: '🎸', text: '8마디 녹음 또는 텍스트로 던지기' },
+    { icon: '🎯', text: '어울리는 뮤지션에게 챌린지 전송' },
+    { icon: '🔥', text: '답마디 받으면 밴드가 만들어진다' },
+  ];
+
+  function openCreate() {
+    if (loading) return;
+    if (!user) { router.push('/login'); return; }
+    setShowCreate(true);
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF8F0]">
       <Navigation />
@@ -95,6 +107,52 @@ export default function StemsClient() {
           >
             릴레이로 완성하는 우리의 리프
           </p>
+        </motion.div>
+      </div>
+
+      {/* 3단계 안내 */}
+      <div className="px-4 pb-4 max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, type: 'spring', stiffness: 260, damping: 22 }}
+          className="rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden"
+          style={{ boxShadow: '6px 6px 0 #0A0A0A', background: '#0A0A0A' }}
+        >
+          <p
+            className="px-5 pt-4 pb-3 text-[#F5FF4F] text-[16px]"
+            style={{ fontFamily: 'Bungee, sans-serif' }}
+          >
+            이렇게 해봐 ⚡
+          </p>
+          <div className="flex flex-col divide-y divide-white/10">
+            {steps.map((step, i) => (
+              <div key={i} className="flex items-center gap-3 px-5 py-3">
+                <span className="text-[20px] shrink-0">{step.icon}</span>
+                <p
+                  className="text-white text-[14px] font-bold"
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  <span className="text-[#F5FF4F] mr-1">0{i + 1}</span>
+                  {step.text}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="px-5 pb-5 pt-3">
+            <motion.button
+              whileHover={{ y: 3, boxShadow: '3px 3px 0 #F5FF4F' }}
+              whileTap={{ scale: 0.96 }}
+              onClick={openCreate}
+              className="w-full py-4 bg-[#F5FF4F] text-[#0A0A0A] rounded-[14px] border-[3px] border-[#F5FF4F] text-[16px] font-bold"
+              style={{
+                fontFamily: 'Bungee, sans-serif',
+                boxShadow: '5px 5px 0 #F5FF4F55',
+              }}
+            >
+              첫 챌린지 시작하기 ⚡
+            </motion.button>
+          </div>
         </motion.div>
       </div>
 
@@ -128,20 +186,24 @@ export default function StemsClient() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20">
-            <span className="text-[48px] mb-4">🎶</span>
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <span className="text-[48px]">🎸</span>
             <p
-              className="text-[16px] font-bold text-[#0A0A0A]/40 text-center"
-              style={{ fontFamily: 'Bungee, sans-serif' }}
-            >
-              NO PROJECTS YET
-            </p>
-            <p
-              className="text-[13px] text-[#0A0A0A]/30 mt-2 text-center"
+              className="text-[15px] font-bold text-[#0A0A0A]/60 text-center"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              ➕ 버튼을 눌러 첫 번째 프로젝트를 시작해보세요!
+              아직 챌린지가 없어요.
+              <br />첫 번째 8마디를 던져보세요!
             </p>
+            <motion.button
+              whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
+              whileTap={{ scale: 0.96 }}
+              onClick={openCreate}
+              className="px-6 py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[15px] font-bold"
+              style={{ fontFamily: 'Bungee, sans-serif', boxShadow: '5px 5px 0 #0A0A0A' }}
+            >
+              챌린지 시작하기 🎸
+            </motion.button>
           </div>
         )}
       </div>
