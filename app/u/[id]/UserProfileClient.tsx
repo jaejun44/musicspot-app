@@ -60,6 +60,21 @@ const POSITION_EMOJIS: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, string> = {
   free: '자유', gear: '장비', band: '밴드', practice: '연습', cover: '커버', original: '창작',
 };
+const COUNTRY_FLAGS: Record<string, string> = { KR: '🇰🇷', JP: '🇯🇵', GLOBAL: '🌏' };
+const TITLE_KEY_LABELS: Record<string, (y: number, q: number | null, c: string) => string> = {
+  BEST_CHALLENGER: (y, q, c) =>
+    c === 'JP' ? `${y}年${q ? `Q${q} ` : ''}ベスト8小節チャレンジャー`
+    : c === 'GLOBAL' ? `${y}${q ? ` Q${q}` : ''} Music Spot Global Legend`
+    : `${y}년${q ? ` Q${q}` : ''} 베스트 8마디 챌린저`,
+  GLOBAL_LEGEND: (y, q) => `${y}${q ? ` Q${q}` : ''} Music Spot Global Legend`,
+};
+
+function formatTitleLabel(ht: HonorTitle): string {
+  const flag = COUNTRY_FLAGS[ht.country] ?? '🏆';
+  const render = TITLE_KEY_LABELS[ht.title_key];
+  if (render) return `${flag} ${render(ht.season_year, ht.season_quarter, ht.country)}`;
+  return `${flag} ${ht.title_key}`;
+}
 
 type Tab = 'tracks' | 'posts';
 
@@ -307,7 +322,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                   className="flex items-center gap-1 px-3 py-1.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[10px]"
                   style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                 >
-                  🏆 {ht.title_key}
+                  {formatTitleLabel(ht)}
                 </span>
               ))}
             </div>

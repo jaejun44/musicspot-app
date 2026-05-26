@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
 
 const TYPE_EMOJI: Record<Notification['type'], string> = {
@@ -10,6 +11,8 @@ const TYPE_EMOJI: Record<Notification['type'], string> = {
   comment: '💬',
   like: '❤️',
   match: '🎸',
+  booking_confirmed: '📋',
+  challenge_cta: '🎸',
 };
 
 function timeAgo(iso: string) {
@@ -29,6 +32,7 @@ interface Props {
 
 export default function NotificationDropdown({ open, onClose }: Props) {
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications();
+  const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -96,7 +100,11 @@ export default function NotificationDropdown({ open, onClose }: Props) {
               notifications.map((n) => (
                 <motion.button
                   key={n.id}
-                  onClick={() => markRead(n.id)}
+                  onClick={async () => {
+                    await markRead(n.id);
+                    const ctaUrl = (n.payload as Record<string, string> | null)?.cta_url;
+                    if (ctaUrl) { onClose(); router.push(ctaUrl); }
+                  }}
                   whileHover={{ backgroundColor: '#FFF8F0' }}
                   className={[
                     'w-full text-left px-5 py-4 border-b border-[#0A0A0A]/10 flex items-start gap-3 transition-colors',

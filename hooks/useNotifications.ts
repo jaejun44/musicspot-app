@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'follow' | 'comment' | 'like' | 'match';
+  type: 'follow' | 'comment' | 'like' | 'match' | 'booking_confirmed' | 'challenge_cta';
   title: string | null;
   body: string | null;
   payload: Record<string, unknown> | null;

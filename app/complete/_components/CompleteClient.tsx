@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Navigation from '@/components/Navigation';
+import { trackEvent } from '@/lib/analytics';
 
 interface BookingData {
   studioName: string;
@@ -203,7 +204,7 @@ export default function CompleteClient() {
             8마디 챌린지로 새로운 밴드원을 찾아보세요. 던지기만 해도 연결이 시작돼요!
           </p>
           <motion.button
-            onClick={() => router.push('/stems')}
+            onClick={() => { trackEvent('challenge_cta_click', { source: 'booking_complete' }); router.push('/stems'); }}
             whileTap={{ scale: 0.96, y: 2 }}
             className="w-full py-3 bg-[#FF3D77] rounded-[14px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
             style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
