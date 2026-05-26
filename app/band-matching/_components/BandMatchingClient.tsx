@@ -8,7 +8,7 @@ import PositionFilter from './PositionFilter';
 import MusicianCard from './MusicianCard';
 import ChatModal from './ChatModal';
 import OnboardingModal from '@/components/OnboardingModal';
-import { MUSICIANS, Musician, Position } from '../_data/musicians';
+import { Musician, Position } from '../_data/musicians';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
@@ -50,7 +50,7 @@ export default function BandMatchingClient() {
   const { user, loading } = useAuth();
   const [activePosition, setActivePosition] = useState<Position | 'all'>('all');
   const [contactTarget, setContactTarget] = useState<Musician | null>(null);
-  const [musicians, setMusicians] = useState<Musician[]>(MUSICIANS);
+  const [musicians, setMusicians] = useState<Musician[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [myProfile, setMyProfile] = useState<{ is_public: boolean } | null>(null);
   const [chemistryMusicians, setChemistryMusicians] = useState<Musician[]>([]);
@@ -72,11 +72,7 @@ export default function BandMatchingClient() {
         .select('id, user_id, display_name, bio, instruments, genres, region, purposes, looking_for, avatar_url')
         .eq('is_public', true)
         .not('instruments', 'eq', '{}');
-      if (data && data.length > 0) {
-        const real = data.map((p, i) => profileToMusician(p, i));
-        // real profiles first, then dummy to fill gaps
-        setMusicians([...real, ...MUSICIANS].slice(0, 20));
-      }
+      setMusicians(data ? data.map((p, i) => profileToMusician(p, i)) : []);
     }
     fetchProfiles();
   }, []);
@@ -225,15 +221,24 @@ export default function BandMatchingClient() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-20"
+            className="flex flex-col items-center justify-center py-20 gap-4"
           >
-            <span className="text-[48px] mb-4">🔍</span>
+            <span className="text-[48px]">🎸</span>
             <p
-              className="text-[16px] font-bold text-[#0A0A0A]/40 text-center"
-              style={{ fontFamily: 'Bungee, sans-serif' }}
+              className="text-[15px] font-bold text-[#0A0A0A]/60 text-center"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              NO MUSICIANS FOUND
+              아직 등록된 뮤지션이 없어요.<br />첫 번째 뮤지션이 되어보세요! 🎸
             </p>
+            <motion.button
+              whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
+              whileTap={{ scale: 0.96 }}
+              onClick={handleProfileRegister}
+              className="px-6 py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[15px] font-bold"
+              style={{ fontFamily: 'Bungee, sans-serif', boxShadow: '5px 5px 0 #0A0A0A' }}
+            >
+              내 프로필 등록하기 🎤
+            </motion.button>
           </motion.div>
         )}
       </div>
@@ -288,9 +293,7 @@ export default function BandMatchingClient() {
             .eq('is_public', true)
             .not('instruments', 'eq', '{}')
             .then(({ data }) => {
-              if (data && data.length > 0) {
-                setMusicians([...data.map((p, i) => profileToMusician(p, i)), ...MUSICIANS].slice(0, 20));
-              }
+              setMusicians(data ? data.map((p, i) => profileToMusician(p, i)) : []);
               // refresh my own profile state
               if (user) {
                 supabase.from('user_profiles').select('is_public').eq('user_id', user.id).maybeSingle()
