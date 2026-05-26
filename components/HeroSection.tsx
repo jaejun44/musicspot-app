@@ -45,7 +45,7 @@ export default function HeroSection() {
             className="space-y-4"
           >
             <h1
-              className="uppercase leading-tight"
+              className="leading-tight"
               style={{
                 fontFamily: 'Bungee, sans-serif',
                 fontSize: 'clamp(48px, 8vw, 72px)',
@@ -55,12 +55,12 @@ export default function HeroSection() {
                 textShadow: '8px 8px 0 #F5FF4F',
               }}
             >
-              연습실부터<br />
+              8마디로<br />
               <span className="relative inline-block">
-                무대까지!
+                밴드를
                 <span className="absolute inset-0 bg-[#FF3D77] -z-10 -left-2 -right-2 top-1 bottom-1" />
               </span>
-              <br />🎸 POW!
+              <br />만든다
             </h1>
             <p
               className="text-xl"
@@ -69,7 +69,7 @@ export default function HeroSection() {
                 fontWeight: 700,
               }}
             >
-              내 주변 연습실, 밴드 메이트, 공연까지 한 방에
+              한국 락/메탈 뮤지션의 첫 번째 놀이터 — 8마디 던지면 밴드가 생긴다
             </p>
           </motion.div>
 
@@ -78,40 +78,60 @@ export default function HeroSection() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4"
+            className="flex flex-col gap-4"
           >
-            <Link href="/search" className="w-full sm:w-auto">
+            {/* 1순위: 8마디 챌린지 */}
+            <Link href="/stems" className="w-full">
               <motion.button
                 whileHover={{ y: 5, boxShadow: '3px 3px 0 #0A0A0A' }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto px-6 md:px-8 py-4 bg-[#FF3D77] text-white rounded-[20px] border-[4px] border-[#0A0A0A]"
+                className="w-full px-8 py-5 bg-[#F5FF4F] text-[#0A0A0A] rounded-[20px] border-[4px] border-[#0A0A0A]"
                 style={{
                   boxShadow: '8px 8px 0 #0A0A0A',
                   fontFamily: 'Bungee, sans-serif',
-                  fontSize: '18px',
-                  transform: 'rotate(2deg)',
+                  fontSize: '22px',
                   whiteSpace: 'nowrap',
                 }}
               >
-                🔥 연습실 찾기
+                ⚡ 8마디 챌린지 시작하기
               </motion.button>
             </Link>
-            <Link href="/band-matching" className="w-full sm:w-auto">
-              <motion.button
-                whileHover={{ y: 5, boxShadow: '3px 3px 0 #0A0A0A' }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto px-6 md:px-8 py-4 bg-[#41C66B] text-[#0A0A0A] rounded-[20px] border-[4px] border-[#0A0A0A]"
-                style={{
-                  boxShadow: '8px 8px 0 #0A0A0A',
-                  fontFamily: 'Bungee, sans-serif',
-                  fontSize: '18px',
-                  transform: 'rotate(-2deg)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                🎤 밴드 찾기
-              </motion.button>
-            </Link>
+
+            {/* 2순위: 연습실 찾기 + 밴드 찾기 */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/search" className="w-full sm:w-auto">
+                <motion.button
+                  whileHover={{ y: 5, boxShadow: '3px 3px 0 #0A0A0A' }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full sm:w-auto px-6 md:px-8 py-4 bg-[#FF3D77] text-white rounded-[20px] border-[4px] border-[#0A0A0A]"
+                  style={{
+                    boxShadow: '8px 8px 0 #0A0A0A',
+                    fontFamily: 'Bungee, sans-serif',
+                    fontSize: '18px',
+                    transform: 'rotate(2deg)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  🔥 연습실 찾기
+                </motion.button>
+              </Link>
+              <Link href="/band-matching" className="w-full sm:w-auto">
+                <motion.button
+                  whileHover={{ y: 5, boxShadow: '3px 3px 0 #0A0A0A' }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full sm:w-auto px-6 md:px-8 py-4 bg-[#41C66B] text-[#0A0A0A] rounded-[20px] border-[4px] border-[#0A0A0A]"
+                  style={{
+                    boxShadow: '8px 8px 0 #0A0A0A',
+                    fontFamily: 'Bungee, sans-serif',
+                    fontSize: '18px',
+                    transform: 'rotate(-2deg)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  🎤 밴드 찾기
+                </motion.button>
+              </Link>
+            </div>
           </motion.div>
 
           {/* Visitor Counter */}

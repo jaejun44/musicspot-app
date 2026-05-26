@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const features = [
   {
@@ -31,20 +30,19 @@ const features = [
   },
   {
     id: 3,
-    name: '공연 중개',
-    description: '연습부터 무대까지 한번에',
+    name: '8마디 챌린지',
+    description: '8마디 던지면 답마디가 온다. 거기서 밴드가 만들어진다.',
     image: '/ms_character/lucky.png',
     overlayFrom: 'from-[#4FC3F7]',
     overlayColor: '#4FC3F7',
     badgeColor: '#E5F6FF',
     rotation: -1,
-    action: 'coming-soon',
-    cta: '🔒 준비중',
+    action: 'stems',
+    cta: '챌린지 시작 →',
   },
 ];
 
 export default function PowerFeatures() {
-  const [showComingSoon, setShowComingSoon] = useState(false);
   const router = useRouter();
 
   function handleClick(action: string) {
@@ -52,14 +50,13 @@ export default function PowerFeatures() {
       router.push('/search');
     } else if (action === 'scroll-band') {
       router.push('/band-matching');
-    } else if (action === 'coming-soon') {
-      setShowComingSoon(true);
+    } else if (action === 'stems') {
+      router.push('/stems');
     }
   }
 
   return (
-    <>
-      <section className="relative -mt-16 z-10 py-24 px-8">
+    <section className="relative -mt-16 z-10 py-24 px-8">
         <div className="max-w-[1440px] mx-auto">
           {/* Section Title */}
           <motion.h2
@@ -162,54 +159,6 @@ export default function PowerFeatures() {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* 준비중 팝업 */}
-      <AnimatePresence>
-        {showComingSoon && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center px-6"
-            style={{ backgroundColor: 'rgba(10,10,10,0.6)' }}
-            onClick={() => setShowComingSoon(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.8, rotate: -5 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0.8, rotate: 5 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-[28px] border-[4px] border-[#0A0A0A] px-10 py-10 text-center max-w-sm w-full"
-              style={{ boxShadow: '10px 10px 0 #0A0A0A' }}
-            >
-              <div className="text-6xl mb-4">🎸</div>
-              <h3
-                className="text-[28px] mb-3"
-                style={{ fontFamily: 'Bungee, sans-serif', color: '#FF3D77' }}
-              >
-                준비중입니다!
-              </h3>
-              <p
-                className="text-[15px] font-bold text-[#0A0A0A]/70 mb-6"
-                style={{ fontFamily: 'Pretendard, sans-serif' }}
-              >
-                공연 중개 기능이 곧 찾아올게요 ⚡<br />기대해주세요!
-              </p>
-              <motion.button
-                whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowComingSoon(false)}
-                className="px-8 py-3 bg-[#F5FF4F] border-[3px] border-[#0A0A0A] rounded-[16px] font-bold text-[16px]"
-                style={{ boxShadow: '6px 6px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-              >
-                알겠어! 🤘
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    </section>
   );
 }
