@@ -698,6 +698,24 @@ navigate('/room/1')  →  router.push('/room/1')
 - [x] `app/u/[id]/page.tsx` — 뮤지션 공개 프로필 서버 컴포넌트 (generateMetadata OG 태그)
 - [x] `app/u/[id]/UserProfileClient.tsx` — 팔로우/언팔로우(낙관적 UI), 8마디 트랙 탭, 커뮤니티 게시물 탭, 오디오 플레이어
 
+### ✅ Phase 12 — UX 보정 + KPI 대시보드 + 명예 시스템 백엔드 (완료, 2026-05-26)
+- [x] PostCard 작성자 → `/u/[author_id]` 링크 연결
+- [x] RoomCard 리뷰 배지 (`review_avg`/`review_count`) + RoomDetail `#reviews` 앵커
+- [x] `trg_notify_user_follow` SECURITY DEFINER 권한 확인
+- [x] `notifications.type` CHECK 제약 확장 — `booking_confirmed`, `challenge_cta`, `challenge_nudge` 추가
+- [x] `useNotifications.ts` / `NotificationDropdown.tsx` 타입 동기화 (challenge_nudge)
+- [x] KPI 대시보드 (`/admin` 또는 `/admin/kpi`) — stem 지표·유저 지표·challenge_score 분포 (이미 구현됨 확인)
+- [x] 명예 시스템 DB: `user_titles` + `user_challenge_score` + `challenge_pass_chain` 테이블 (이미 존재 확인)
+- [x] 명예 시스템 UI: `UserProfileClient.tsx` 타이틀 뱃지 표시 (이미 구현됨 확인)
+- [x] DB 트리거 `trg_update_challenge_score` — `stem_tracks` INSERT → `user_challenge_score` upsert
+- [x] DB 함수 `award_season_titles(year, quarter, country, top_n)` — 시즌 종료 시 BEST_CHALLENGER 타이틀 자동 부여
+- [x] DB 함수 `reset_weekly_challenge_scores()` — 주간 점수 리셋 (cron 연동용)
+- [x] 예약 알림 `action_url` → `cta_url` 버그 수정 — `notify_on_booking_complete()` payload 키 교정
+- [x] 예약 알림 중복 제거 — `trg_fn_notify_booking_complete`에서 중복 `challenge_cta` 제거 → 예약 시 `booking_confirmed`(→`/my-bookings`) + `challenge_nudge`(→`/stems`) 2개만 발송
+- [x] `user_mutual_responses` 테이블 생성 + `track_mutual_response()` SECURITY DEFINER 트리거 — `stem_tracks` INSERT 시 상호 응답 카운트 누적, 5회 달성 시 양측에 `match` 알림(→`/band-matching`)
+- [x] `BandMatchingClient.tsx` "함께 자주 호흡 맞춘 뮤지션" 섹션 — `user_mutual_responses` 쿼리 기반, 응답 횟수 뱃지 표시, 상위 10명 가로 스크롤
+- [x] 명예 시스템 시즌 운영 UI — `/admin` KPI 탭에 시즌 시상 폼 추가 (연도/분기/국가/top_n), `app/api/admin/award-titles/route.ts` API 생성 (SUPABASE_SERVICE_KEY 서버사이드만 사용, `award_season_titles` RPC 호출)
+
 ---
 
 ## Analytics 이벤트 트래킹 (GA4 + Supabase)
@@ -727,52 +745,13 @@ navigate('/room/1')  →  router.push('/room/1')
 
 ## 다음 세션 즉시 시작할 작업
 
-> **최종 업데이트: 2026-05-06 (Phase 11 완료 — 커뮤니티 인터랙션 + 뮤지션 프로필)**
+> **최종 업데이트: 2026-05-26 (Phase 13 진행 중 — 명예 시스템 시즌 운영 UI 완료)**
 
-### 1순위: 커뮤니티 PostCard → 프로필 링크 연결
+### 1순위: 주간 점수 리셋 Cron 설정
 
-현재 PostCard에서 작성자 이름/아바타 클릭 시 `/u/[author_id]`로 이동하지 않음.
-- `PostCard.tsx`: 작성자 영역을 `<Link href={/u/${post.author_id}}>` 로 감싸기
-- `post.author_id`가 없는 더미 데이터 게시물은 링크 비활성화 (조건부)
-- `FeedClient.tsx` PostCard 아이템도 동일하게 적용
-
----
-
-### 2순위: 뮤지션 프로필 → 팔로우 알림 버그 확인
-
-`UserProfileClient.tsx`에서 팔로우 시 `notifications` 트리거가 정상 발화하는지 확인.
-- `user_follows` INSERT → `trg_notify_user_follow` → 팔로우 대상 알림 수신 여부 테스트
-- 알림 미수신 시 트리거 SECURITY DEFINER 권한 확인
-
----
-
-### 3순위: 검색 페이지 연습실 카드 → 리뷰 카운트 표시
-
-`studio_reviews` 테이블에 데이터가 쌓이고 있으므로:
-- RoomCard에 별점 평균 + 리뷰 수 배지 추가 (`⭐ 4.5 (12)` 형태)
-- `/room/[id]` RoomDetail에 리뷰 섹션 스크롤 앵커 추가
-
----
-
-### 전략 차원 우선순위 (위 개발 작업 완료 후 순서대로)
-
-**A. 8마디 챌린지 KPI 대시보드 (내부용)**
-- `/admin` 또는 별도 내부 페이지에 핵심 지표 표시
-- 응답률, K-factor, D7 잔존, challenge_score 분포
-- 이 지표가 없으면 전략 의사결정 불가
-
-**B. 명예 시스템 시즌 1 설계 (DB + UI)**
-- `season` 컬럼 + 시즌별 집계 뷰 생성
-- 한국 트랙 타이틀 자동 부여 로직
-- 타이틀 공개 프로필 표시 (`/u/[id]` 연동)
-
-**C. 합주실 → 챌린지 온보딩 연결 강화**
-- 합주실 예약 완료 후 → 8마디 챌린지 CTA 노출
-- `bookings` INSERT 후 → 챌린지 유도 알림 (notifications 트리거)
-
-**D. 밴드 자동 추천 로직 (Stage 2 준비)**
-- `mutual_responses ≥ 5` → 밴드 매칭 추천 트리거
-- `BandMatching` 페이지에 "함께 자주 호흡 맞춘 뮤지션" 섹션 추가
+- Vercel Cron (`app/api/cron/reset-weekly-scores/route.ts`) 으로 매주 월요일 00:00 KST `reset_weekly_challenge_scores()` 호출
+- `Authorization: Bearer {CRON_SECRET}` 헤더 검증 필수 (`CRON_SECRET` 환경변수 Vercel에 추가 필요)
+- `vercel.json`에 cron 스케줄 설정: `"0 15 * * 0"` (일요일 15:00 UTC = 월요일 00:00 KST)
 
 ---
 

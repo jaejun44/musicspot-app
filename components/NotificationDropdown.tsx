@@ -13,6 +13,7 @@ const TYPE_EMOJI: Record<Notification['type'], string> = {
   match: '🎸',
   booking_confirmed: '📋',
   challenge_cta: '🎸',
+  challenge_nudge: '🎵',
 };
 
 function timeAgo(iso: string) {

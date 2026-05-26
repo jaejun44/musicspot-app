@@ -37,6 +37,13 @@ export default function AdminPage() {
   const [kpiData, setKpiData] = useState<KpiData | null>(null);
   const [kpiLoading, setKpiLoading] = useState(false);
 
+  const [awardYear, setAwardYear] = useState<number>(new Date().getFullYear());
+  const [awardQuarter, setAwardQuarter] = useState<number>(Math.ceil((new Date().getMonth() + 1) / 3));
+  const [awardTopN, setAwardTopN] = useState<number>(10);
+  const [awardCountry, setAwardCountry] = useState<string>('KR');
+  const [awardLoading, setAwardLoading] = useState(false);
+  const [awardResult, setAwardResult] = useState<{ ok?: boolean; awarded?: number; error?: string } | null>(null);
+
   useEffect(() => {
     if (localStorage.getItem('admin_auth') === 'true') {
       setAuthed(true);
@@ -166,6 +173,27 @@ export default function AdminPage() {
     const data = await adminFetchKpi();
     setKpiData(data);
     setKpiLoading(false);
+  }
+
+  async function runAwardTitles() {
+    setAwardLoading(true);
+    setAwardResult(null);
+    try {
+      const res = await fetch('/api/admin/award-titles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ADMIN_PASSWORD}`,
+        },
+        body: JSON.stringify({ year: awardYear, quarter: awardQuarter, country: awardCountry, top_n: awardTopN }),
+      });
+      const json = await res.json();
+      setAwardResult(json);
+    } catch {
+      setAwardResult({ error: '네트워크 오류가 발생했습니다.' });
+    } finally {
+      setAwardLoading(false);
+    }
   }
 
   const filtered = studios.filter((s) => {
@@ -570,6 +598,74 @@ export default function AdminPage() {
                     </div>
                   );
                 })()}
+              </div>
+
+              {/* 시즌 시상 */}
+              <div className="bg-white border-[2px] border-comic-black p-4 rounded-[12px]" style={{ boxShadow: '4px 4px 0 #0A0A0A' }}>
+                <p className="text-[12px] font-bold text-comic-black mb-3">🏆 시즌 시상</p>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-comic-black/60 block mb-1">연도</label>
+                    <input
+                      type="number"
+                      value={awardYear}
+                      onChange={(e) => setAwardYear(Number(e.target.value))}
+                      min={2024}
+                      max={2099}
+                      className="w-full px-2 py-1.5 bg-comic-cream border-[2px] border-comic-black text-[12px] font-bold focus:outline-none focus:border-comic-pink rounded-[6px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-comic-black/60 block mb-1">분기 (1~4)</label>
+                    <select
+                      value={awardQuarter}
+                      onChange={(e) => setAwardQuarter(Number(e.target.value))}
+                      className="w-full px-2 py-1.5 bg-comic-cream border-[2px] border-comic-black text-[12px] font-bold focus:outline-none focus:border-comic-pink rounded-[6px]"
+                    >
+                      <option value={1}>Q1 (1~3월)</option>
+                      <option value={2}>Q2 (4~6월)</option>
+                      <option value={3}>Q3 (7~9월)</option>
+                      <option value={4}>Q4 (10~12월)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-comic-black/60 block mb-1">국가</label>
+                    <select
+                      value={awardCountry}
+                      onChange={(e) => setAwardCountry(e.target.value)}
+                      className="w-full px-2 py-1.5 bg-comic-cream border-[2px] border-comic-black text-[12px] font-bold focus:outline-none focus:border-comic-pink rounded-[6px]"
+                    >
+                      <option value="KR">🇰🇷 KR</option>
+                      <option value="GLOBAL">🌏 GLOBAL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-comic-black/60 block mb-1">수상 인원 (top N)</label>
+                    <input
+                      type="number"
+                      value={awardTopN}
+                      onChange={(e) => setAwardTopN(Math.max(1, Number(e.target.value)))}
+                      min={1}
+                      max={100}
+                      className="w-full px-2 py-1.5 bg-comic-cream border-[2px] border-comic-black text-[12px] font-bold focus:outline-none focus:border-comic-pink rounded-[6px]"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={runAwardTitles}
+                  disabled={awardLoading}
+                  className="w-full py-2 bg-[#F5FF4F] border-[2px] border-comic-black text-comic-black text-[12px] font-bold rounded-[8px] disabled:opacity-50 transition-opacity"
+                  style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+                >
+                  {awardLoading ? '처리 중...' : `🏆 ${awardYear}년 Q${awardQuarter} 시즌 시상 실행`}
+                </button>
+                {awardResult && (
+                  <div className={`mt-2 px-3 py-2 border-[2px] rounded-[8px] border-comic-black text-[11px] font-bold ${awardResult.error ? 'bg-comic-pink/10 text-comic-pink' : 'bg-[#41C66B]/10 text-[#1a7a3a]'}`}>
+                    {awardResult.error
+                      ? `❌ 오류: ${awardResult.error}`
+                      : `✅ 완료 — ${awardResult.awarded ?? 0}명에게 타이틀 부여됨`}
+                  </div>
+                )}
               </div>
 
               {/* 조기 경보 */}

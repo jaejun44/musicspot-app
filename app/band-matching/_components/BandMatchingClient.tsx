@@ -77,24 +77,31 @@ export default function BandMatchingClient() {
     fetchProfiles();
   }, []);
 
+  const [chemistryResponseCounts, setChemistryResponseCounts] = useState<Record<string, number>>({});
+
   useEffect(() => {
-    if (!user) { setChemistryMusicians([]); return; }
+    if (!user) { setChemistryMusicians([]); setChemistryResponseCounts({}); return; }
     async function fetchChemistry() {
-      const { data: myTracks } = await supabase
-        .from('stem_tracks').select('project_id').eq('user_id', user!.id);
-      const projectIds = myTracks?.map((t: { project_id: string }) => t.project_id) ?? [];
-      if (projectIds.length === 0) return;
-      const { data: chemTracks } = await supabase
-        .from('stem_tracks').select('user_id')
-        .in('project_id', projectIds).neq('user_id', user!.id).gte('mutual_responses', 5);
-      const chemUserIds = [...new Set(chemTracks?.map((t: { user_id: string }) => t.user_id) ?? [])];
-      if (chemUserIds.length === 0) return;
+      const { data: umrRows } = await supabase
+        .from('user_mutual_responses')
+        .select('user_a_id, user_b_id, response_count')
+        .or(`user_a_id.eq.${user!.id},user_b_id.eq.${user!.id}`)
+        .order('response_count', { ascending: false })
+        .limit(10);
+      if (!umrRows || umrRows.length === 0) return;
+      const partnerMap: Record<string, number> = {};
+      for (const row of umrRows) {
+        const partnerId = row.user_a_id === user!.id ? row.user_b_id : row.user_a_id;
+        partnerMap[partnerId] = row.response_count;
+      }
+      const partnerIds = Object.keys(partnerMap);
       const { data: profiles } = await supabase
         .from('user_profiles')
         .select('id, user_id, display_name, bio, instruments, genres, region, purposes, looking_for, avatar_url')
-        .in('user_id', chemUserIds).eq('is_public', true);
+        .in('user_id', partnerIds).eq('is_public', true);
       if (profiles && profiles.length > 0) {
         setChemistryMusicians(profiles.map((p, i) => profileToMusician(p, i)));
+        setChemistryResponseCounts(partnerMap);
       }
     }
     fetchChemistry();
@@ -195,7 +202,13 @@ export default function BandMatchingClient() {
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {chemistryMusicians.map((m, i) => (
-                <ChemistryCard key={m.id} musician={m} index={i} onContact={setContactTarget} />
+                <ChemistryCard
+                  key={m.id}
+                  musician={m}
+                  index={i}
+                  responseCount={chemistryResponseCounts[m.id] ?? 0}
+                  onContact={setContactTarget}
+                />
               ))}
             </div>
           </motion.div>
@@ -307,9 +320,10 @@ export default function BandMatchingClient() {
   );
 }
 
-function ChemistryCard({ musician, index, onContact }: {
+function ChemistryCard({ musician, index, responseCount, onContact }: {
   musician: Musician;
   index: number;
+  responseCount: number;
   onContact: (m: Musician) => void;
 }) {
   const colors = ['#FF3D77', '#4FC3F7', '#F5FF4F', '#41C66B'];
@@ -322,14 +336,24 @@ function ChemistryCard({ musician, index, onContact }: {
       className="flex-shrink-0 w-[140px] bg-white rounded-[16px] border-[2px] border-[#0A0A0A] p-3"
       style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
     >
-      <div
-        className="w-10 h-10 rounded-[10px] border-[2px] border-[#0A0A0A] flex items-center justify-center text-[20px] mb-2 overflow-hidden"
-        style={{ backgroundColor: bg }}
-      >
-        {musician.avatar_url ? (
-          <img src={musician.avatar_url} alt="" className="w-full h-full object-cover" />
-        ) : (
-          musician.emoji
+      <div className="relative mb-2">
+        <div
+          className="w-10 h-10 rounded-[10px] border-[2px] border-[#0A0A0A] flex items-center justify-center text-[20px] overflow-hidden"
+          style={{ backgroundColor: bg }}
+        >
+          {musician.avatar_url ? (
+            <img src={musician.avatar_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            musician.emoji
+          )}
+        </div>
+        {responseCount > 0 && (
+          <span
+            className="absolute -top-1 -right-1 px-1 py-0 bg-[#FF3D77] text-white text-[9px] font-bold rounded-[5px] border-[1px] border-[#0A0A0A]"
+            style={{ fontFamily: 'Bungee, sans-serif', lineHeight: '14px' }}
+          >
+            {responseCount}회
+          </span>
         )}
       </div>
       <p className="text-[12px] font-bold text-[#0A0A0A] truncate mb-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
