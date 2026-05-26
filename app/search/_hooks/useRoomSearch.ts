@@ -39,12 +39,16 @@ export function useRoomSearch(): UseRoomSearchReturn {
   const filterDrum = searchParams.get('has_drum') === '1';
   const filterMaxPrice = searchParams.get('max_price') ? Number(searchParams.get('max_price')) : undefined;
   const filterRadius = searchParams.get('radius') ? Number(searchParams.get('radius')) : undefined;
+  const filterRegion = searchParams.get('region') ?? undefined;
+  const filterSortBy = searchParams.get('sort_by') === 'price' ? ('price' as const) : undefined;
 
   const filters: StudioFilters = {
     room_type: filterRoomType ?? undefined,
     has_drum: filterDrum || undefined,
     max_price: filterMaxPrice,
     radius: filterRadius,
+    region: filterRegion,
+    sort_by: filterSortBy,
   };
 
   // Ref to track whether initial search has run to avoid duplicate effects
@@ -83,6 +87,8 @@ export function useRoomSearch(): UseRoomSearchReturn {
     if (f.has_drum) params.set('has_drum', '1');
     if (f.max_price) params.set('max_price', String(f.max_price));
     if (f.radius) params.set('radius', String(f.radius));
+    if (f.region) params.set('region', f.region);
+    if (f.sort_by) params.set('sort_by', f.sort_by);
 
     return `/search?${params.toString()}`;
   }

@@ -261,23 +261,23 @@ export default function FeedClient() {
           >
             <span className="text-[52px] mb-4">👋</span>
             <p
-              className="text-[16px] font-bold text-[#0A0A0A]/50 mb-2 text-center"
-              style={{ fontFamily: 'Bungee, sans-serif' }}
-            >
-              아직 팔로우한 뮤지션이 없어요
-            </p>
-            <p
-              className="text-[13px] text-[#0A0A0A]/40 mb-6 text-center"
+              className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              밴드찾기에서 뮤지션을 팔로우하면<br />이곳에서 활동을 모아볼 수 있어요
+              아직 팔로우한 뮤지션이 없어요.
+            </p>
+            <p
+              className="text-[13px] text-[#0A0A0A]/50 mb-6 text-center"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              밴드 찾기에서 마음에 드는 뮤지션을 팔로우해보세요! 🎸
             </p>
             <Link
               href="/band-matching"
-              className="px-6 py-3 bg-[#41C66B] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
-              style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+              className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
+              style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
             >
-              뮤지션 찾기 🎸
+              뮤지션 찾기
             </Link>
           </motion.div>
         )}
@@ -291,17 +291,24 @@ export default function FeedClient() {
           >
             <span className="text-[52px] mb-4">🎵</span>
             <p
-              className="text-[14px] font-bold text-[#0A0A0A]/50 text-center"
-              style={{ fontFamily: 'Bungee, sans-serif' }}
-            >
-              아직 새 활동이 없어요
-            </p>
-            <p
-              className="text-[12px] text-[#0A0A0A]/30 mt-2 text-center"
+              className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              {followingCount}명을 팔로우 중 · 활동이 생기면 여기에 표시돼요
+              팔로우한 뮤지션의 새 활동이 없어요.
             </p>
+            <p
+              className="text-[13px] text-[#0A0A0A]/50 mb-6 text-center"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              8마디 챌린지를 먼저 시작해볼까요? ⚡
+            </p>
+            <Link
+              href="/stems"
+              className="px-6 py-3 bg-[#F5FF4F] rounded-[14px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
+              style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+            >
+              챌린지 시작
+            </Link>
           </motion.div>
         )}
 

@@ -9,7 +9,9 @@ interface FilterChipsProps {
   onChange: (filters: StudioFilters) => void;
 }
 
-type ChipKey = 'all' | 'T' | 'M' | 'drum' | 'price';
+const REGION_VALUES = ['서울', '홍대', '강남', '합정', '신촌', '성수'] as const;
+type RegionChip = (typeof REGION_VALUES)[number];
+type ChipKey = 'all' | 'T' | 'M' | 'drum' | 'price' | RegionChip;
 
 interface Chip {
   key: ChipKey;
@@ -22,15 +24,22 @@ const CHIPS: Chip[] = [
   { key: 'M', label: 'M룸' },
   { key: 'drum', label: '🥁 드럼' },
   { key: 'price', label: '가격순' },
+  { key: '서울', label: '서울 전체' },
+  { key: '홍대', label: '홍대' },
+  { key: '강남', label: '강남' },
+  { key: '합정', label: '합정' },
+  { key: '신촌', label: '신촌' },
+  { key: '성수', label: '성수' },
 ];
 
 function isActive(chip: ChipKey, filters: StudioFilters): boolean {
   if (chip === 'T') return filters.room_type === 'T';
   if (chip === 'M') return filters.room_type === 'M';
   if (chip === 'drum') return !!filters.has_drum;
-  if (chip === 'price') return !!filters.max_price;
+  if (chip === 'price') return filters.sort_by === 'price';
+  if ((REGION_VALUES as readonly string[]).includes(chip)) return filters.region === chip;
   // 'all' is active when nothing else is selected
-  return !filters.room_type && !filters.has_drum && !filters.max_price;
+  return !filters.room_type && !filters.has_drum && !filters.sort_by && !filters.region && !filters.max_price;
 }
 
 function toggle(chip: ChipKey, current: StudioFilters): StudioFilters {
@@ -47,8 +56,10 @@ function toggle(chip: ChipKey, current: StudioFilters): StudioFilters {
     return { ...current, has_drum: !current.has_drum };
   }
   if (chip === 'price') {
-    // toggle a reasonable default max price (10,000 KRW/h)
-    return { ...current, max_price: current.max_price ? undefined : 10000 };
+    return { ...current, sort_by: current.sort_by === 'price' ? undefined : 'price' };
+  }
+  if ((REGION_VALUES as readonly string[]).includes(chip)) {
+    return { ...current, region: current.region === chip ? undefined : chip };
   }
   return current;
 }

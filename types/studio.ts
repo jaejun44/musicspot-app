@@ -35,4 +35,6 @@ export interface StudioFilters {
   has_drum?: boolean;
   max_price?: number;
   radius?: number;
+  region?: string;
+  sort_by?: 'price';
 }

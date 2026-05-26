@@ -47,10 +47,10 @@ export default function RoomList({
           className="text-[16px] font-bold text-[#0A0A0A]"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          검색 결과가 없어요
+          해당 조건의 연습실이 없어요.
         </p>
         <p className="text-[13px] text-[#0A0A0A]/50" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-          다른 지역이나 조건으로 검색해 보세요
+          다른 지역을 검색해보세요
         </p>
       </div>
     );

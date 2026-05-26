@@ -7,11 +7,11 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspotapp.verce
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'Music Spot — 내 밴드에 맞는 연습실 찾기',
+  title: 'Music Spot — 8마디로 밴드를 만든다',
   description:
     '음악인을 위한 연습실 검색 플랫폼. 위치 기반으로 가까운 연습실을 찾고, 바로 문의하세요.',
   openGraph: {
-    title: 'Music Spot — 내 밴드에 맞는 연습실 찾기',
+    title: 'Music Spot — 8마디로 밴드를 만든다',
     description: '음악인을 위한 연습실 검색 플랫폼',
     url: SITE_URL,
     siteName: 'Music Spot',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Music Spot — 내 밴드에 맞는 연습실 찾기',
+    title: 'Music Spot — 8마디로 밴드를 만든다',
     description: '음악인을 위한 연습실 검색 플랫폼',
   },
   alternates: {

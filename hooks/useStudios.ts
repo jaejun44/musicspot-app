@@ -112,12 +112,29 @@ export function useStudios(): UseStudiosReturn {
       .from('studios')
       .select('*')
       .eq('is_published', true)
-      .order('data_quality_score', { ascending: false })
-      .order('review_avg', { ascending: false, nullsFirst: false })
       .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
 
     query = applyFilters(query, filters);
 
+    // 가격순 정렬 또는 기본 품질순 정렬
+    if (filters?.sort_by === 'price') {
+      query = query.order('price_per_hour', { ascending: true, nullsFirst: false });
+    } else {
+      query = query
+        .order('data_quality_score', { ascending: false })
+        .order('review_avg', { ascending: false, nullsFirst: false });
+    }
+
+    // 필터 칩으로 선택된 지역
+    if (filters?.region) {
+      const chipTerms = expandRegion(filters.region);
+      const chipConditions = chipTerms
+        .flatMap((t) => [`address.ilike.%${t}%`, `region.ilike.%${t}%`])
+        .join(',');
+      query = query.or(chipConditions);
+    }
+
+    // 텍스트 검색어로 선택된 지역 (name 포함)
     if (region) {
       const terms = expandRegion(region);
       const orConditions = terms

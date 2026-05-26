@@ -7,7 +7,7 @@ import Navigation from '@/components/Navigation';
 import CategoryFilter, { FeedTab } from './CategoryFilter';
 import PostCard from './PostCard';
 import WritePostModal from './WritePostModal';
-import { POSTS, Post, Category } from '../_data/posts';
+import { Post, Category } from '../_data/posts';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import EditPostModal from './EditPostModal';
@@ -44,7 +44,7 @@ export default function CommunityClient() {
   };
 
   const [activeTab, setActiveTab] = useState<FeedTab>(initialTab);
-  const [posts, setPosts] = useState<Post[]>(POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [followFeed, setFollowFeed] = useState<Post[]>([]);
   const [showWrite, setShowWrite] = useState(false);
   const [editPost, setEditPost] = useState<Post | null>(null);
@@ -60,8 +60,7 @@ export default function CommunityClient() {
         .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(50);
-      const mapped = (data ?? []).map(mapPost);
-      setPosts(mapped.length > 0 ? mapped : POSTS);
+      setPosts((data ?? []).map(mapPost));
     }
     fetchPosts();
   }, []);
@@ -119,9 +118,7 @@ export default function CommunityClient() {
       .eq('is_published', true)
       .order('created_at', { ascending: false })
       .limit(50);
-    if (data && data.length > 0) {
-      setPosts(data.map(mapPost));
-    }
+    setPosts((data ?? []).map(mapPost));
   }
 
   async function handleDelete(postId: string) {
@@ -239,14 +236,32 @@ export default function CommunityClient() {
                 />
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-20">
-                <span className="text-[48px] mb-4">📭</span>
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <span className="text-[48px]">🎵</span>
                 <p
-                  className="text-[16px] font-bold text-[#0A0A0A]/40 text-center"
-                  style={{ fontFamily: 'Bungee, sans-serif' }}
+                  className="text-[16px] font-bold text-[#0A0A0A]/70 text-center"
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  NO POSTS YET
+                  아직 게시물이 없어요.
                 </p>
+                <p
+                  className="text-[13px] text-[#0A0A0A]/40 text-center font-bold"
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  첫 번째 이야기를 남겨보세요! 🎵
+                </p>
+                <motion.button
+                  onClick={() => {
+                    if (loading) return;
+                    if (!user) { router.push('/login'); return; }
+                    setShowWrite(true);
+                  }}
+                  whileTap={{ scale: 0.96, y: 2 }}
+                  className="mt-2 px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[2px] border-[#0A0A0A] text-white font-bold text-[14px]"
+                  style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  ✏️ 글쓰기
+                </motion.button>
               </div>
             )}
           </motion.div>
