@@ -69,7 +69,9 @@ export default function HeroSection() {
                 fontWeight: 700,
               }}
             >
-              한국 락/메탈 뮤지션의 첫 번째 놀이터 — 8마디 던지면 밴드가 생긴다
+              한국 락/메탈 뮤지션의 첫 번째 놀이터
+              <br />
+              8마디 던지면 밴드가 생긴다
             </p>
           </motion.div>
 
