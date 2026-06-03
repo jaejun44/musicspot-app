@@ -8,10 +8,11 @@ const THEME_SONG_URL =
 
 // ─── 레코드 위치 (GIF 자연 크기 기준 비율) ────────────────────────
 // cx/cy = 레코드 중심 (이미지 너비/높이 비율)
-// rh    = 비닐 반지름 (이미지 높이 비율)  ← 플래터 도트링 바깥은 건드리지 않음
+// rh    = 비닐 반지름 (이미지 높이 비율)
+// ※ GIF 실측 후 정밀 조정 — 콘솔에서 "GIF size" 확인
 const RECORDS = [
-  { cx: 0.175, cy: 0.50, rh: 0.365 },  // 왼쪽 덱
-  { cx: 0.825, cy: 0.50, rh: 0.365 },  // 오른쪽 덱
+  { cx: 0.175, cy: 0.500, rh: 0.310 },  // 왼쪽 덱
+  { cx: 0.808, cy: 0.500, rh: 0.310 },  // 오른쪽 덱
 ];
 const SPIN_SECS    = 2.4;    // GIF 레코드 회전 속도
 const R_LABEL      = 0.275;  // 중앙 라벨 반지름 (vinyl r 대비)
@@ -36,6 +37,8 @@ export default function ThemeSongPlayer() {
     img.onload = () => {
       hiddenImg.current = img;
       startRef.current  = performance.now();
+      // 정밀 조정용 — DevTools 콘솔에서 "GIF size" 확인
+      console.log('GIF size:', img.naturalWidth, 'x', img.naturalHeight);
       setReady(true);
     };
     img.src = '/api/gif-proxy';
