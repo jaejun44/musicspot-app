@@ -6,13 +6,12 @@ import { motion } from 'framer-motion';
 const THEME_SONG_URL =
   'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
 
-// ─── 레코드 위치 (GIF 자연 크기 기준 비율) ────────────────────────
-// cx/cy = 레코드 중심 (이미지 너비/높이 비율)
-// rh    = 비닐 반지름 (이미지 높이 비율)
-// ※ GIF 실측 후 정밀 조정 — 콘솔에서 "GIF size" 확인
+// ─── 레코드 위치 (GIF 실측: 1920 × 737 기준) ──────────────────────
+// rh=0.375 → r=276px, 지름=552px (H의 75% — 원본 비닐과 일치)
+// 우측 끝: 0.826×1920 + 276 = 1862px < 1920 안전
 const RECORDS = [
-  { cx: 0.175, cy: 0.500, rh: 0.310 },  // 왼쪽 덱
-  { cx: 0.808, cy: 0.500, rh: 0.310 },  // 오른쪽 덱
+  { cx: 0.174, cy: 0.499, rh: 0.375 },  // 왼쪽 덱
+  { cx: 0.826, cy: 0.499, rh: 0.375 },  // 오른쪽 덱
 ];
 const SPIN_SECS    = 2.4;    // GIF 레코드 회전 속도
 const R_LABEL      = 0.275;  // 중앙 라벨 반지름 (vinyl r 대비)
