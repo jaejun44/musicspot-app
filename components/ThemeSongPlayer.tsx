@@ -6,41 +6,80 @@ import { motion } from 'framer-motion';
 const THEME_SONG_URL =
   'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
 
-// ── GIF 실측: 1920 × 737 ─────────────────────────────────────────
-// 원본 비닐 지름 ≈ H × 0.75 → rh=0.375, r=276px
-// cx: 0.200/0.800 (WAX 완전 커버 — right left-edge=1260 > WAX x≈1257)
-// 우측 끝: 0.800×1920 + 276 = 1812px < 1920 안전
-const RECORDS = [
-  { cx: 0.200, cy: 0.500, rh: 0.375 },  // 왼쪽 덱
-  { cx: 0.800, cy: 0.500, rh: 0.375 },  // 오른쪽 덱
-];
-
-// 톤암 복원 — 팔 몸통만 좁게 (WAX 글씨 영역 포함 금지)
-const TONEARMS = [
-  { x: 548, y: 148, w: 72, h: 230 },    // 왼쪽 덱 톤암
-  { x: 1300, y: 148, w: 72, h: 230 },   // 오른쪽 덱 톤암
-];
-
 const SPIN_SECS = 2.4;
-const R_LABEL   = 0.285;   // 중앙 라벨 반지름 (r 대비)
-const R_HOLE    = 0.038;   // 센터 홀 반지름
-// ─────────────────────────────────────────────────────────────────
+const R_LABEL   = 0.285;
+const R_HOLE    = 0.038;
+
+interface VinylSpec { cx: number; cy: number; rh: number; }
+
+// 픽셀 스캔으로 비닐 위치·크기 자동 측정
+function measureVinyls(img: HTMLImageElement): VinylSpec[] {
+  const W = img.naturalWidth;
+  const H = img.naturalHeight;
+
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = H;
+  const ctx = tmp.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+
+  // y=H/2 수평 스캔 (비닐 지름이 최대인 위치)
+  const { data } = ctx.getImageData(0, Math.floor(H / 2), W, 1);
+  const dark = (x: number) =>
+    (data[x * 4] + data[x * 4 + 1] + data[x * 4 + 2]) / 3 < 50;
+
+  // 왼쪽 비닐: 왼쪽에서 오른쪽으로 스캔 → 첫 dark & 마지막 dark (W/2 이전)
+  let lS = -1, lE = -1;
+  for (let x = 0; x < Math.floor(W / 2); x++) {
+    if (dark(x)) { if (lS < 0) lS = x; lE = x; }
+  }
+
+  // 오른쪽 비닐: 오른쪽에서 왼쪽으로 스캔 → 마지막 dark & 첫 dark (W/2 이후)
+  let rS = -1, rE = -1;
+  for (let x = W - 1; x >= Math.floor(W / 2); x--) {
+    if (dark(x)) { if (rE < 0) rE = x; rS = x; }
+  }
+
+  if (lS >= 0 && lE > lS + 100 && rS >= 0 && rE > rS + 100) {
+    const lCx = (lS + lE) / 2;
+    const lR  = (lE - lS) / 2;
+    const rCx = (rS + rE) / 2;
+    const rR  = (rE - rS) / 2;
+    const r   = (lR + rR) / 2;   // 좌우 평균 반지름
+
+    console.log(`[VinylMeasure] L cx=${lCx.toFixed(0)} r=${lR.toFixed(0)} | R cx=${rCx.toFixed(0)} r=${rR.toFixed(0)} | H=${H}`);
+
+    return [
+      { cx: lCx / W, cy: 0.5, rh: r / H },
+      { cx: rCx / W, cy: 0.5, rh: r / H },
+    ];
+  }
+
+  // 측정 실패 시 폴백
+  console.warn('[VinylMeasure] fallback — 측정 실패');
+  return [
+    { cx: 0.200, cy: 0.5, rh: 0.375 },
+    { cx: 0.800, cy: 0.5, rh: 0.375 },
+  ];
+}
 
 export default function ThemeSongPlayer() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const hiddenImg = useRef<HTMLImageElement | null>(null);
-  const audioRef  = useRef<HTMLAudioElement | null>(null);
-  const rafRef    = useRef<number>(0);
-  const startRef  = useRef<number>(0);
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const hiddenImg   = useRef<HTMLImageElement | null>(null);
+  const audioRef    = useRef<HTMLAudioElement | null>(null);
+  const rafRef      = useRef<number>(0);
+  const startRef    = useRef<number>(0);
+  const vinyls      = useRef<VinylSpec[]>([]);   // 자동 측정값
 
   const [playing,  setPlaying]  = useState(false);
   const [progress, setProgress] = useState(0);
   const [ready,    setReady]    = useState(false);
 
+  // GIF 로드 + 픽셀 측정
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
+      vinyls.current  = measureVinyls(img);   // ← 실측
       hiddenImg.current = img;
       startRef.current  = performance.now();
       setReady(true);
@@ -58,18 +97,15 @@ export default function ThemeSongPlayer() {
     const W = img.naturalWidth;
     const H = img.naturalHeight;
     if (canvas.width !== W || canvas.height !== H) {
-      canvas.width  = W;
-      canvas.height = H;
+      canvas.width = W; canvas.height = H;
     }
 
-    // 1. GIF 원본 프레임
     ctx.drawImage(img, 0, 0, W, H);
 
     const elapsed = (performance.now() - startRef.current) / 1000;
     const angle   = ((elapsed % SPIN_SECS) / SPIN_SECS) * Math.PI * 2;
 
-    // 2. 각 덱 비닐 교체
-    for (const rec of RECORDS) {
+    for (const rec of vinyls.current) {
       const cx = rec.cx * W;
       const cy = rec.cy * H;
       const r  = rec.rh * H;
@@ -77,13 +113,13 @@ export default function ThemeSongPlayer() {
       ctx.save();
       ctx.translate(cx, cy);
 
-      // 검정 비닐 원
+      // 검정 비닐
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fillStyle = '#0d0d0d';
       ctx.fill();
 
-      // 홈 질감 — 동심원
+      // 홈 질감
       for (let ri = 0.32; ri < 0.97; ri += 0.03) {
         ctx.beginPath();
         ctx.arc(0, 0, r * ri, 0, Math.PI * 2);
@@ -99,14 +135,12 @@ export default function ThemeSongPlayer() {
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // 3. MUSIC SPOT 텍스트 — 회전
+      // MUSIC SPOT 텍스트 (회전)
       ctx.rotate(angle);
 
-      // 그루브 영역에 딱 맞는 폰트/위치
-      // 그루브: R_LABEL*r ~ r, 중심: r*(R_LABEL + (1-R_LABEL)/2)
-      const grooveCenter = r * (R_LABEL + (1 - R_LABEL) / 2);   // ≈ r*0.64
-      const halfGroove   = r * (1 - R_LABEL) / 2;                // ≈ r*0.36
-      const fs = halfGroove * 0.78;  // 폰트크기 = 반그루브 높이의 78%
+      const halfGroove   = r * (1 - R_LABEL) / 2;
+      const grooveCenter = r * (R_LABEL + (1 - R_LABEL) / 2);
+      const fs = halfGroove * 0.78;
 
       ctx.font         = `bold ${fs}px Bungee, Arial Black, sans-serif`;
       ctx.textAlign    = 'center';
@@ -114,17 +148,15 @@ export default function ThemeSongPlayer() {
       ctx.fillStyle    = 'rgba(255,255,255,0.92)';
       ctx.shadowColor  = 'rgba(0,0,0,0.95)';
       ctx.shadowBlur   = fs * 0.12;
-
       ctx.fillText('MUSIC', 0, -grooveCenter);
       ctx.fillText('SPOT',  0, +grooveCenter);
       ctx.shadowBlur = 0;
 
       ctx.restore();
 
-      // 4. 중앙 라벨 (회전 없음)
+      // 중앙 라벨 (고정)
       ctx.save();
       ctx.translate(cx, cy);
-
       ctx.beginPath();
       ctx.arc(0, 0, r * R_LABEL, 0, Math.PI * 2);
       ctx.fillStyle = '#dcdcdc';
@@ -132,22 +164,10 @@ export default function ThemeSongPlayer() {
       ctx.strokeStyle = 'rgba(0,0,0,0.2)';
       ctx.lineWidth = 1;
       ctx.stroke();
-
       ctx.beginPath();
       ctx.arc(0, 0, r * R_HOLE, 0, Math.PI * 2);
       ctx.fillStyle = '#0d0d0d';
       ctx.fill();
-
-      ctx.restore();
-    }
-
-    // 5. 톤암 복원 — 비닐이 덮은 톤암을 GIF 원본으로 덮어씌우기
-    for (const t of TONEARMS) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(t.x, t.y, t.w, t.h);
-      ctx.clip();
-      ctx.drawImage(img, 0, 0, W, H);
       ctx.restore();
     }
 
@@ -164,8 +184,7 @@ export default function ThemeSongPlayer() {
 
   useEffect(() => {
     const audio = new Audio(THEME_SONG_URL);
-    audio.loop    = true;
-    audio.preload = 'none';
+    audio.loop = true; audio.preload = 'none';
     audioRef.current = audio;
     const onTime = () => { if (audio.duration) setProgress(audio.currentTime / audio.duration); };
     const onEnd  = () => setPlaying(false);
