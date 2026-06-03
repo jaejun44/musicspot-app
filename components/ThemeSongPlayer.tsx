@@ -9,6 +9,75 @@ const THEME_SONG_URL =
 const RECORD_GIF =
   'https://www.apparelmusic.com/wp-content/uploads/2022/04/wax-mixer-copia-2.gif';
 
+// ── GIF 내 레코드 위치 튜닝 (퍼센트, GIF 너비/높이 기준) ──
+const LEFT_RECORD  = { x: '19.5%', y: '50%' };
+const RIGHT_RECORD = { x: '80.5%', y: '50%' };
+const RECORD_DIAM  = '19%';   // 각 레코드 지름 (GIF 너비 %)
+const SPIN_SECS    = 2.4;     // GIF 레코드 회전 속도에 맞춤 (초/바퀴)
+
+// ─────────────────────────────────────────────────────────────
+
+interface OverlayProps {
+  x: string;
+  y: string;
+  playing: boolean;
+}
+
+function RecordOverlay({ x, y, playing }: OverlayProps) {
+  return (
+    <motion.div
+      className="absolute pointer-events-none flex items-center justify-center"
+      style={{
+        left: x,
+        top: y,
+        width: RECORD_DIAM,
+        aspectRatio: '1 / 1',
+        transform: 'translate(-50%, -50%)',
+        borderRadius: '50%',
+        background: 'rgba(6, 6, 6, 0.83)',
+      }}
+      animate={{ rotate: playing ? 360 : 0 }}
+      transition={
+        playing
+          ? { repeat: Infinity, duration: SPIN_SECS, ease: 'linear' }
+          : { duration: 0 }
+      }
+    >
+      {/* MUSIC */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-[2%]">
+        <span
+          className="text-white leading-none tracking-widest"
+          style={{
+            fontFamily: 'Bungee, sans-serif',
+            fontSize: `calc(${RECORD_DIAM} * 0.19)`,
+            textShadow: '0 1px 4px rgba(0,0,0,0.9)',
+            transform: 'rotate(-10deg)',
+          }}
+        >
+          MUSIC
+        </span>
+        <span
+          className="text-white leading-none tracking-[0.2em]"
+          style={{
+            fontFamily: 'Bungee, sans-serif',
+            fontSize: `calc(${RECORD_DIAM} * 0.19)`,
+            textShadow: '0 1px 4px rgba(0,0,0,0.9)',
+            transform: 'rotate(-10deg)',
+          }}
+        >
+          SPOT
+        </span>
+      </div>
+
+      {/* 중앙 홀 */}
+      <div
+        className="absolute rounded-full bg-[#1a1a1a]"
+        style={{ width: '18%', height: '18%' }}
+      />
+    </motion.div>
+  );
+}
+
 export default function ThemeSongPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -53,121 +122,87 @@ export default function ThemeSongPlayer() {
       className="mx-4 mb-4 max-w-2xl md:mx-auto rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden"
       style={{ background: '#0A0A0A', boxShadow: '6px 6px 0 #FF3D77' }}
     >
-      <div className="flex items-stretch gap-0">
+      {/* ── GIF + 레코드 오버레이 ── */}
+      <button
+        onClick={toggle}
+        aria-label={playing ? '일시정지' : '재생'}
+        className="relative w-full block focus:outline-none"
+        style={{ WebkitTapHighlightColor: 'transparent' }}
+      >
+        <img
+          src={RECORD_GIF}
+          alt="turntables"
+          className="w-full block"
+          draggable={false}
+        />
 
-        {/* 레코드 GIF 영역 */}
-        <button
-          onClick={toggle}
-          aria-label={playing ? '일시정지' : '재생'}
-          className="group relative flex-shrink-0 w-[140px] h-[140px] overflow-hidden focus:outline-none"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
+        {/* 왼쪽 레코드 MUSIC SPOT */}
+        <RecordOverlay {...LEFT_RECORD} playing={playing} />
+
+        {/* 오른쪽 레코드 MUSIC SPOT */}
+        <RecordOverlay {...RIGHT_RECORD} playing={playing} />
+
+        {/* 재생/정지 힌트 오버레이 (GIF 전체) */}
+        <div
+          className="absolute inset-0 flex items-center justify-center transition-opacity duration-200"
+          style={{ background: playing ? 'transparent' : 'rgba(0,0,0,0.28)' }}
         >
-          {/* GIF */}
-          <img
-            src={RECORD_GIF}
-            alt="record player"
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-
-          {/* MUSIC SPOT 라벨 — 레코드 중앙 */}
-          <div
-            className="absolute flex flex-col items-center justify-center pointer-events-none"
-            style={{
-              /* 레코드 플래터 중앙 위치 — GIF 기준 대략 중앙 */
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -52%)',
-              width: 44,
-              height: 44,
-              borderRadius: '50%',
-              background: 'rgba(255,61,119,0.92)',
-              border: '2px solid rgba(0,0,0,0.6)',
-            }}
-          >
-            <span
-              className="text-white leading-none text-center"
-              style={{
-                fontFamily: 'Bungee, sans-serif',
-                fontSize: 7,
-                letterSpacing: 0.3,
-                textShadow: '0 1px 2px rgba(0,0,0,0.7)',
-              }}
+          {!playing && (
+            <div
+              className="rounded-full border-[3px] border-white flex items-center justify-center"
+              style={{ width: 48, height: 48, background: 'rgba(0,0,0,0.55)' }}
             >
-              MUSIC{'\n'}SPOT
-            </span>
-          </div>
-
-          {/* 재생 상태 오버레이 */}
-          <div
-            className="absolute inset-0 flex items-center justify-center transition-all duration-200"
-            style={{
-              background: playing
-                ? 'rgba(0,0,0,0)'
-                : 'rgba(0,0,0,0.45)',
-            }}
-          >
-            {/* 정지 상태: play 아이콘 항상 표시 */}
-            {!playing && (
               <div
-                className="w-0 h-0"
+                className="ml-1"
                 style={{
-                  marginLeft: 4,
+                  width: 0, height: 0,
                   borderTop: '10px solid transparent',
                   borderBottom: '10px solid transparent',
                   borderLeft: '18px solid white',
-                  filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))',
                 }}
               />
-            )}
-            {/* 재생 중: hover 시 pause 아이콘 */}
-            {playing && (
-              <div className="flex gap-[4px] opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-[5px] h-[18px] bg-white rounded-[2px]" style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' }} />
-                <div className="w-[5px] h-[18px] bg-white rounded-[2px]" style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' }} />
-              </div>
-            )}
-          </div>
-        </button>
+            </div>
+          )}
+          {playing && (
+            <div className="flex gap-2 opacity-0 hover:opacity-100 transition-opacity">
+              <div className="w-[6px] h-[22px] bg-white rounded-[3px]" style={{ filter: 'drop-shadow(0 0 4px black)' }} />
+              <div className="w-[6px] h-[22px] bg-white rounded-[3px]" style={{ filter: 'drop-shadow(0 0 4px black)' }} />
+            </div>
+          )}
+        </div>
+      </button>
 
-        {/* 텍스트 정보 */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center px-5 py-4">
+      {/* ── 정보 바 ── */}
+      <div className="flex items-center gap-3 px-5 py-3">
+        <div className="flex-1 min-w-0">
           <p
-            className="text-[10px] text-[#FF3D77] font-bold tracking-widest mb-1"
+            className="text-[10px] text-[#FF3D77] font-bold tracking-widest"
             style={{ fontFamily: 'Bungee, sans-serif' }}
           >
             OFFICIAL THEME
           </p>
           <p
-            className="text-white text-[15px] font-bold leading-snug"
+            className="text-white text-[13px] font-bold leading-tight"
             style={{ fontFamily: 'Bungee, sans-serif' }}
           >
-            EIGHT BARS TO
-            <br />
-            THE WORLD
+            EIGHT BARS TO THE WORLD
           </p>
-          <p
-            className="text-white/40 text-[11px] font-bold mt-1"
-            style={{ fontFamily: 'Pretendard, sans-serif' }}
-          >
-            Music Spot Official Theme
-          </p>
+        </div>
 
-          {/* 프로그레스 */}
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex-1 h-[3px] bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#FF3D77] rounded-full transition-all duration-300"
-                style={{ width: `${progress * 100}%` }}
-              />
-            </div>
-            <span
-              className={`text-[10px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`}
-              style={{ fontFamily: 'Bungee, sans-serif' }}
-            >
-              {playing ? '▶ ON AIR' : '■ READY'}
-            </span>
+        {/* 프로그레스 + 상태 */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="w-[80px] h-[3px] bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#FF3D77] rounded-full transition-all duration-300"
+              style={{ width: `${progress * 100}%` }}
+            />
           </div>
+          <span
+            className={`text-[10px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`}
+            style={{ fontFamily: 'Bungee, sans-serif' }}
+          >
+            {playing ? '▶ ON AIR' : '■ READY'}
+          </span>
         </div>
       </div>
     </motion.div>
