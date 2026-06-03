@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 import ProjectCard from './ProjectCard';
 import CreateProjectModal from './CreateProjectModal';
 import ProjectDetailModal from './ProjectDetailModal';
-import ThemeSongPlayer from './ThemeSongPlayer';
+import ThemeSongPlayer from '@/components/ThemeSongPlayer';
 
 export interface StemProject {
   id: string;

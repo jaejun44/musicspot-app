@@ -9,6 +9,7 @@ import PowerFeatures from '@/components/PowerFeatures';
 import HotRooms from '@/components/HotRooms';
 import FinalCTA from '@/components/FinalCTA';
 import SiteFooter from '@/components/SiteFooter';
+import ThemeSongPlayer from '@/components/ThemeSongPlayer';
 
 export default function HomeClient() {
   const [scrollY, setScrollY] = useState(0);
@@ -24,6 +25,7 @@ export default function HomeClient() {
       <Navigation />
       <DecorativeElements scrollY={scrollY} />
       <HeroSection />
+      <ThemeSongPlayer />
       <PowerFeatures />
       <SearchBar />
       <HotRooms />
