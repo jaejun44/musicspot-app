@@ -6,16 +6,25 @@ import { motion } from 'framer-motion';
 const THEME_SONG_URL =
   'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
 
-// ─── 레코드 위치 (GIF 실측: 1920 × 737 기준) ──────────────────────
-// rh=0.375 → r=276px, 지름=552px (H의 75% — 원본 비닐과 일치)
-// 우측 끝: 0.826×1920 + 276 = 1862px < 1920 안전
+// ── GIF 실측: 1920 × 737 ─────────────────────────────────────────
+// 원본 비닐 지름 ≈ H × 0.75 → rh=0.375, r=276px
+// cx: 0.183/0.817 (좌우 덱 중심)
+// 우측 끝: 0.817×1920 + 276 = 1845px < 1920 안전
 const RECORDS = [
-  { cx: 0.174, cy: 0.499, rh: 0.375 },  // 왼쪽 덱
-  { cx: 0.826, cy: 0.499, rh: 0.375 },  // 오른쪽 덱
+  { cx: 0.183, cy: 0.500, rh: 0.375 },  // 왼쪽 덱
+  { cx: 0.817, cy: 0.500, rh: 0.375 },  // 오른쪽 덱
 ];
-const SPIN_SECS    = 2.4;    // GIF 레코드 회전 속도
-const R_LABEL      = 0.275;  // 중앙 라벨 반지름 (vinyl r 대비)
-const R_HOLE       = 0.038;  // 센터 홀 반지름 (vinyl r 대비)
+
+// 톤암 복원 영역 (GIF 픽셀, 비닐 오버레이 위에 GIF 재드로우)
+// 비닐이 뒤덮은 톤암을 원본대로 되살림
+const TONEARMS = [
+  { x: 475, y: 145, w: 160, h: 255 },   // 왼쪽 덱 톤암
+  { x: 1290, y: 145, w: 160, h: 255 },  // 오른쪽 덱 톤암
+];
+
+const SPIN_SECS = 2.4;
+const R_LABEL   = 0.285;   // 중앙 라벨 반지름 (r 대비)
+const R_HOLE    = 0.038;   // 센터 홀 반지름
 // ─────────────────────────────────────────────────────────────────
 
 export default function ThemeSongPlayer() {
@@ -29,21 +38,17 @@ export default function ThemeSongPlayer() {
   const [progress, setProgress] = useState(0);
   const [ready,    setReady]    = useState(false);
 
-  // ── GIF 로드 (동일 출처 프록시) ──
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
       hiddenImg.current = img;
       startRef.current  = performance.now();
-      // 정밀 조정용 — DevTools 콘솔에서 "GIF size" 확인
-      console.log('GIF size:', img.naturalWidth, 'x', img.naturalHeight);
       setReady(true);
     };
     img.src = '/api/gif-proxy';
   }, []);
 
-  // ── Canvas 드로우 루프 ──
   const drawLoop = useCallback(() => {
     const canvas = canvasRef.current;
     const img    = hiddenImg.current;
@@ -58,85 +63,92 @@ export default function ThemeSongPlayer() {
       canvas.height = H;
     }
 
-    // 1. GIF 현재 프레임 그대로
+    // 1. GIF 원본 프레임
     ctx.drawImage(img, 0, 0, W, H);
 
     const elapsed = (performance.now() - startRef.current) / 1000;
     const angle   = ((elapsed % SPIN_SECS) / SPIN_SECS) * Math.PI * 2;
 
+    // 2. 각 덱 비닐 교체
     for (const rec of RECORDS) {
       const cx = rec.cx * W;
       const cy = rec.cy * H;
-      const r  = rec.rh * H;  // 비닐 반지름 (px)
+      const r  = rec.rh * H;
 
-      // ── 2. 비닐 디스크만 교체 ──────────────────────────────────
       ctx.save();
       ctx.translate(cx, cy);
 
-      // 검정 비닐 원 (APPAREL WAX 영역만 덮기)
+      // 검정 비닐 원
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fillStyle = '#0d0d0d';
       ctx.fill();
 
-      // 비닐 홈 질감 (얇은 동심원 여러 개)
-      for (let ri = 0.38; ri < 0.97; ri += 0.035) {
+      // 홈 질감 — 동심원
+      for (let ri = 0.32; ri < 0.97; ri += 0.03) {
         ctx.beginPath();
         ctx.arc(0, 0, r * ri, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255,255,255,${ri < 0.55 ? 0.03 : 0.025})`;
-        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = `rgba(255,255,255,${ri < 0.50 ? 0.04 : 0.025})`;
+        ctx.lineWidth = 0.9;
         ctx.stroke();
       }
 
-      // 비닐 외곽 미세 링 (원본 도트링 안쪽과 맞닿는 선)
+      // 외곽 링
       ctx.beginPath();
-      ctx.arc(0, 0, r * 0.985, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
-      ctx.lineWidth = 1.5;
+      ctx.arc(0, 0, r * 0.982, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 2;
       ctx.stroke();
 
-      // ── 3. MUSIC SPOT 텍스트 (레코드와 함께 회전) ─────────────
+      // 3. MUSIC SPOT 텍스트 — 회전
       ctx.rotate(angle);
 
-      const fs = r * 0.27;
+      // 그루브 영역에 딱 맞는 폰트/위치
+      // 그루브: R_LABEL*r ~ r, 중심: r*(R_LABEL + (1-R_LABEL)/2)
+      const grooveCenter = r * (R_LABEL + (1 - R_LABEL) / 2);   // ≈ r*0.64
+      const halfGroove   = r * (1 - R_LABEL) / 2;                // ≈ r*0.36
+      const fs = halfGroove * 0.78;  // 폰트크기 = 반그루브 높이의 78%
+
       ctx.font         = `bold ${fs}px Bungee, Arial Black, sans-serif`;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle    = 'rgba(255,255,255,0.93)';
+      ctx.fillStyle    = 'rgba(255,255,255,0.92)';
       ctx.shadowColor  = 'rgba(0,0,0,0.95)';
-      ctx.shadowBlur   = fs * 0.15;
+      ctx.shadowBlur   = fs * 0.12;
 
-      // 그루브 영역 중간에 배치 (라벨 바깥 ~ 비닐 외곽 사이)
-      const textY = r * 0.60;
-      ctx.fillText('MUSIC', 0, -textY * 0.58);
-      ctx.fillText('SPOT',  0,  textY * 0.58);
+      ctx.fillText('MUSIC', 0, -grooveCenter);
+      ctx.fillText('SPOT',  0, +grooveCenter);
       ctx.shadowBlur = 0;
 
       ctx.restore();
 
-      // ── 4. 중앙 라벨 (회전 無 — 항상 고정 원) ─────────────────
+      // 4. 중앙 라벨 (회전 없음)
       ctx.save();
       ctx.translate(cx, cy);
 
-      const rLabel = r * R_LABEL;
-
-      // 라벨 흰 원
       ctx.beginPath();
-      ctx.arc(0, 0, rLabel, 0, Math.PI * 2);
-      ctx.fillStyle = '#e0e0e0';
+      ctx.arc(0, 0, r * R_LABEL, 0, Math.PI * 2);
+      ctx.fillStyle = '#dcdcdc';
       ctx.fill();
-
-      // 라벨 테두리 (미세)
-      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-      ctx.lineWidth   = 1;
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      // 센터 홀
       ctx.beginPath();
       ctx.arc(0, 0, r * R_HOLE, 0, Math.PI * 2);
       ctx.fillStyle = '#0d0d0d';
       ctx.fill();
 
+      ctx.restore();
+    }
+
+    // 5. 톤암 복원 — 비닐이 덮은 톤암을 GIF 원본으로 덮어씌우기
+    for (const t of TONEARMS) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(t.x, t.y, t.w, t.h);
+      ctx.clip();
+      ctx.drawImage(img, 0, 0, W, H);
       ctx.restore();
     }
 
@@ -151,7 +163,6 @@ export default function ThemeSongPlayer() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [ready, drawLoop]);
 
-  // ── 오디오 ──
   useEffect(() => {
     const audio = new Audio(THEME_SONG_URL);
     audio.loop    = true;
@@ -186,21 +197,20 @@ export default function ThemeSongPlayer() {
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >
         {!ready && (
-          <div className="w-full bg-[#1a1a1a] animate-pulse" style={{ aspectRatio: '3.3 / 1' }} />
+          <div className="w-full bg-[#1a1a1a] animate-pulse" style={{ aspectRatio: '2.6 / 1' }} />
         )}
         <canvas ref={canvasRef} className="w-full block" style={{ display: ready ? 'block' : 'none' }} />
 
-        {/* 정지: play 버튼 */}
         {!playing && ready && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
             <div className="rounded-full border-[3px] border-white flex items-center justify-center"
               style={{ width: 52, height: 52, background: 'rgba(0,0,0,0.55)' }}>
               <div className="ml-1" style={{ width: 0, height: 0,
-                borderTop: '11px solid transparent', borderBottom: '11px solid transparent', borderLeft: '20px solid white' }} />
+                borderTop: '11px solid transparent', borderBottom: '11px solid transparent',
+                borderLeft: '20px solid white' }} />
             </div>
           </div>
         )}
-        {/* 재생 중: 호버 pause */}
         {playing && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             <div className="flex gap-[5px]">
@@ -211,7 +221,6 @@ export default function ThemeSongPlayer() {
         )}
       </button>
 
-      {/* 정보 바 */}
       <div className="flex items-center gap-3 px-5 py-3">
         <div className="flex-1 min-w-0">
           <p className="text-[10px] text-[#FF3D77] font-bold tracking-widest" style={{ fontFamily: 'Bungee, sans-serif' }}>
