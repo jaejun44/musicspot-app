@@ -191,7 +191,10 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFF8F0] flex items-center justify-center">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundImage: 'url(/ms_character/chears.png)', backgroundSize: 'cover', backgroundPosition: 'center top', backgroundAttachment: 'fixed' }}
+      >
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
@@ -203,7 +206,10 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-[#FFF8F0] flex flex-col items-center justify-center gap-4 px-4">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center gap-4 px-4"
+        style={{ backgroundImage: 'url(/ms_character/chears.png)', backgroundSize: 'cover', backgroundPosition: 'center top', backgroundAttachment: 'fixed' }}
+      >
         <Navigation />
         <div
           className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8 text-center"
@@ -229,7 +235,10 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
   const style = CATEGORY_STYLE[post.category] ?? { bg: '#F5FF4F', text: '#0A0A0A' };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] pb-24">
+    <div
+      className="min-h-screen pb-24"
+      style={{ backgroundImage: 'url(/ms_character/chears.png)', backgroundSize: 'cover', backgroundPosition: 'center top', backgroundAttachment: 'fixed' }}
+    >
       <Navigation />
 
       {/* 뒤로가기 */}
@@ -237,8 +246,8 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
         <motion.button
           onClick={() => router.push('/community')}
           whileTap={{ scale: 0.93 }}
-          className="flex items-center gap-1 text-[14px] font-bold text-[#0A0A0A]/60 hover:text-[#0A0A0A] transition-colors"
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
+          className="flex items-center gap-1 text-[14px] font-bold text-white/90 hover:text-white transition-colors"
+          style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
         >
           <ChevronLeft className="w-5 h-5" />
           커뮤니티
@@ -248,7 +257,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
       <div className="px-4 py-2 max-w-2xl mx-auto space-y-4">
         {/* 본문 카드 */}
         <div
-          className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5"
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-5"
           style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
         >
           {/* 카테고리 + 날짜 + 메뉴 */}
@@ -416,7 +425,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
 
         {/* 댓글 섹션 */}
         <div
-          className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5"
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-5"
           style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
         >
           <h2

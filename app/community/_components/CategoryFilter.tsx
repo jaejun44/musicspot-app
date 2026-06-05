@@ -31,7 +31,7 @@ export default function CategoryFilter({ active, onChange }: Props) {
             whileTap={{ scale: 0.93 }}
             className={[
               'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-[12px] border-[2px] border-[#0A0A0A] font-bold text-[13px] transition-colors',
-              isActive ? 'text-white' : 'bg-white text-[#0A0A0A]',
+              isActive ? 'text-white' : 'bg-white/80 backdrop-blur-sm text-[#0A0A0A]',
             ].join(' ')}
             style={{
               backgroundColor: isActive ? cat.color : undefined,

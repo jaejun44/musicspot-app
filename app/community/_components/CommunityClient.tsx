@@ -151,7 +151,15 @@ export default function CommunityClient() {
       : posts.filter((p) => p.category === activeTab as Category);
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'url(/ms_character/chears.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <Navigation />
 
       {/* 헤더 */}
@@ -162,14 +170,14 @@ export default function CommunityClient() {
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
         >
           <h1
-            className="text-[28px] font-bold text-[#0A0A0A]"
-            style={{ fontFamily: 'Bungee, sans-serif' }}
+            className="text-[28px] font-bold text-white"
+            style={{ fontFamily: 'Bungee, sans-serif', textShadow: '3px 3px 0 #0A0A0A' }}
           >
             COMMUNITY 🎵
           </h1>
           <p
-            className="text-[13px] text-[#0A0A0A]/50 mt-1 font-bold"
-            style={{ fontFamily: 'Pretendard, sans-serif' }}
+            className="text-[13px] text-white/90 mt-1 font-bold"
+            style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
           >
             뮤지션들의 이야기가 모이는 곳
           </p>
@@ -200,8 +208,8 @@ export default function CommunityClient() {
           key={`${activeTab}-${filtered.length}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-[12px] text-[#0A0A0A]/40 font-bold"
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
+          className="text-[12px] text-white/70 font-bold"
+          style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
         >
           {activeTab === '팔로잉' ? `팔로잉 피드 ${filtered.length}개` : `게시물 ${filtered.length}개`}
         </motion.p>
