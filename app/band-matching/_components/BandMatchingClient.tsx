@@ -131,35 +131,32 @@ export default function BandMatchingClient() {
 
   return (
     <>
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'url(/ms_character/band_matching.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <Navigation />
 
-      {/* 히어로 배너 */}
-      <div
-        className="relative w-full overflow-hidden border-b-[3px] border-[#0A0A0A]"
-        style={{
-          backgroundImage: 'url(/ms_character/band_matching.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-          minHeight: '220px',
-        }}
-      >
-        {/* 오버레이 */}
-        <div className="absolute inset-0 bg-[#0A0A0A]/40" />
+      {/* 헤더 */}
+      <div className="px-4 pt-6 pb-3 max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-          className="relative z-10 px-5 pt-8 pb-8 max-w-2xl mx-auto"
         >
           <h1
-            className="text-[32px] font-bold text-white drop-shadow-lg"
+            className="text-[28px] font-bold text-white"
             style={{ fontFamily: 'Bungee, sans-serif', textShadow: '3px 3px 0 #0A0A0A' }}
           >
             BAND MATCHING 🎸
           </h1>
           <p
-            className="text-[13px] text-white/80 mt-1 font-bold"
+            className="text-[13px] text-white/90 mt-1 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
           >
             함께 연주할 뮤지션을 찾아보세요
