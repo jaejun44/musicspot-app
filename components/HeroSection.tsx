@@ -8,7 +8,14 @@ const trioImage = '/ms_character/starbeat.png';
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[500px] md:min-h-[720px] overflow-hidden">
+    <section
+      className="relative min-h-[500px] md:min-h-[720px] overflow-hidden"
+      style={{
+        backgroundImage: 'url(/ms_character/bg-folkart-tile.png)',
+        backgroundRepeat: 'repeat',
+        backgroundSize: 'auto',
+      }}
+    >
       {/* Halftone Pattern Background */}
       <div
         className="absolute inset-0 opacity-10"
