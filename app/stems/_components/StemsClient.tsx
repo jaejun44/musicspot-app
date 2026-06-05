@@ -86,7 +86,15 @@ export default function StemsClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'url(/ms_character/bg-folkart.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <Navigation />
 
       {/* 헤더 */}
