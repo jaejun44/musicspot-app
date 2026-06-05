@@ -186,7 +186,15 @@ export default function FeedClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'url(/ms_character/dinner.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <Navigation />
 
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-24">
@@ -198,14 +206,14 @@ export default function FeedClient() {
           className="mb-5"
         >
           <h1
-            className="text-[28px] font-bold text-[#0A0A0A]"
-            style={{ fontFamily: 'Bungee, sans-serif' }}
+            className="text-[28px] font-bold text-white"
+            style={{ fontFamily: 'Bungee, sans-serif', textShadow: '3px 3px 0 #0A0A0A' }}
           >
             피드 📡
           </h1>
           <p
-            className="text-[13px] text-[#0A0A0A]/50 mt-1 font-bold"
-            style={{ fontFamily: 'Pretendard, sans-serif' }}
+            className="text-[13px] text-white/90 mt-1 font-bold"
+            style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
           >
             팔로우한 뮤지션의 최신 활동
           </p>
