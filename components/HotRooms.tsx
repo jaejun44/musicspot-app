@@ -43,7 +43,7 @@ export default function HotRooms() {
   if (studios.length === 0) return null;
 
   return (
-    <section className="py-24 px-8 bg-[#FFF8F0]">
+    <section className="py-24 px-8">
       <div className="max-w-[1440px] mx-auto">
         {/* Section Title */}
         <motion.h2
