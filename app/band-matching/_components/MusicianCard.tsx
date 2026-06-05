@@ -75,7 +75,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
       transition={{ delay: index * 0.07, type: 'spring', stiffness: 260, damping: 22 }}
       whileHover={{ y: -6, rotate: rotate + 1, boxShadow: '8px 8px 0 #0A0A0A' }}
       style={{ rotate, boxShadow: '5px 5px 0 #0A0A0A' }}
-      className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-4 flex flex-col gap-3"
+      className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-4 flex flex-col gap-3"
     >
       {/* 아바타 + 이름 */}
       <div className="flex items-center gap-3">

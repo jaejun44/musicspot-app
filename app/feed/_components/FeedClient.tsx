@@ -232,7 +232,7 @@ export default function FeedClient() {
             className="flex flex-col items-center py-16"
           >
             <div
-              className="flex flex-col items-center bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
+              className="flex flex-col items-center bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
               style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
             >
               <span className="text-[52px] mb-4">🔐</span>
@@ -278,7 +278,7 @@ export default function FeedClient() {
             className="flex flex-col items-center py-16"
           >
             <div
-              className="flex flex-col items-center bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
+              className="flex flex-col items-center bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
               style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
             >
               <span className="text-[52px] mb-4">👋</span>
@@ -313,7 +313,7 @@ export default function FeedClient() {
             className="flex flex-col items-center py-16"
           >
             <div
-              className="flex flex-col items-center bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
+              className="flex flex-col items-center bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
               style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
             >
               <span className="text-[52px] mb-4">🎵</span>

@@ -300,7 +300,7 @@ export default function MyBandClient() {
                 transition={{ delay: i * 0.06 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => router.push(`/my-band/${band.id}`)}
-                className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5 cursor-pointer"
+                className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-5 cursor-pointer"
                 style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
               >
                 <div className="flex items-center gap-4">
