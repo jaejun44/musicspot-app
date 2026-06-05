@@ -205,18 +205,23 @@ export default function FeedClient() {
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
           className="mb-5"
         >
-          <h1
-            className="text-[28px] font-bold text-white"
-            style={{ fontFamily: 'Bungee, sans-serif', textShadow: '3px 3px 0 #0A0A0A' }}
+          <div
+            className="inline-block bg-[#FFF8F0] rounded-[16px] border-[3px] border-[#0A0A0A] px-4 py-3"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
           >
-            피드 📡
-          </h1>
-          <p
-            className="text-[13px] text-white/90 mt-1 font-bold"
-            style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
-          >
-            팔로우한 뮤지션의 최신 활동
-          </p>
+            <h1
+              className="text-[28px] font-bold text-[#0A0A0A]"
+              style={{ fontFamily: 'Bungee, sans-serif' }}
+            >
+              피드 📡
+            </h1>
+            <p
+              className="text-[13px] text-[#0A0A0A]/70 mt-1 font-bold"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              팔로우한 뮤지션의 최신 활동
+            </p>
+          </div>
         </motion.div>
 
         {/* 비로그인 */}
@@ -224,28 +229,33 @@ export default function FeedClient() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center py-20"
+            className="flex flex-col items-center py-16"
           >
-            <span className="text-[52px] mb-4">🔐</span>
-            <p
-              className="text-[16px] font-bold text-[#0A0A0A]/50 mb-2 text-center"
-              style={{ fontFamily: 'Bungee, sans-serif' }}
+            <div
+              className="flex flex-col items-center bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
+              style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
             >
-              로그인이 필요해요
-            </p>
-            <p
-              className="text-[13px] text-[#0A0A0A]/40 mb-6 text-center"
-              style={{ fontFamily: 'Pretendard, sans-serif' }}
-            >
-              팔로우한 뮤지션의 게시물과<br />8마디 트랙을 모아볼 수 있어요
-            </p>
-            <Link
-              href="/login"
-              className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
-              style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-            >
-              로그인하기 →
-            </Link>
+              <span className="text-[52px] mb-4">🔐</span>
+              <p
+                className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
+                style={{ fontFamily: 'Bungee, sans-serif' }}
+              >
+                로그인이 필요해요
+              </p>
+              <p
+                className="text-[13px] text-[#0A0A0A]/60 mb-6 text-center"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                팔로우한 뮤지션의 게시물과<br />8마디 트랙을 모아볼 수 있어요
+              </p>
+              <Link
+                href="/login"
+                className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+              >
+                로그인하기 →
+              </Link>
+            </div>
           </motion.div>
         )}
 
@@ -265,28 +275,33 @@ export default function FeedClient() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center py-20"
+            className="flex flex-col items-center py-16"
           >
-            <span className="text-[52px] mb-4">👋</span>
-            <p
-              className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
-              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            <div
+              className="flex flex-col items-center bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
+              style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
             >
-              아직 팔로우한 뮤지션이 없어요.
-            </p>
-            <p
-              className="text-[13px] text-[#0A0A0A]/50 mb-6 text-center"
-              style={{ fontFamily: 'Pretendard, sans-serif' }}
-            >
-              밴드 찾기에서 마음에 드는 뮤지션을 팔로우해보세요! 🎸
-            </p>
-            <Link
-              href="/band-matching"
-              className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
-              style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
-            >
-              뮤지션 찾기
-            </Link>
+              <span className="text-[52px] mb-4">👋</span>
+              <p
+                className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                아직 팔로우한 뮤지션이 없어요.
+              </p>
+              <p
+                className="text-[13px] text-[#0A0A0A]/60 mb-6 text-center"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                밴드 찾기에서 마음에 드는 뮤지션을 팔로우해보세요! 🎸
+              </p>
+              <Link
+                href="/band-matching"
+                className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+              >
+                뮤지션 찾기
+              </Link>
+            </div>
           </motion.div>
         )}
 
@@ -295,39 +310,46 @@ export default function FeedClient() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center py-20"
+            className="flex flex-col items-center py-16"
           >
-            <span className="text-[52px] mb-4">🎵</span>
-            <p
-              className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
-              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            <div
+              className="flex flex-col items-center bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8"
+              style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
             >
-              팔로우한 뮤지션의 새 활동이 없어요.
-            </p>
-            <p
-              className="text-[13px] text-[#0A0A0A]/50 mb-6 text-center"
-              style={{ fontFamily: 'Pretendard, sans-serif' }}
-            >
-              8마디 챌린지를 먼저 시작해볼까요? ⚡
-            </p>
-            <Link
-              href="/stems"
-              className="px-6 py-3 bg-[#F5FF4F] rounded-[14px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
-              style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
-            >
-              챌린지 시작
-            </Link>
+              <span className="text-[52px] mb-4">🎵</span>
+              <p
+                className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                팔로우한 뮤지션의 새 활동이 없어요.
+              </p>
+              <p
+                className="text-[13px] text-[#0A0A0A]/60 mb-6 text-center"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                8마디 챌린지를 먼저 시작해볼까요? ⚡
+              </p>
+              <Link
+                href="/stems"
+                className="px-6 py-3 bg-[#F5FF4F] rounded-[14px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+              >
+                챌린지 시작
+              </Link>
+            </div>
           </motion.div>
         )}
 
         {/* 팔로잉 카운트 */}
         {!feedLoading && user && hasFollows && items.length > 0 && (
-          <p
-            className="text-[11px] text-[#0A0A0A]/30 font-bold mb-4"
-            style={{ fontFamily: 'Pretendard, sans-serif' }}
-          >
-            {followingCount}명 팔로우 중 · {items.length}개의 활동
-          </p>
+          <div className="mb-4">
+            <span
+              className="inline-block bg-[#FFF8F0]/90 rounded-[10px] border-[2px] border-[#0A0A0A]/30 px-3 py-1 text-[11px] text-[#0A0A0A] font-bold"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              {followingCount}명 팔로우 중 · {items.length}개의 활동
+            </span>
+          </div>
         )}
 
         {/* 피드 목록 */}
