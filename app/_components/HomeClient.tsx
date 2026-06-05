@@ -21,7 +21,14 @@ export default function HomeClient() {
   }, []);
 
   return (
-    <div className="relative overflow-x-hidden">
+    <div
+      className="relative overflow-x-hidden"
+      style={{
+        backgroundImage: 'url(/ms_character/bg-folkart-tile.png)',
+        backgroundRepeat: 'repeat',
+        backgroundSize: '120px 120px',
+      }}
+    >
       <Navigation />
       <DecorativeElements scrollY={scrollY} />
       <HeroSection />
