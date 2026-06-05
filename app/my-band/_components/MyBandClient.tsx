@@ -226,7 +226,15 @@ export default function MyBandClient() {
   const BAND_COLORS = ['#FF3D77', '#4FC3F7', '#F5FF4F', '#41C66B'];
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'url(/ms_character/Busking.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <Navigation />
 
       <div className="px-4 pt-6 pb-3 max-w-2xl mx-auto">
@@ -235,10 +243,10 @@ export default function MyBandClient() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
         >
-          <h1 className="text-[28px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
+          <h1 className="text-[28px] font-bold text-white" style={{ fontFamily: 'Bungee, sans-serif', textShadow: '3px 3px 0 #0A0A0A' }}>
             MY BAND 🎸
           </h1>
-          <p className="text-[13px] text-[#0A0A0A]/50 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+          <p className="text-[13px] text-white/90 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}>
             내 밴드 일정과 멤버를 관리해요
           </p>
         </motion.div>
