@@ -32,7 +32,7 @@ export default function SearchClient() {
   const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
       <Navigation />
 
       {/* 검색헤더 (sticky) */}

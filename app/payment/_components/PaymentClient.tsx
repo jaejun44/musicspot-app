@@ -92,7 +92,7 @@ export default function PaymentClient() {
 
   if (!booking) {
     return (
-      <div className="min-h-screen bg-[#FFF8F0] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
@@ -103,7 +103,7 @@ export default function PaymentClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] pb-32">
+    <div className="min-h-screen pb-32" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
       <Navigation />
 
       <div className="px-4 pt-4 pb-2">

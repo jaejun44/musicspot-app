@@ -90,7 +90,7 @@ export default function BookingClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFF8F0] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
@@ -102,7 +102,7 @@ export default function BookingClient() {
 
   if (!studio) {
     return (
-      <div className="min-h-screen bg-[#FFF8F0] flex flex-col items-center justify-center gap-4 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
         <div
           className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-8 py-8 text-center"
           style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
@@ -124,7 +124,7 @@ export default function BookingClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] pb-32">
+    <div className="min-h-screen pb-32" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
       <Navigation />
 
       {/* 뒤로가기 */}

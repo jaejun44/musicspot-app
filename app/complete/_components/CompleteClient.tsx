@@ -36,7 +36,7 @@ export default function CompleteClient() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
       <Navigation />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-10">
