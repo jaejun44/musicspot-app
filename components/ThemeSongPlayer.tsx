@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 
 const THEME_SONG_URL =
@@ -230,6 +230,12 @@ function buildSVG() {
   </svg>`;
 }
 
+/* SVG 전용 memo 컴포넌트 — playing/progress 변경 시 절대 re-render 없음 */
+const TurntableSVG = memo(function TurntableSVG({ html }: { html: string }) {
+  if (!html) return <div className="w-full bg-[#e6e4df] animate-pulse" style={{ aspectRatio: '1920/737' }} />;
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+});
+
 /* ── component ── */
 export default function ThemeSongPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -266,38 +272,42 @@ export default function ThemeSongPlayer() {
         className="wax-player mx-4 mb-4 max-w-2xl md:mx-auto rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden"
         style={{ background: '#0A0A0A', boxShadow: '6px 6px 0 #FF3D77' }}
       >
-        {/* 턴테이블 SVG */}
-        <button
-          onClick={toggle}
-          aria-label={playing ? '일시정지' : '재생'}
-          className="group relative w-full block focus:outline-none"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          {svgHtml ? (
-            <div dangerouslySetInnerHTML={{ __html: svgHtml }} />
-          ) : (
-            <div className="w-full bg-[#e6e4df] animate-pulse" style={{ aspectRatio: '1920/737' }} />
-          )}
+        {/* 턴테이블 SVG — DOM 구조 변경 없는 overlay 토글 */}
+        <div className="group relative w-full">
+          <TurntableSVG html={svgHtml} />
 
-          {!playing && svgHtml && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/15 pointer-events-none">
-              <div className="rounded-full border-[3px] border-white flex items-center justify-center"
-                style={{ width: 52, height: 52, background: 'rgba(0,0,0,0.45)' }}>
-                <div className="ml-1" style={{ width: 0, height: 0,
-                  borderTop: '11px solid transparent', borderBottom: '11px solid transparent',
-                  borderLeft: '20px solid white' }} />
-              </div>
+          {/* play overlay — DOM 항상 존재, opacity만 변경 */}
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-black/15 pointer-events-none transition-opacity duration-150"
+            style={{ opacity: !playing && svgHtml ? 1 : 0 }}
+          >
+            <div className="rounded-full border-[3px] border-white flex items-center justify-center"
+              style={{ width: 52, height: 52, background: 'rgba(0,0,0,0.45)' }}>
+              <div className="ml-1" style={{ width: 0, height: 0,
+                borderTop: '11px solid transparent', borderBottom: '11px solid transparent',
+                borderLeft: '20px solid white' }} />
             </div>
-          )}
-          {playing && (
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <div className="flex gap-[5px]">
-                <div className="w-[7px] h-[26px] bg-white rounded-[3px]" style={{ filter: 'drop-shadow(0 0 6px black)' }} />
-                <div className="w-[7px] h-[26px] bg-white rounded-[3px]" style={{ filter: 'drop-shadow(0 0 6px black)' }} />
-              </div>
+          </div>
+
+          {/* pause overlay — playing 아닐 때 inline opacity:0으로 강제 숨김, playing 시 group-hover에 맡김 */}
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+            style={{ opacity: playing ? undefined : 0 }}
+          >
+            <div className="flex gap-[5px]">
+              <div className="w-[7px] h-[26px] bg-white rounded-[3px]" style={{ filter: 'drop-shadow(0 0 6px black)' }} />
+              <div className="w-[7px] h-[26px] bg-white rounded-[3px]" style={{ filter: 'drop-shadow(0 0 6px black)' }} />
             </div>
-          )}
-        </button>
+          </div>
+
+          {/* 투명 클릭 레이어 */}
+          <button
+            onClick={toggle}
+            aria-label={playing ? '일시정지' : '재생'}
+            className="absolute inset-0 focus:outline-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          />
+        </div>
 
         {/* 정보 바 */}
         <div className="flex items-center gap-3 px-5 py-3">
