@@ -88,24 +88,26 @@ export default function CompleteClient() {
         </motion.div>
 
         {/* 타이틀 */}
-        <motion.h1
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="text-[32px] font-bold text-[#0A0A0A] mb-1 text-center"
-          style={{ fontFamily: 'Bungee, sans-serif' }}
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-6 py-4 mb-8 text-center"
+          style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
         >
-          BOOKED! 🎸
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}
-          className="text-[14px] text-[#0A0A0A]/60 font-bold mb-8 text-center"
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
-        >
-          예약이 완료되었어요!
-        </motion.p>
+          <h1
+            className="text-[32px] font-bold text-[#0A0A0A]"
+            style={{ fontFamily: 'Bungee, sans-serif' }}
+          >
+            BOOKED! 🎸
+          </h1>
+          <p
+            className="text-[14px] text-[#0A0A0A]/60 font-bold mt-1"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            예약이 완료되었어요!
+          </p>
+        </motion.div>
 
         {/* 예약 요약 카드 */}
         {booking && (
