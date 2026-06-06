@@ -66,7 +66,15 @@ export default function MyBookingsClient() {
 
   return (
     <>
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundImage: 'url(/ms_character/doll_drum_solo.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <Navigation />
 
       {/* 프로필 영역 */}
@@ -75,7 +83,7 @@ export default function MyBookingsClient() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-          className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5 flex items-center gap-4"
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-5 flex items-center gap-4"
           style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
         >
           <div className="relative flex-shrink-0">
@@ -160,7 +168,7 @@ export default function MyBookingsClient() {
                 'flex-1 py-2.5 rounded-[12px] border-[2px] border-[#0A0A0A] font-bold text-[13px] transition-colors',
                 activeTab === tab.id
                   ? 'bg-[#0A0A0A] text-white'
-                  : 'bg-white text-[#0A0A0A]',
+                  : 'bg-white/80 backdrop-blur-sm text-[#0A0A0A]',
               ].join(' ')}
               style={{
                 boxShadow: activeTab === tab.id ? '3px 3px 0 #FF3D77' : '2px 2px 0 #0A0A0A',

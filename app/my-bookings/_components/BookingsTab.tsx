@@ -158,7 +158,7 @@ export default function BookingsTab() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06, type: 'spring', stiffness: 260, damping: 22 }}
             onClick={() => router.push(`/room/${b.studio_id}`)}
-            className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5 cursor-pointer active:translate-y-[2px] active:translate-x-[2px]"
+            className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-5 cursor-pointer active:translate-y-[2px] active:translate-x-[2px]"
             style={{ boxShadow: '5px 5px 0 #0A0A0A', transition: 'box-shadow 0.1s, transform 0.1s' }}
           >
             {/* 헤더 */}

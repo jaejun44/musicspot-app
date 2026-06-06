@@ -24,7 +24,7 @@ export default function StudioMiniCard({ studio, index }: Props) {
       style={{ rotate, boxShadow: '4px 4px 0 #0A0A0A' }}
       whileHover={{ y: -4, rotate: rotate + 1, boxShadow: '6px 6px 0 #0A0A0A' }}
       whileTap={{ scale: 0.97, x: 2, y: 2 }}
-      className="bg-white rounded-[16px] border-[3px] border-[#0A0A0A] overflow-hidden cursor-pointer"
+      className="bg-white/80 backdrop-blur-sm rounded-[16px] border-[3px] border-[#0A0A0A] overflow-hidden cursor-pointer"
     >
       <div className="relative w-full h-28 bg-[#0A0A0A]/5">
         {photo ? (
