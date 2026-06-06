@@ -103,6 +103,8 @@ export default function StemsClient() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+          className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] px-5 py-4"
+          style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
         >
           <h1
             className="text-[28px] font-bold text-[#0A0A0A]"
@@ -170,15 +172,20 @@ export default function StemsClient() {
 
       {/* 카운트 */}
       <div className="px-4 pb-3 max-w-2xl mx-auto">
-        <motion.p
+        <motion.div
           key={projects.length}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-[12px] text-[#0A0A0A]/40 font-bold"
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
+          className="inline-block bg-white/90 rounded-[10px] border-[2px] border-[#0A0A0A] px-3 py-1"
+          style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
         >
-          {projects.length}개의 프로젝트
-        </motion.p>
+          <p
+            className="text-[12px] text-[#0A0A0A]/60 font-bold"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            {projects.length}개의 프로젝트
+          </p>
+        </motion.div>
       </div>
 
       {/* 프로젝트 목록 */}
@@ -198,24 +205,31 @@ export default function StemsClient() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 gap-4">
-            <span className="text-[48px]">🎸</span>
-            <p
-              className="text-[15px] font-bold text-[#0A0A0A]/60 text-center"
-              style={{ fontFamily: 'Pretendard, sans-serif' }}
+          <div className="flex flex-col items-center justify-center py-8">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-[24px] border-[3px] border-[#0A0A0A] px-8 py-10 flex flex-col items-center gap-4 w-full max-w-sm"
+              style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
             >
-              아직 챌린지가 없어요.
-              <br />첫 번째 8마디를 던져보세요!
-            </p>
-            <motion.button
-              whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
-              whileTap={{ scale: 0.96 }}
-              onClick={openCreate}
-              className="px-6 py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[15px] font-bold"
-              style={{ fontFamily: 'Bungee, sans-serif', boxShadow: '5px 5px 0 #0A0A0A' }}
-            >
-              챌린지 시작하기 🎸
-            </motion.button>
+              <span className="text-[48px]">🎸</span>
+              <p
+                className="text-[15px] font-bold text-[#0A0A0A]/60 text-center"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                아직 챌린지가 없어요.
+                <br />첫 번째 8마디를 던져보세요!
+              </p>
+              <motion.button
+                whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
+                whileTap={{ scale: 0.96 }}
+                onClick={openCreate}
+                className="px-6 py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[15px] font-bold"
+                style={{ fontFamily: 'Bungee, sans-serif', boxShadow: '5px 5px 0 #0A0A0A' }}
+              >
+                챌린지 시작하기 🎸
+              </motion.button>
+            </motion.div>
           </div>
         )}
       </div>
