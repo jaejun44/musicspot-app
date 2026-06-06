@@ -100,3 +100,20 @@ body {
 .vinyl-disc.spinning {
   animation-play-state: running;
 }
+
+/* Wax player (SVG turntable) — styles in globals to survive React re-renders */
+@keyframes msspin {
+  to { transform: rotate(360deg); }
+}
+.wax-player .spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: msspin 2.0s linear infinite;
+  will-change: transform;
+}
+.wax-player .deck-right .spin {
+  animation-delay: -1.0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wax-player .spin { animation: none; }
+}

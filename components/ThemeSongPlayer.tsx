@@ -259,14 +259,6 @@ export default function ThemeSongPlayer() {
 
   return (
     <>
-      {/* CSS 스핀 애니메이션 */}
-      <style>{`
-        .wax-player .spin{transform-box:fill-box;transform-origin:center;animation:msspin 2.0s linear infinite;will-change:transform}
-        .wax-player .deck-right .spin{animation-delay:-1.0s}
-        @keyframes msspin{to{transform:rotate(360deg)}}
-        @media(prefers-reduced-motion:reduce){.wax-player .spin{animation:none}}
-      `}</style>
-
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
