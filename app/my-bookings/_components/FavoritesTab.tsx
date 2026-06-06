@@ -48,31 +48,36 @@ export default function FavoritesTab() {
         className="flex flex-col items-center justify-center py-16 px-4"
       >
         <div
-          className="w-20 h-20 rounded-full bg-[#FF3D77] border-[3px] border-[#0A0A0A] flex items-center justify-center mb-5"
-          style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-6 py-8 flex flex-col items-center w-full max-w-sm"
+          style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
         >
-          <span className="text-[32px]">🤍</span>
+          <div
+            className="w-20 h-20 rounded-full bg-[#FF3D77] border-[3px] border-[#0A0A0A] flex items-center justify-center mb-5"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+          >
+            <span className="text-[32px]">🤍</span>
+          </div>
+          <p
+            className="text-[18px] font-bold text-[#0A0A0A] mb-2 text-center"
+            style={{ fontFamily: 'Bungee, sans-serif' }}
+          >
+            NO FAVORITES YET
+          </p>
+          <p
+            className="text-[13px] text-[#0A0A0A]/50 font-bold text-center mb-6"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            마음에 드는 연습실에 하트를 눌러보세요 💖
+          </p>
+          <motion.button
+            onClick={() => router.push('/search')}
+            whileTap={{ scale: 0.95, y: 2 }}
+            className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
+            style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+          >
+            🔍 연습실 찾기
+          </motion.button>
         </div>
-        <p
-          className="text-[18px] font-bold text-[#0A0A0A] mb-2 text-center"
-          style={{ fontFamily: 'Bungee, sans-serif' }}
-        >
-          NO FAVORITES YET
-        </p>
-        <p
-          className="text-[13px] text-[#0A0A0A]/50 font-bold text-center mb-6"
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
-        >
-          마음에 드는 연습실에 하트를 눌러보세요 💖
-        </p>
-        <motion.button
-          onClick={() => router.push('/search')}
-          whileTap={{ scale: 0.95, y: 2 }}
-          className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
-          style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-        >
-          🔍 연습실 찾기
-        </motion.button>
       </motion.div>
     );
   }
@@ -80,7 +85,7 @@ export default function FavoritesTab() {
   return (
     <div>
       <p
-        className="text-[12px] text-[#0A0A0A]/40 font-bold mb-3"
+        className="inline-block text-[12px] text-[#0A0A0A]/70 font-bold mb-3 bg-white/70 backdrop-blur-sm rounded-[8px] px-3 py-1 border border-[#0A0A0A]/20"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
         총 {studios.length}개
