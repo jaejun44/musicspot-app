@@ -11,6 +11,7 @@ interface WaxMixerProps {
   direction?: 'forward' | 'reverse';
   theme?: ThemeKey;
   className?: string;
+  paused?: boolean;
 }
 
 interface ThemeConfig {
@@ -320,6 +321,7 @@ export default function WaxMixer({
   direction = 'forward',
   theme = 'white',
   className = '',
+  paused = false,
 }: WaxMixerProps) {
   const svgContent = useMemo(() => buildSVG(THEMES[theme] ?? THEMES.white), [theme]);
 
@@ -336,6 +338,7 @@ export default function WaxMixer({
           transform-box: fill-box;
           transform-origin: center;
           animation: ms-msspin var(--spin, 0.8s) ${timingFn} ${animDir} infinite;
+          animation-play-state: ${paused ? 'paused' : 'running'};
           will-change: transform;
         }
         .ms-deck-right .ms-spin {

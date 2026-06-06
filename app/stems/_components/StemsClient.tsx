@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 import ProjectCard from './ProjectCard';
 import CreateProjectModal from './CreateProjectModal';
 import ProjectDetailModal from './ProjectDetailModal';
-import WaxMixer from './WaxMixer';
+import WaxMixerPlayer from './WaxMixerPlayer';
 
 export interface StemProject {
   id: string;
@@ -97,11 +97,6 @@ export default function StemsClient() {
     >
       <Navigation />
 
-      {/* Wax Mixer 히어로 */}
-      <div className="w-full overflow-hidden bg-white border-b-[3px] border-[#0A0A0A]">
-        <WaxMixer spinSpeed={0.8} theme="white" />
-      </div>
-
       {/* 헤더 */}
       <div className="px-4 pt-6 pb-3 max-w-2xl mx-auto">
         <motion.div
@@ -125,6 +120,9 @@ export default function StemsClient() {
           </p>
         </motion.div>
       </div>
+
+      {/* WaxMixer 플레이어 */}
+      <WaxMixerPlayer />
 
       {/* 3단계 안내 */}
       <div className="px-4 pb-4 max-w-2xl mx-auto">
