@@ -42,7 +42,8 @@ function roughCircle(cx: number, cy: number, r: number, jit = 2.2, segs = 46): s
   const pts: [number, number][] = [];
   for (let i = 0; i < segs; i++) {
     const a = (i / segs) * Math.PI * 2;
-    pts.push([cx + Math.cos(a) * (r + rj(jit)), cy + Math.sin(a) * (r + rj(jit))]);
+    const rr = r + rj(jit);
+    pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]);
   }
   let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
   for (let i = 0; i < segs; i++) {

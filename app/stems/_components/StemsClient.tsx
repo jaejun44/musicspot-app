@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase';
 import ProjectCard from './ProjectCard';
 import CreateProjectModal from './CreateProjectModal';
 import ProjectDetailModal from './ProjectDetailModal';
-import ThemeSongPlayer from '@/components/ThemeSongPlayer';
 import WaxMixer from './WaxMixer';
 
 export interface StemProject {
@@ -126,9 +125,6 @@ export default function StemsClient() {
           </p>
         </motion.div>
       </div>
-
-      {/* 테마송 플레이어 */}
-      <ThemeSongPlayer />
 
       {/* 3단계 안내 */}
       <div className="px-4 pb-4 max-w-2xl mx-auto">
