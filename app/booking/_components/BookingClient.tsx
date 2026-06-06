@@ -141,19 +141,24 @@ export default function BookingClient() {
       </div>
 
       {/* 헤더 */}
-      <div className="px-4 pb-4">
-        <h1
-          className="text-[28px] font-bold text-[#0A0A0A]"
-          style={{ fontFamily: 'Bungee, sans-serif' }}
+      <div className="px-4 pb-4 max-w-2xl mx-auto">
+        <div
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-5 py-4"
+          style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
         >
-          BOOKING 🎸
-        </h1>
-        <p
-          className="text-[13px] text-[#0A0A0A]/50 mt-1"
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
-        >
-          예약 정보를 입력해주세요
-        </p>
+          <h1
+            className="text-[28px] font-bold text-[#0A0A0A]"
+            style={{ fontFamily: 'Bungee, sans-serif' }}
+          >
+            BOOKING 🎸
+          </h1>
+          <p
+            className="text-[13px] text-[#0A0A0A]/60 mt-1"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            예약 정보를 입력해주세요
+          </p>
+        </div>
       </div>
 
       <div className="px-4 space-y-5 max-w-2xl mx-auto">

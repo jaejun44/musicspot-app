@@ -242,11 +242,13 @@ export default function MyBandClient() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-5 py-4"
+          style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
         >
-          <h1 className="text-[28px] font-bold text-white" style={{ fontFamily: 'Bungee, sans-serif', textShadow: '3px 3px 0 #0A0A0A' }}>
+          <h1 className="text-[28px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
             MY BAND 🎸
           </h1>
-          <p className="text-[13px] text-white/90 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}>
+          <p className="text-[13px] text-[#0A0A0A]/60 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
             내 밴드 일정과 멤버를 관리해요
           </p>
         </motion.div>
