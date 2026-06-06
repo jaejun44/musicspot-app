@@ -61,20 +61,17 @@ export default function ThemeSongPlayer() {
           className="relative flex-shrink-0 w-[96px] h-[96px] rounded-full focus:outline-none"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-          {/* 회전 원판 */}
-          <motion.div
+          {/* 회전 원판 — CSS animation으로 compositor thread에서 실행, progress re-render 영향 없음 */}
+          <div
             className="absolute inset-0 rounded-full"
             style={{
               background:
                 'conic-gradient(from 0deg, #1a1a1a 0%, #2a2a2a 25%, #111 50%, #222 75%, #1a1a1a 100%)',
               border: '3px solid #333',
+              animation: 'ms-vinyl-spin 3s linear infinite',
+              animationPlayState: playing ? 'running' : 'paused',
+              willChange: 'transform',
             }}
-            animate={{ rotate: playing ? 360 : 0 }}
-            transition={
-              playing
-                ? { repeat: Infinity, duration: 3, ease: 'linear' }
-                : { duration: 0 }
-            }
           >
             {/* 레코드 홈 링 */}
             {[28, 36, 44].map((r) => (
@@ -97,7 +94,7 @@ export default function ThemeSongPlayer() {
             >
               <div className="w-2 h-2 rounded-full bg-[#0A0A0A]" />
             </div>
-          </motion.div>
+          </div>
 
           {/* 진행도 링 */}
           <svg

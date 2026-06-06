@@ -85,3 +85,9 @@ body {
     rgba(255, 214, 0, 0.15) 4deg
   );
 }
+
+/* Vinyl record spin — compositor thread, unaffected by React re-renders */
+@keyframes ms-vinyl-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
