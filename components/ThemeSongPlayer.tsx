@@ -1,8 +1,10 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
-import WaxMixer from '@/app/stems/_components/WaxMixer';
+import WaxMixerBase from '@/app/stems/_components/WaxMixer';
+
+const WaxMixer = memo(WaxMixerBase);
 
 const THEME_SONG_URL =
   'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
@@ -45,7 +47,7 @@ export default function ThemeSongPlayer() {
     >
       {/* WaxMixer 일러스트 + 클릭 오버레이 */}
       <div className="group relative w-full">
-        <WaxMixer spinSpeed={1.8} theme="white" paused={!playing} />
+        <WaxMixer spinSpeed={1.8} theme="white" />
 
         {/* play overlay */}
         <div

@@ -117,6 +117,9 @@ body {
 .wax-player.paused .spin {
   animation-play-state: paused;
 }
+.wax-player.paused .ms-spin {
+  animation-play-state: paused;
+}
 @media (prefers-reduced-motion: reduce) {
   .wax-player .spin { animation: none; }
 }

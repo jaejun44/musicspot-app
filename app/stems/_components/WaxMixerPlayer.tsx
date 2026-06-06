@@ -1,8 +1,10 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
-import WaxMixer from './WaxMixer';
+import WaxMixerBase from './WaxMixer';
+
+const WaxMixer = memo(WaxMixerBase);
 
 const THEME_SONG_URL =
   'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
@@ -48,12 +50,12 @@ export default function WaxMixerPlayer() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05, type: 'spring', stiffness: 260, damping: 22 }}
-      className="mx-4 mb-4 max-w-2xl md:mx-auto rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden"
+      className={`wax-player mx-4 mb-4 max-w-2xl md:mx-auto rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden${!playing ? ' paused' : ''}`}
       style={{ background: '#0A0A0A', boxShadow: '6px 6px 0 #FF3D77' }}
     >
       {/* WaxMixer 일러스트 + 클릭 오버레이 */}
       <div className="group relative w-full">
-        <WaxMixer spinSpeed={1.8} theme="white" paused={!playing} />
+        <WaxMixer spinSpeed={1.8} theme="white" />
 
         {/* play 오버레이 — 멈춰있을 때만 보임 */}
         <div
