@@ -72,7 +72,6 @@ export default function MyBookingsClient() {
         backgroundImage: 'url(/ms_character/doll_drum_solo.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
-        backgroundAttachment: 'fixed',
       }}
     >
       <Navigation />

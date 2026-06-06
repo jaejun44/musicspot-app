@@ -63,14 +63,11 @@ export default function ThemeSongPlayer() {
         >
           {/* 회전 원판 — CSS animation으로 compositor thread에서 실행, progress re-render 영향 없음 */}
           <div
-            className="absolute inset-0 rounded-full"
+            className={`absolute inset-0 rounded-full vinyl-disc${playing ? ' spinning' : ''}`}
             style={{
               background:
                 'conic-gradient(from 0deg, #1a1a1a 0%, #2a2a2a 25%, #111 50%, #222 75%, #1a1a1a 100%)',
               border: '3px solid #333',
-              animation: 'ms-vinyl-spin 3s linear infinite',
-              animationPlayState: playing ? 'running' : 'paused',
-              willChange: 'transform',
             }}
           >
             {/* 레코드 홈 링 */}

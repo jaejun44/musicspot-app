@@ -91,3 +91,12 @@ body {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+.vinyl-disc {
+  animation: ms-vinyl-spin 3s linear infinite;
+  animation-play-state: paused;
+  will-change: transform;
+}
+.vinyl-disc.spinning {
+  animation-play-state: running;
+}
