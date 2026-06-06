@@ -53,7 +53,7 @@ export default function WaxMixerPlayer() {
     >
       {/* WaxMixer 일러스트 + 클릭 오버레이 */}
       <div className="group relative w-full">
-        <WaxMixer spinSpeed={0.8} theme="white" paused={!playing} />
+        <WaxMixer spinSpeed={1.8} theme="white" paused={!playing} />
 
         {/* play 오버레이 — 멈춰있을 때만 보임 */}
         <div

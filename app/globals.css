@@ -108,11 +108,14 @@ body {
 .wax-player .spin {
   transform-box: fill-box;
   transform-origin: center;
-  animation: msspin 2.0s linear infinite;
+  animation: msspin 1.8s linear infinite;
   will-change: transform;
 }
 .wax-player .deck-right .spin {
-  animation-delay: -1.0s;
+  animation-delay: -0.9s;
+}
+.wax-player.paused .spin {
+  animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
   .wax-player .spin { animation: none; }
