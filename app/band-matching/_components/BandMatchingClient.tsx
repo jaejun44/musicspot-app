@@ -148,16 +148,18 @@ export default function BandMatchingClient() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-5 py-4"
+          style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
         >
           <h1
-            className="text-[28px] font-bold text-white"
-            style={{ fontFamily: 'Bungee, sans-serif', textShadow: '3px 3px 0 #0A0A0A' }}
+            className="text-[28px] font-bold text-[#0A0A0A]"
+            style={{ fontFamily: 'Bungee, sans-serif' }}
           >
             BAND MATCHING 🎸
           </h1>
           <p
-            className="text-[13px] text-white/90 mt-1 font-bold"
-            style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
+            className="text-[13px] text-[#0A0A0A]/60 mt-1 font-bold"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             함께 연주할 뮤지션을 찾아보세요
           </p>
@@ -181,7 +183,7 @@ export default function BandMatchingClient() {
           key={activePosition}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-[12px] text-[#0A0A0A]/40 font-bold"
+          className="inline-block text-[12px] text-[#0A0A0A]/70 font-bold bg-white/70 backdrop-blur-sm rounded-[8px] px-3 py-1 border border-[#0A0A0A]/20"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {filtered.length}명의 뮤지션
@@ -195,6 +197,8 @@ export default function BandMatchingClient() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="bg-white/80 backdrop-blur-sm rounded-[16px] border-[3px] border-[#0A0A0A] px-4 py-4"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[16px]">🔥</span>
