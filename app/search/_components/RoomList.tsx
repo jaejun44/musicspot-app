@@ -32,26 +32,34 @@ export default function RoomList({
           transition={{ repeat: Infinity, duration: 0.9, ease: 'linear' }}
           className="w-10 h-10 rounded-full border-[3px] border-[#FF3D77] border-t-transparent"
         />
-        <p className="text-[14px] text-[#0A0A0A]/50" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+        <span
+          className="inline-block text-[13px] font-bold text-[#0A0A0A]/70 bg-white/80 backdrop-blur-sm rounded-[10px] px-4 py-2 border border-[#0A0A0A]/20"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
           연습실 찾는 중...
-        </p>
+        </span>
       </div>
     );
   }
 
   if (!loading && studios.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-3">
-        <span className="text-5xl">🎸</span>
-        <p
-          className="text-[16px] font-bold text-[#0A0A0A]"
-          style={{ fontFamily: 'Pretendard, sans-serif' }}
+      <div className="flex flex-col items-center justify-center py-24 gap-3 px-4">
+        <div
+          className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-6 py-6 text-center"
+          style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
         >
-          해당 조건의 연습실이 없어요.
-        </p>
-        <p className="text-[13px] text-[#0A0A0A]/50" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-          다른 지역을 검색해보세요
-        </p>
+          <span className="text-5xl">🎸</span>
+          <p
+            className="text-[16px] font-bold text-[#0A0A0A] mt-3"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            해당 조건의 연습실이 없어요.
+          </p>
+          <p className="text-[13px] text-[#0A0A0A]/50 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            다른 지역을 검색해보세요
+          </p>
+        </div>
       </div>
     );
   }
@@ -60,7 +68,7 @@ export default function RoomList({
     <div className="px-4 py-4">
       {/* 결과 수 */}
       <p
-        className="text-[13px] text-[#0A0A0A]/50 mb-4"
+        className="inline-block text-[12px] font-bold text-[#0A0A0A]/70 bg-white/70 backdrop-blur-sm rounded-[8px] px-3 py-1 border border-[#0A0A0A]/20 mb-4"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
         {totalCount > 0 ? `${totalCount}개 연습실` : `${studios.length}개 연습실`}

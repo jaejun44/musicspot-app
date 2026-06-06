@@ -46,9 +46,9 @@ export default function SearchClient() {
       />
 
       {/* 뷰 토글 바 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b-[2px] border-[#0A0A0A]/10">
+      <div className="flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-sm border-b-[2px] border-[#0A0A0A]/20">
         <p
-          className="text-[13px] text-[#0A0A0A]/50"
+          className="text-[13px] font-bold text-[#0A0A0A]/60"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {userLat ? '📍 내 위치 기준' : query ? `"${query}" 검색 결과` : '전체 연습실'}
