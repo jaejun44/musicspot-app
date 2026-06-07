@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import QuizClient from './_components/QuizClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspotapp.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
 export const metadata: Metadata = {
   title: '나에게 어울리는 악기는? 🎸 — Music Spot',

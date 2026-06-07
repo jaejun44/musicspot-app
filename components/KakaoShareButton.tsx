@@ -30,7 +30,7 @@ export default function KakaoShareButton({
           content: {
             title: studioName,
             description: studioAddress || '연습실 정보 보기',
-            imageUrl: imageUrl || 'https://musicspotapp.vercel.app/hero-bg.png',
+            imageUrl: imageUrl || `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com'}/hero-bg.png`,
             link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl },
           },
           buttons: [

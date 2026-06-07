@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import HomeClient from './_components/HomeClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspotapp.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
 export const metadata: Metadata = {
   title: 'Music Spot — 8마디로 밴드를 만든다',

@@ -1,7 +1,7 @@
 export type ShareSource = 'kakao' | 'instagram' | 'twitter' | 'facebook' | 'link';
 export type ShareCampaign = 'challenge' | 'post' | 'profile' | 'studio' | 'landing';
 
-const BASE_URL = 'https://musicspotapp.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
 export function buildShareUrl(
   path: string,

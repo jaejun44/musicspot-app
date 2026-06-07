@@ -3,7 +3,7 @@ import Script from 'next/script';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
 import './globals.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspotapp.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

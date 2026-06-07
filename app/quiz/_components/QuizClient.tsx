@@ -200,7 +200,7 @@ function calcResult(answers: Partial<Record<InstrumentKey, number>>): Instrument
 }
 
 // ─── 공유 ─────────────────────────────────────────────────────────────────────
-const BASE_URL = 'https://musicspotapp.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
 function shareKakao(result: Result) {
   const url = `${BASE_URL}/quiz`;

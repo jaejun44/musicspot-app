@@ -71,7 +71,7 @@ export default function RoomDetailClient() {
           content: {
             title: studio.name,
             description: studio.address || '연습실 정보 보기',
-            imageUrl: studio.photos?.[0] || 'https://musicspotapp.vercel.app/hero-bg.png',
+            imageUrl: studio.photos?.[0] || `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com'}/hero-bg.png`,
             link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl },
           },
           buttons: [{ title: '연습실 보기', link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl } }],

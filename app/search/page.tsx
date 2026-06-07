@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import SearchClient from './_components/SearchClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://musicspotapp.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
 export const metadata = {
   title: '연습실 찾기 | Music Spot',
