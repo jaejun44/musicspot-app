@@ -62,8 +62,16 @@ export default function ThemeSongPlayer() {
       className={`wax-player mx-4 mb-4 max-w-2xl md:mx-auto rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden${!playing ? ' paused' : ''}`}
       style={{ background: '#0A0A0A', boxShadow: '6px 6px 0 #FF3D77' }}
     >
-      {/* WaxMixer 일러스트 + 클릭 오버레이 */}
-      <div className="group relative w-full">
+      {/* WaxMixer 일러스트 + 클릭 */}
+      <div
+        className="group relative w-full cursor-pointer"
+        onClick={toggle}
+        role="button"
+        tabIndex={0}
+        aria-label={playing ? '일시정지' : '재생'}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggle(); }}
+        style={{ WebkitTapHighlightColor: 'transparent' }}
+      >
         <WaxMixer spinSpeed={1.8} theme="white" />
 
         {/* play overlay */}
@@ -89,14 +97,6 @@ export default function ThemeSongPlayer() {
             <div className="w-[6px] h-[22px] bg-white rounded-[3px]" style={{ filter: 'drop-shadow(0 0 6px black)' }} />
           </div>
         </div>
-
-        {/* 투명 클릭 레이어 */}
-        <button
-          onClick={toggle}
-          aria-label={playing ? '일시정지' : '재생'}
-          className="absolute inset-0 focus:outline-none"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        />
       </div>
 
       {/* 현재 곡 정보 바 */}
