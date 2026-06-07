@@ -59,7 +59,7 @@ export default function ThemeSongPlayer() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05, type: 'spring', stiffness: 260, damping: 22 }}
-      className={`wax-player mx-4 mb-4 max-w-2xl md:mx-auto rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden${!playing ? ' paused' : ''}`}
+      className={`relative z-20 wax-player mx-4 mb-4 max-w-2xl md:mx-auto rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden${!playing ? ' paused' : ''}`}
       style={{ background: '#0A0A0A', boxShadow: '6px 6px 0 #FF3D77' }}
     >
       {/* WaxMixer 일러스트 + 클릭 */}
