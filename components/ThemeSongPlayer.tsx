@@ -6,16 +6,21 @@ import WaxMixerBase from '@/app/stems/_components/WaxMixer';
 
 const WaxMixer = memo(WaxMixerBase);
 
-const THEME_SONG_URL =
-  'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
+const BASE = 'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/';
+
+const TRACKS = [
+  { title: 'EIGHT BARS TO THE WORLD', file: 'musicspot_theme.mp3' },
+  { title: 'IIIiiiiiIIIIIIIIIII!!!!', file: 'IIIiiiiiIIIIIIIIIII!!!!.mp3' },
+];
 
 export default function ThemeSongPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentTrack, setCurrentTrack] = useState(0);
 
   useEffect(() => {
-    const audio = new Audio(THEME_SONG_URL);
+    const audio = new Audio(BASE + TRACKS[0].file);
     audio.loop = true;
     audio.preload = 'none';
     audioRef.current = audio;
@@ -35,6 +40,22 @@ export default function ThemeSongPlayer() {
     if (!audio) return;
     if (playing) { audio.pause(); setPlaying(false); }
     else { audio.play().then(() => setPlaying(true)).catch(() => {}); }
+  }
+
+  function selectTrack(index: number) {
+    if (index === currentTrack) { toggle(); return; }
+    const audio = audioRef.current;
+    if (!audio) return;
+    const wasPlaying = playing;
+    audio.pause();
+    audio.src = BASE + TRACKS[index].file;
+    audio.load();
+    setCurrentTrack(index);
+    setProgress(0);
+    setPlaying(false);
+    if (wasPlaying) {
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    }
   }
 
   return (
@@ -58,16 +79,7 @@ export default function ThemeSongPlayer() {
             className="rounded-full border-[3px] border-white flex items-center justify-center"
             style={{ width: 64, height: 64, background: 'rgba(0,0,0,0.55)' }}
           >
-            <div
-              className="ml-[4px]"
-              style={{
-                width: 0,
-                height: 0,
-                borderTop: '12px solid transparent',
-                borderBottom: '12px solid transparent',
-                borderLeft: '22px solid white',
-              }}
-            />
+            <div className="ml-[4px]" style={{ width: 0, height: 0, borderTop: '12px solid transparent', borderBottom: '12px solid transparent', borderLeft: '22px solid white' }} />
           </div>
         </div>
 
@@ -91,36 +103,48 @@ export default function ThemeSongPlayer() {
         />
       </div>
 
-      {/* 정보 바 */}
+      {/* 현재 곡 정보 바 */}
       <div className="flex items-center gap-3 px-5 py-3">
         <div className="flex-1 min-w-0">
-          <p
-            className="text-[11px] text-[#FF3D77] font-bold tracking-widest mb-1"
-            style={{ fontFamily: 'Bungee, sans-serif' }}
-          >
+          <p className="text-[11px] text-[#FF3D77] font-bold tracking-widest mb-1" style={{ fontFamily: 'Bungee, sans-serif' }}>
             OFFICIAL THEME
           </p>
-          <p
-            className="text-white text-[15px] font-bold leading-tight"
-            style={{ fontFamily: 'Bungee, sans-serif' }}
-          >
-            EIGHT BARS TO THE WORLD
+          <p className="text-white text-[15px] font-bold leading-tight truncate" style={{ fontFamily: 'Bungee, sans-serif' }}>
+            {TRACKS[currentTrack].title}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-[80px] h-[3px] bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#FF3D77] rounded-full transition-all duration-300"
-              style={{ width: `${progress * 100}%` }}
-            />
+            <div className="h-full bg-[#FF3D77] rounded-full transition-all duration-300" style={{ width: `${progress * 100}%` }} />
           </div>
-          <span
-            className={`text-[10px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`}
-            style={{ fontFamily: 'Bungee, sans-serif' }}
-          >
+          <span className={`text-[10px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`} style={{ fontFamily: 'Bungee, sans-serif' }}>
             {playing ? '▶ ON AIR' : '■ READY'}
           </span>
         </div>
+      </div>
+
+      {/* 플레이리스트 */}
+      <div className="border-t border-white/10">
+        {TRACKS.map((track, i) => (
+          <button
+            key={i}
+            onClick={() => selectTrack(i)}
+            className={`w-full flex items-center gap-3 px-5 py-[10px] text-left transition-colors ${i === currentTrack ? 'bg-white/5' : 'hover:bg-white/5'}`}
+          >
+            <span
+              className={`text-[10px] font-bold w-4 flex-shrink-0 ${i === currentTrack ? 'text-[#FF3D77]' : 'text-white/30'}`}
+              style={{ fontFamily: 'Bungee, sans-serif' }}
+            >
+              {i === currentTrack && playing ? '▶' : `0${i + 1}`}
+            </span>
+            <span
+              className={`text-[13px] font-bold truncate ${i === currentTrack ? 'text-white' : 'text-white/50'}`}
+              style={{ fontFamily: 'Bungee, sans-serif' }}
+            >
+              {track.title}
+            </span>
+          </button>
+        ))}
       </div>
     </motion.div>
   );
