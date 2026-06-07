@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  verification: {
+    google: 'vNBz8abwMAI7rha-at3lGL10sJDZxFVS6-dIbg2vgME',
+  },
 };
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
