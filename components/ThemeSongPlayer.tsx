@@ -46,16 +46,12 @@ export default function ThemeSongPlayer() {
     if (index === currentTrack) { toggle(); return; }
     const audio = audioRef.current;
     if (!audio) return;
-    const wasPlaying = playing;
     audio.pause();
     audio.src = BASE + TRACKS[index].file;
-    audio.load();
     setCurrentTrack(index);
     setProgress(0);
     setPlaying(false);
-    if (wasPlaying) {
-      audio.play().then(() => setPlaying(true)).catch(() => {});
-    }
+    audio.play().then(() => setPlaying(true)).catch(() => {});
   }
 
   return (
@@ -124,12 +120,12 @@ export default function ThemeSongPlayer() {
       </div>
 
       {/* 플레이리스트 */}
-      <div className="border-t border-white/10">
+      <div className="border-t border-white/10 relative z-[1]">
         {TRACKS.map((track, i) => (
           <button
             key={i}
             onClick={() => selectTrack(i)}
-            className={`w-full flex items-center gap-3 px-5 py-[10px] text-left transition-colors ${i === currentTrack ? 'bg-white/5' : 'hover:bg-white/5'}`}
+            className={`w-full flex items-center gap-3 px-5 py-[10px] text-left transition-colors cursor-pointer ${i === currentTrack ? 'bg-white/5' : 'hover:bg-white/5'}`}
           >
             <span
               className={`text-[10px] font-bold w-4 flex-shrink-0 ${i === currentTrack ? 'text-[#FF3D77]' : 'text-white/30'}`}
