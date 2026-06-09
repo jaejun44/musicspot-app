@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Studio, StudioFilters } from '@/types/studio';
 import { sortByDistanceAndQuality } from '@/lib/sort';
+import type { StudioWithDistance } from '@/lib/sort';
 import { expandRegion } from '@/lib/region-alias';
 
 const PAGE_SIZE = 20;
@@ -32,7 +33,7 @@ export function useStudios(): UseStudiosReturn {
   const [totalCount, setTotalCount] = useState(0);
 
   // GPS 모드일 때 전체 결과를 캐싱해 클라이언트 페이지네이션에 활용
-  const gpsResultsRef = useRef<Studio[]>([]);
+  const gpsResultsRef = useRef<StudioWithDistance[]>([]);
   const pageRef = useRef(0);
   const modeRef = useRef<'gps' | 'text'>('text');
   const lastOptsRef = useRef<UseStudiosOptions>({});
@@ -83,7 +84,7 @@ export function useStudios(): UseStudiosReturn {
       const { data, error } = await query;
       if (error || !data) break;
 
-      all.push(...(data as Studio[]));
+      all.push(...(data as unknown as Studio[]));
       if (data.length < BATCH_SIZE) break;
       offset += BATCH_SIZE;
     }
@@ -91,7 +92,7 @@ export function useStudios(): UseStudiosReturn {
     const withCoords = all.filter((s) => s.lat != null && s.lng != null);
     const radius = filters?.radius ?? 3;
     const sorted = sortByDistanceAndQuality(withCoords, lat, lng);
-    const inRadius = sorted.filter((s) => (s as any).distance <= radius);
+    const inRadius = sorted.filter((s) => s.distance <= radius);
 
     gpsResultsRef.current = inRadius;
     pageRef.current = 0;
@@ -153,7 +154,7 @@ export function useStudios(): UseStudiosReturn {
       return;
     }
 
-    const results = data as Studio[];
+    const results = data as unknown as Studio[];
     setHasMore(results.length === PAGE_SIZE);
 
     if (append) {

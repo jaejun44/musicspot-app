@@ -26,7 +26,8 @@ interface Props {
 export default function MusicianCard({ musician, index, onContact, currentUserId, currentUserName }: Props) {
   const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
   const isRealUser = UUID_RE.test(musician.id);
-  const canFollow = !!(currentUserId && isRealUser && currentUserId !== musician.id);
+  const isExample = musician.name.startsWith('[이용예시]');
+  const canFollow = !!(currentUserId && isRealUser && currentUserId !== musician.id && !isExample);
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
@@ -95,12 +96,22 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p
-            className="text-[14px] font-bold text-[#0A0A0A] leading-tight"
-            style={{ fontFamily: 'Pretendard, sans-serif' }}
-          >
-            {musician.name}
-          </p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {isExample && (
+              <span
+                className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+                style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
+              >
+                이용예시
+              </span>
+            )}
+            <p
+              className="text-[14px] font-bold text-[#0A0A0A] leading-tight"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              {isExample ? musician.name.replace('[이용예시] ', '') : musician.name}
+            </p>
+          </div>
           <p
             className="text-[11px] text-[#0A0A0A]/50 font-bold mt-0.5"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -171,7 +182,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
             {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
           </motion.button>
         )}
-        {isRealUser && (
+        {isRealUser && !isExample && (
           <Link
             href={`/u/${musician.id}`}
             onClick={(e) => e.stopPropagation()}

@@ -168,8 +168,7 @@ export default function HeroSection() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-        className="hidden sm:block absolute top-20 left-20 text-6xl opacity-30"
-        style={{ color: '#FF3D77' }}
+        className="hidden sm:block absolute top-20 left-20 text-6xl opacity-30 text-comic-pink"
       >
         ★
       </motion.div>
@@ -184,8 +183,7 @@ export default function HeroSection() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-        className="hidden sm:block absolute top-40 right-20 text-7xl opacity-30"
-        style={{ color: '#FF3D77' }}
+        className="hidden sm:block absolute top-40 right-20 text-7xl opacity-30 text-comic-pink"
       >
         ★
       </motion.div>

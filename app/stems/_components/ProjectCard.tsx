@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MoreVertical } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
-import { StemProject } from './StemsClient';
+import type { StemProject } from '@/types/stem';
 
 const KEY_COLORS: Record<string, string> = {
   C: '#FF3D77', D: '#4FC3F7', E: '#41C66B', F: '#F5FF4F',
@@ -24,6 +24,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
   const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
   const keyColor = KEY_COLORS[project.key_signature[0]] ?? '#F5FF4F';
   const isOwner = !!user && user.id === project.creator_id;
+  const isExample = project.creator_name.startsWith('[이용예시]');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -53,18 +54,26 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[18px]">{project.creator_emoji}</span>
+            {isExample && (
+              <span
+                className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+                style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
+              >
+                이용예시
+              </span>
+            )}
             <p
               className="text-[11px] text-[#0A0A0A]/50 font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              {project.creator_name}
+              {isExample ? project.creator_name.replace('[이용예시] ', '') : project.creator_name}
             </p>
           </div>
           <h3
             className="text-[16px] font-bold text-[#0A0A0A] leading-tight"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {project.title}
+            {isExample ? project.title.replace('[이용예시] ', '') : project.title}
           </h3>
         </div>
 

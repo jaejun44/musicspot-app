@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Pause, Music, Trash2, Pencil, Download, Video, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import { StemProject } from './StemsClient';
+import type { StemProject } from '@/types/stem';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 
 interface StemTrack {

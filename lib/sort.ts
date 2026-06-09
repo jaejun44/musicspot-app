@@ -1,7 +1,7 @@
 import { Studio } from '@/types/studio';
 import { getDistanceKm } from './distance';
 
-interface StudioWithDistance extends Studio {
+export interface StudioWithDistance extends Studio {
   distance: number;
 }
 

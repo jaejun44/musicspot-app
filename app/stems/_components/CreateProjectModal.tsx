@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import { StemProject } from './StemsClient';
+import type { StemProject } from '@/types/stem';
 import TrackUploadPanel from './TrackUploadPanel';
 
 const KEY_OPTIONS = [

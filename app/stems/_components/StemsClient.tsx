@@ -6,25 +6,16 @@ import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/database.types';
+import type { StemProject } from '@/types/stem';
 import ProjectCard from './ProjectCard';
 import CreateProjectModal from './CreateProjectModal';
 import ProjectDetailModal from './ProjectDetailModal';
 import WaxMixerPlayer from './WaxMixerPlayer';
 
-export interface StemProject {
-  id: string;
-  title: string;
-  creator_id: string | null;
-  creator_name: string;
-  creator_emoji: string;
-  bpm: number;
-  key_signature: string;
-  genre: string | null;
-  description: string | null;
-  is_open: boolean;
-  created_at: string;
-  track_count?: number;
-}
+type StemProjectRow = Database['public']['Tables']['stem_projects']['Row'] & {
+  stem_tracks: Array<{ count: number }>;
+};
 
 export default function StemsClient() {
   const router = useRouter();
@@ -46,13 +37,20 @@ export default function StemsClient() {
       .limit(50);
 
     if (data) {
-      const mapped = data.map((p: unknown) => {
-        const row = p as Record<string, unknown>;
-        return {
-          ...(row as unknown as StemProject),
-          track_count: (row.stem_tracks as Array<{ count: number }>)?.[0]?.count ?? 0,
-        };
-      });
+      const mapped = (data as StemProjectRow[]).map((row) => ({
+        id: row.id,
+        title: row.title,
+        creator_id: row.creator_id,
+        creator_name: row.creator_name,
+        creator_emoji: row.creator_emoji,
+        bpm: row.bpm,
+        key_signature: row.key_signature,
+        genre: row.genre,
+        description: row.description,
+        is_open: row.is_open,
+        created_at: row.created_at,
+        track_count: row.stem_tracks?.[0]?.count ?? 0,
+      } satisfies StemProject));
       setProjects(mapped);
     }
   }

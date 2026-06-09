@@ -88,12 +88,22 @@ export default function PostCard({
     >
       {/* 카테고리 + 날짜 + 메뉴 */}
       <div className="flex items-center justify-between">
-        <span
-          className="px-2.5 py-1 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold"
-          style={{ backgroundColor: style.bg, color: style.text, fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
-        >
-          {post.category}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="px-2.5 py-1 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold"
+            style={{ backgroundColor: style.bg, color: style.text, fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
+          >
+            {post.category}
+          </span>
+          {post.tags.includes('이용예시') && (
+            <span
+              className="px-2 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+              style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
+            >
+              이용예시
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <span
             className="text-[11px] text-[#0A0A0A]/30 font-bold"
@@ -244,7 +254,7 @@ export default function PostCard({
               className="text-[12px] text-[#0A0A0A]/50 font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              {post.author}
+              {post.author.replace('[이용예시] ', '')}
             </span>
           </div>
         )}
