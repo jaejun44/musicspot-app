@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Spot — Wax Mixer</title>
+<style>
+  :root{ --spin: 0.8s; }
+  html,body{ margin:0; height:100%; }
+  body{
+    background:#ffffff;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh;
+    font-family:ui-sans-serif, system-ui, sans-serif;
+    overflow:hidden;
+  }
+  #stage{ width:100%; max-width:1680px; }
+  svg#wax{ width:100%; height:auto; display:block; }
+
+  /* records spin (only the lettering rotates; disc/grooves are rotation-invariant) */
+  .spin{
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: msspin var(--spin, 0.8s) linear infinite;
+    will-change: transform;
+  }
+  .deck-right .spin{ animation-delay: calc(var(--spin, 0.8s) / -2); }
+  @keyframes msspin{ to{ transform: rotate(360deg); } }
+  body.steppy .spin{ animation-timing-function: steps(8); }
+  body.reverse .spin{ animation-direction: reverse; }
+  @media (prefers-reduced-motion: reduce){ .spin{ animation: none; } }
+</style>
+</head>
+<body>
+  <div id="stage"></div>
+
+<script>
+/* ---------- seeded RNG + rough-path helpers (hand-drawn vector look) ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let RND = mulberry32(7);
+const rj = (amt)=> (RND()*2-1)*amt;
+
+// rough closed circle path
+function roughCircle(cx,cy,r,jit=2.2,segs=46){
+  let pts=[];
+  for(let i=0;i<segs;i++){
+    const a=(i/segs)*Math.PI*2;
+    const rr=r+rj(jit);
+    pts.push([cx+Math.cos(a)*rr, cy+Math.sin(a)*rr]);
+  }
+  // smooth with quadratic midpoints
+  let d=`M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<segs;i++){
+    const p=pts[i], n=pts[(i+1)%segs];
+    const mx=(p[0]+n[0])/2, my=(p[1]+n[1])/2;
+    d+=` Q ${p[0].toFixed(1)} ${p[1].toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`;
+  }
+  return d+' Z';
+}
+// rough line (slightly wavy)
+function roughLine(x1,y1,x2,y2,jit=1.6,segs=6){
+  let d=`M ${x1} ${y1}`;
+  for(let i=1;i<=segs;i++){
+    const t=i/segs;
+    const x=x1+(x2-x1)*t+rj(jit);
+    const y=y1+(y2-y1)*t+rj(jit);
+    d+=` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  return d;
+}
+// rough rounded rect
+function roughRect(x,y,w,h,rad=8,jit=1.6){
+  const j=()=>rj(jit);
+  return `M ${x+rad} ${y+j()}
+    L ${x+w-rad} ${y+j()} Q ${x+w+j()} ${y+j()} ${x+w+j()} ${y+rad}
+    L ${x+w+j()} ${y+h-rad} Q ${x+w+j()} ${y+h+j()} ${x+w-rad} ${y+h+j()}
+    L ${x+rad} ${y+h+j()} Q ${x+j()} ${y+h+j()} ${x+j()} ${y+h-rad}
+    L ${x+j()} ${y+rad} Q ${x+j()} ${y+j()} ${x+rad} ${y+j()} Z`;
+}
+const P=(d,attrs)=>`<path d="${d}" ${attrs}/>`;
+
+/* ---------- hand-drawn marker glyphs (self-contained, no webfont) ----------
+   coords 0..w wide, 0..100 tall (baseline at y=100). stroke-based. */
+const GLY={
+  'M':{w:80,d:["M8 96 L17 9 L40 63 L63 9 L72 96"]},
+  'U':{w:72,d:["M10 9 L11 64 Q13 94 40 94 Q67 94 67 64 L68 9"]},
+  'S':{w:62,d:["M55 24 Q47 9 29 10 Q8 12 9 34 Q11 52 35 54 Q57 56 56 75 Q53 93 29 92 Q9 90 6 73"]},
+  'I':{w:24,d:["M12 9 L12 95"]},
+  'C':{w:64,d:["M58 26 Q46 9 29 10 Q8 12 8 52 Q8 93 29 94 Q47 95 58 78"]},
+  'P':{w:58,d:["M13 96 L13 9 L39 9 Q59 11 59 31 Q59 52 39 53 L13 51"]},
+  'O':{w:72,d:["M36 9 Q9 11 9 52 Q9 94 36 94 Q63 94 63 52 Q63 10 36 9 Z"]},
+  'T':{w:58,d:["M6 12 L52 12","M29 12 L29 95"]},
+  ' ':{w:30,d:[]},
+  '•':{w:30,dot:true}
+};
+// draw a word; bow>0 bows ends downward (frown, for top), bow<0 bows ends up (smile, for bottom)
+function drawWord(word,centerX,baselineY,s,bow,tilt,stroke,sw){
+  const gap=7;
+  let total=0; for(const ch of word){ total+=(GLY[ch]?GLY[ch].w:40)*s+gap*s; } total-=gap*s;
+  let x=centerX-total/2, out='';
+  for(const ch of word){
+    const G=GLY[ch]||GLY[' ']; const w=G.w;
+    const cx=x+w*s/2;
+    const t=(cx-centerX)/(total/2||1);
+    const y=baselineY+bow*(t*t);
+    const rot=t*tilt;
+    if(G.dot){
+      out+=`<g transform="translate(${cx.toFixed(1)},${(y-40*s).toFixed(1)}) rotate(${rot.toFixed(1)})"><circle cx="0" cy="0" r="${(7*s).toFixed(1)}" fill="${stroke}"/></g>`;
+    } else if(G.d){
+      const paths=G.d.map(d=>`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${(sw/s).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+      out+=`<g transform="translate(${cx.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(${s}) translate(${-w/2},-100)">${paths}</g>`;
+    }
+    x+=w*s+gap*s;
+  }
+  return out;
+}
+
+/* ---------- TURNTABLE ----------
+   internal coords: body 0..660 wide, 0..520 tall; platter center (290,272) */
+function turntable(side, TH){
+  RND = mulberry32(side==='L'?11:23);   // independent seed per deck so they look hand-drawn-distinct
+  const Cx=290, Cy=272;
+  let g='';
+
+  // ---- deck body (crisp rounded slab) ----
+  g+=P(roughRect(2,12,658,498,22,2.6),`fill="${TH.bodyFill}" stroke="${TH.bodyStroke}" stroke-width="5"`);
+
+  // top dust-cover hinges
+  g+=P(roughRect(118,6,74,26,8,1.2),'fill="#242424"');
+  g+=P(roughRect(470,8,74,26,8,1.2),'fill="#242424"');
+  // little power cord wandering off the top
+  g+=`<path d="M 440 30 C 455 6 478 2 500 -28 S 520 -70 470 -96" fill="none" stroke="#1c1c1c" stroke-width="4" stroke-linecap="round"/>`;
+
+  // ---- platter speckle ring (white strobe dots on body) ----
+  let dots='';
+  for(let i=0;i<118;i++){
+    const a=(i/118)*Math.PI*2 + rj(0.03);
+    const rr=229+rj(3);
+    dots+=`<circle cx="${(Cx+Math.cos(a)*rr).toFixed(1)}" cy="${(Cy+Math.sin(a)*rr).toFixed(1)}" r="${(2.4+RND()*1.3).toFixed(1)}" fill="#f2f0ea"/>`;
+  }
+  g+=P(roughCircle(Cx,Cy,243,2.4),'fill="none" stroke="#202020" stroke-width="2.5"');
+  g+=dots;
+
+  // ---- black vinyl disc + concentric grooves (static; rotation-invariant) ----
+  g+=P(roughCircle(Cx,Cy,216,2.6),'fill="#050505" stroke="#000" stroke-width="3"');
+  [120,150,176,198,210].forEach(r=>{ g+=P(roughCircle(Cx,Cy,r,1.4,54),`fill="none" stroke="#171717" stroke-width="1"`); });
+
+  // ---- rotating LABEL TEXT group (only the lettering spins) ----
+  g+=`<g class="spin">
+        <circle cx="${Cx}" cy="${Cy}" r="170" fill="none" stroke="none"/>
+        ${drawWord('MUSIC', Cx, Cy-116, 0.74, 26, 14, '#f4f1e9', 6.5)}
+        ${drawWord('SPOT', Cx, Cy+162, 0.82, -22, 14, '#f4f1e9', 6.5)}
+      </g>`;
+
+  // ---- white center label + spindle (static, circular -> rotation invisible) ----
+  g+=P(roughCircle(Cx,Cy,80,2),'fill="#faf8f2"');
+  g+=P(roughCircle(Cx,Cy,80,2),'fill="none" stroke="#d8d4c8" stroke-width="1.5"');
+  g+=`<circle cx="${Cx}" cy="${Cy}" r="6.5" fill="#0a0a0a"/>`;
+
+  // ---- spindle-well dot (top-left) ----
+  g+=P(roughCircle(78,82,23,1.6),`fill="${TH.bodyFill}" stroke="#202020" stroke-width="2.5"`);
+  g+=`<circle cx="78" cy="82" r="6" fill="#1c1c1c"/>`;
+
+  // ---- tonearm (drawn ABOVE the record) ----
+  // arm-rest ring + 45 adapter (hatched disc)
+  g+=P(roughCircle(566,176,58,2),'fill="none" stroke="#9a9a9a" stroke-width="3"');
+  g+=P(roughCircle(602,210,22,1.4),'fill="#cfcfcf" stroke="#5a5a5a" stroke-width="2"');
+  for(let i=-3;i<=3;i++){ g+=P(roughLine(602-18,210+i*5,602+18,210+i*5,0.8,3),'stroke="#5a5a5a" stroke-width="1" fill="none"'); }
+  // pivot / counterweight housing
+  g+=P(roughRect(548,70,46,64,6,1.2),'fill="#7c7c7c" stroke="#3c3c3c" stroke-width="2.5"');
+  g+=P(roughLine(548,92,594,92,0.8,3),'stroke="#3c3c3c" stroke-width="1.5" fill="none"');
+  g+=P(roughLine(571,70,571,134,0.8,3),'stroke="#3c3c3c" stroke-width="1.5" fill="none"');
+  // arm shaft from pivot down to headshell
+  g+=P(roughLine(566,128,430,402,2.2,8),'stroke="#3a3a3a" stroke-width="15" fill="none" stroke-linecap="round"');
+  g+=P(roughLine(566,128,430,402,1.6,8),'stroke="#b9b9b9" stroke-width="8" fill="none" stroke-linecap="round"');
+  // headshell + cartridge at the end
+  g+=`<g transform="rotate(63 430 402)">`;
+  g+=P(roughRect(414,388,40,30,4,1),'fill="#2b2b2b" stroke="#000" stroke-width="2"');
+  g+=P(roughRect(420,416,28,16,3,1),'fill="#dcdcdc" stroke="#444" stroke-width="1.5"');
+  g+=`</g>`;
+
+  // ---- pitch fader + button dots (right side) ----
+  for(let i=0;i<7;i++){ g+=P(roughRect(595,250+i*26,22,13,3,0.9),'fill="#141414"'); }
+  g+=P(roughLine(636,246,636,432,1.2,6),'stroke="#9a9a9a" stroke-width="3" fill="none"');
+  g+=P(roughRect(620,326,34,26,3,1),'fill="#1a1a1a" stroke="#000" stroke-width="1.5"');
+  g+=P(roughLine(620,339,654,339,0.6,3),'stroke="#cfcfcf" stroke-width="2" fill="none"');
+
+  // ---- 33/45 speed block + start/stop buttons (bottom-left) ----
+  g+=P(roughRect(50,452,72,48,6,1.2),`fill="#121212" stroke="${TH.bodyStroke}" stroke-width="1.5"`);
+  g+=`<text x="62" y="473" fill="#e8e8e8" font-family="ui-sans-serif,sans-serif" font-size="13" font-weight="700">33</text>`;
+  g+=`<text x="86" y="492" fill="#e8e8e8" font-family="ui-sans-serif,sans-serif" font-size="13" font-weight="700">45</text>`;
+  g+=P(roughRect(132,486,30,14,4,0.8),'fill="#141414"');
+  g+=P(roughRect(170,486,30,14,4,0.8),'fill="#141414"');
+  g+=`<circle cx="225" cy="494" r="4.5" fill="#161616"/><circle cx="244" cy="494" r="4.5" fill="#161616"/>`;
+
+  // ---- deck wordmark  (M•S MUSIC) + ruler ticks ----
+  g+=drawWord('M•S MUSIC', 530, 487, 0.26, -3, 4, TH.ink, 3.6);
+  g+=P(roughLine(452,500,612,500,0.8,8),`stroke="${TH.ink}" stroke-width="2" fill="none"`);
+  for(let i=0;i<11;i++){ g+=P(roughLine(456+i*15,500,456+i*15,494-(i%2?0:5),0.5,2),`stroke="${TH.ink}" stroke-width="1.5" fill="none"`); }
+
+  return g;
+}
+
+/* ---------- MIXER ----------  internal: body 0..360 wide, body y 45..505 */
+function mixer(TH){
+  RND = mulberry32(41);
+  let g='';
+  const colX=[70,180,290];
+  const rowY=[100,178,252,322];
+
+  // cables above the body
+  // left + right blue RCA pairs
+  [40,290].forEach(bx=>{
+    g+=`<path d="M ${bx} 48 C ${bx-6} 0 ${bx+24} -36 ${bx+10} -82" fill="none" stroke="#3aa6dd" stroke-width="10" stroke-linecap="round"/>`;
+    g+=`<path d="M ${bx+26} 48 C ${bx+20} 4 ${bx+44} -30 ${bx+30} -78" fill="none" stroke="#3aa6dd" stroke-width="10" stroke-linecap="round"/>`;
+    g+=P(roughRect(bx-4,30,16,20,3,0.8),'fill="#f2f2f2"');
+    g+=P(roughRect(bx+18,30,16,20,3,0.8),'fill="#c0271e"');
+  });
+  // center headphone-ish plugs + black cord
+  g+=P(roughRect(150,16,18,34,4,1),'fill="#6a6a6a" stroke="#333" stroke-width="2"');
+  g+=P(roughRect(185,16,18,34,4,1),'fill="#6a6a6a" stroke="#333" stroke-width="2"');
+  g+=`<path d="M 159 18 C 150 -20 205 -20 196 18" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/>`;
+  g+=`<path d="M 200 40 C 250 30 250 70 230 96 S 250 70 300 60" fill="none" stroke="#111" stroke-width="4"/>`;
+
+  // body
+  g+=P(roughRect(0,45,360,458,8,2),'fill="#616661" stroke="#3a3d3a" stroke-width="4"');
+  // corner screws
+  [[14,72],[14,470],[346,72],[346,470]].forEach(s=>{ g+=`<circle cx="${s[0]}" cy="${s[1]}" r="4" fill="#3a3d3a"/><circle cx="${s[0]-1}" cy="${s[1]-1}" r="1.6" fill="#cdd0cd"/>`; });
+
+  // knobs
+  function knob(x,y,r=19){
+    let s=P(roughCircle(x,y,r,1.4,30),'fill="#0b0b0b" stroke="#000" stroke-width="2"');
+    const a=-2.1+RND()*1.2;
+    s+=`<line x1="${x}" y1="${y}" x2="${(x+Math.cos(a)*(r-3)).toFixed(1)}" y2="${(y+Math.sin(a)*(r-3)).toFixed(1)}" stroke="#f0f0f0" stroke-width="3" stroke-linecap="round"/>`;
+    // small white tick + value dash above
+    s+=`<line x1="${x-r-10}" y1="${y+4}" x2="${x-r-2}" y2="${y+4}" stroke="#e8e8e8" stroke-width="2"/>`;
+    s+=`<line x1="${x-4}" y1="${y-r-9}" x2="${x+6}" y2="${y-r-9}" stroke="#e8e8e8" stroke-width="2.5"/>`;
+    return s;
+  }
+  colX.forEach((cx,ci)=>{
+    rowY.forEach((cy,ri)=>{
+      if(ci===1 && ri===3){
+        // center cluster of white dots around a knob
+        g+=knob(cx,cy,17);
+        for(let k=0;k<7;k++){ const a=(k/7)*Math.PI*2; g+=`<circle cx="${(cx+Math.cos(a)*26).toFixed(1)}" cy="${(cy+Math.sin(a)*26).toFixed(1)}" r="${(2.6+RND()*1.6).toFixed(1)}" fill="#f0f0f0"/>`; }
+      } else {
+        g+=knob(cx,cy, ri===0?16:19);
+      }
+    });
+  });
+
+  // channel faders + VU meters
+  function channel(fx){
+    // VU meter dashes (inboard)
+    const vx=fx-22;
+    for(let i=0;i<9;i++){
+      const col = i<2? '#c0271e' : '#3a9b46';
+      g+=P(roughRect(vx,372+i*9,12,5,1,0.5),`fill="${col}"`);
+      g+=`<circle cx="${vx+18}" cy="${374+i*9}" r="2" fill="#eee"/>`;
+    }
+    // fader track + T cap
+    g+=P(roughLine(fx+14,372,fx+14,452,1,5),'stroke="#111" stroke-width="3" fill="none"');
+    g+=P(roughRect(fx-4,376,38,16,3,0.8),'fill="#f2f2f2" stroke="#111" stroke-width="2.5"');
+    g+=P(roughLine(fx+14,392,fx+14,452,0.8,4),'stroke="#111" stroke-width="5" fill="none"');
+  }
+  channel(96);
+  channel(236);
+
+  // center curve graphic + small knob
+  g+=P(roughLine(150,432,216,432,1,5),'stroke="#eee" stroke-width="3" fill="none"');
+  g+=`<path d="M 176 432 Q 184 414 192 432" fill="none" stroke="#eee" stroke-width="3"/>`;
+  g+=knob(168,432,11);
+
+  // bottom crossfader
+  g+=P(roughLine(120,478,250,478,1,6),'stroke="#111" stroke-width="3" fill="none"');
+  g+=P(roughRect(176,468,18,22,3,0.8),'fill="#f2f2f2" stroke="#111" stroke-width="2.5"');
+
+  // feet
+  [110,140,210,240].forEach(fx=>{ g+=P(roughRect(fx,503,18,14,2,0.8),'fill="#1a1a1a"'); });
+
+  return g;
+}
+
+/* ---------- assemble scene ---------- */
+const THEMES = {
+  white:{ page:'#ffffff', bg:'#ffffff', bodyFill:'#e6e4df', bodyStroke:'#232323', ink:'#1a1a1a', shadow:'#d5d5d5', shadowOp:0.7, grain:false },
+  ink:{   page:'#0B0B0E', bg:'#0B0B0E', bodyFill:'#17171c', bodyStroke:'#34343c', ink:'#f4f1e9', shadow:'#000000', shadowOp:0.55, grain:true }
+};
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "spinSpeed": 1.8,
+  "motion": "smooth",
+  "direction": "forward",
+  "theme": "white"
+}/*EDITMODE-END*/;
+
+let TW = { ...TWEAK_DEFAULTS };
+
+function shadow(gx,gy,w,h,TH){
+  return P(roughRect(gx+14,gy+18,w,h,20,3),`fill="${TH.shadow}" opacity="${TH.shadowOp}" filter="url(#soft)"`);
+}
+function build(){
+  const TH = THEMES[TW.theme] || THEMES.white;
+  const grain = TH.grain ? `<rect x="0" y="0" width="1920" height="737" fill="#fff" opacity="0.045" filter="url(#grain)" style="mix-blend-mode:screen"/>` : '';
+  const svg = `
+  <svg id="wax" viewBox="0 0 1920 737" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter>
+      <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+    </defs>
+    <rect x="0" y="0" width="1920" height="737" fill="${TH.bg}"/>
+    ${shadow(57,112,658,498,TH)}
+    ${shadow(782,195,360,458,TH)}
+    ${shadow(1177,112,658,498,TH)}
+    <g class="deck deck-left" transform="translate(55,100)">${turntable('L',TH)}</g>
+    <g class="mixer" transform="translate(782,150)">${mixer(TH)}</g>
+    <g class="deck deck-right" transform="translate(1175,100)">${turntable('R',TH)}</g>
+    ${grain}
+  </svg>`;
+  document.getElementById('stage').innerHTML = svg;
+}
+
+function render(){
+  document.documentElement.style.setProperty('--spin', TW.spinSpeed + 's');
+  document.body.classList.toggle('steppy', TW.motion === 'steppy');
+  document.body.classList.toggle('reverse', TW.direction === 'reverse');
+  document.body.style.background = (THEMES[TW.theme]||THEMES.white).page;
+  build();
+}
+render();
+
+/* ---------- lightweight Tweaks panel (host protocol) ---------- */
+(function(){
+  const css = `
+    #twk{position:fixed;right:16px;bottom:16px;z-index:9999;width:248px;display:none;
+      background:rgba(250,249,247,.82);color:#1d1d1f;border:.5px solid rgba(0,0,0,.12);
+      border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.22);
+      -webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);
+      font:12px/1.4 ui-sans-serif,system-ui,sans-serif;overflow:hidden}
+    #twk.on{display:block}
+    #twk .hd{display:flex;align-items:center;justify-content:space-between;padding:11px 10px 11px 14px;font-weight:600}
+    #twk .hd button{appearance:none;border:0;background:transparent;font-size:15px;color:rgba(0,0,0,.5);cursor:pointer;width:24px;height:24px;border-radius:6px}
+    #twk .hd button:hover{background:rgba(0,0,0,.07)}
+    #twk .bd{padding:2px 14px 16px;display:flex;flex-direction:column;gap:13px}
+    #twk .row label{display:flex;justify-content:space-between;color:rgba(0,0,0,.62);margin-bottom:6px;font-weight:500}
+    #twk .row label .v{color:rgba(0,0,0,.42);font-variant-numeric:tabular-nums}
+    #twk input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:9px;background:rgba(0,0,0,.14);outline:none}
+    #twk input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.15);box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:pointer}
+    #twk .seg{display:flex;gap:2px;padding:2px;border-radius:8px;background:rgba(0,0,0,.06)}
+    #twk .seg button{flex:1;appearance:none;border:0;background:transparent;color:rgba(0,0,0,.6);font:inherit;font-weight:500;padding:5px 4px;border-radius:6px;cursor:pointer}
+    #twk .seg button.sel{background:#fff;color:#1d1d1f;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+  `;
+  const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+  const panel=document.createElement('div'); panel.id='twk';
+  panel.innerHTML=`
+    <div class="hd"><span>Tweaks</span><button id="twk-x" title="Close">×</button></div>
+    <div class="bd">
+      <div class="row"><label>Spin speed <span class="v" id="twk-spd"></span></label>
+        <input type="range" id="twk-speed" min="0.3" max="2.4" step="0.05"></div>
+      <div class="row"><label>Motion</label>
+        <div class="seg" id="twk-motion"><button data-v="smooth">Smooth</button><button data-v="steppy">Steppy</button></div></div>
+      <div class="row"><label>Direction</label>
+        <div class="seg" id="twk-dir"><button data-v="forward">Forward</button><button data-v="reverse">Reverse</button></div></div>
+      <div class="row"><label>Background</label>
+        <div class="seg" id="twk-theme"><button data-v="white">Original</button><button data-v="ink">Music Spot</button></div></div>
+    </div>`;
+  document.body.appendChild(panel);
+
+  function syncUI(){
+    document.getElementById('twk-speed').value = TW.spinSpeed;
+    document.getElementById('twk-spd').textContent = (Math.round(60/TW.spinSpeed)) + ' rpm';
+    [['twk-motion','motion'],['twk-dir','direction'],['twk-theme','theme']].forEach(([id,key])=>{
+      panel.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('sel', b.dataset.v===TW[key]));
+    });
+  }
+  function commit(key,val){
+    TW[key]=val; render(); syncUI();
+    window.parent.postMessage({type:'__edit_mode_set_keys', edits:{[key]:val}}, '*');
+  }
+  document.getElementById('twk-speed').addEventListener('input',e=>commit('spinSpeed', parseFloat(e.target.value)));
+  ['twk-motion','twk-dir','twk-theme'].forEach((id,i)=>{
+    const key=['motion','direction','theme'][i];
+    panel.querySelector('#'+id).addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) commit(key,b.dataset.v); });
+  });
+  document.getElementById('twk-x').addEventListener('click',()=>{ panel.classList.remove('on'); window.parent.postMessage({type:'__edit_mode_dismissed'},'*'); });
+
+  window.addEventListener('message',e=>{
+    const t=e?.data?.type;
+    if(t==='__activate_edit_mode'){ syncUI(); panel.classList.add('on'); }
+    else if(t==='__deactivate_edit_mode'){ panel.classList.remove('on'); }
+  });
+  window.parent.postMessage({type:'__edit_mode_available'}, '*');
+  syncUI();
+})();
+</script>
+</body>
+</html>

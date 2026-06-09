@@ -11,6 +11,7 @@ const BASE = 'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/
 const TRACKS = [
   { title: 'EIGHT BARS TO THE WORLD', file: 'musicspot_theme.mp3' },
   { title: 'IIIiiiiiIIIIIIIIIII!!!!', file: 'IIIiiiiiIIIIIIIIIII!!!!.mp3' },
+  { title: 'BACKING TRACK', file: 'Backing Track.mp3' },
 ];
 
 export default function ThemeSongPlayer() {
