@@ -13,7 +13,20 @@ interface Props {
 
 // ISR: 게시글 본문/메타는 60초 캐싱(새 글·수정 반영). 좋아요·댓글 수는
 // 클라이언트(PostDetailClient)가 실시간 재패칭하므로 캐싱돼도 표시는 최신.
+// generateStaticParams 가 있어야 동적 라우트에 revalidate(ISR)가 실제 적용된다.
 export const revalidate = 60;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  // 최신 발행글 일부를 빌드 타임에 프리렌더. 나머지는 첫 요청 시 생성 후 캐싱.
+  const { data } = await supabaseServer
+    .from('posts')
+    .select('id')
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
+    .limit(200);
+  return (data ?? []).map((p: { id: string }) => ({ id: p.id }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { data } = await supabaseServer
