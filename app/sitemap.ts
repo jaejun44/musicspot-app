@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
+// sitemap.xml 도 1시간 캐싱(매 크롤 요청마다 전체 studios 조회 방지).
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticRoutes: MetadataRoute.Sitemap = [

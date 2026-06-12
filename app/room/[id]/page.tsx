@@ -10,6 +10,23 @@ interface Props {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
+// ISR: 룸 상세는 거의 변하지 않으므로 1시간 캐싱.
+// 빌드 시 generateStaticParams 의 인기 룸을 프리렌더하고,
+// 그 외 id 는 첫 요청 때 생성 후 캐싱(dynamicParams=true).
+export const revalidate = 3600;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  // 발행된 룸 중 일부를 빌드 타임에 미리 생성(전체 빌드 시간 폭증 방지를 위해 상한).
+  const { data } = await supabase
+    .from('studios')
+    .select('id')
+    .eq('is_published', true)
+    .order('data_quality_score', { ascending: false })
+    .limit(500);
+  return (data ?? []).map((s: { id: string }) => ({ id: s.id }));
+}
+
 const getStudio = cache(async (id: string) => {
   const { data } = await supabase
     .from('studios')
