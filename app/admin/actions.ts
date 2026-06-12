@@ -1,8 +1,31 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase-admin';
+import {
+  assertAdmin,
+  verifyAdminPassword,
+  issueAdminSession,
+  clearAdminSession,
+  isAdmin,
+} from '@/lib/admin-auth';
 import { Studio } from '@/types/studio';
 import { StudioReport } from '@/types/report';
+
+/** 비밀번호 검증은 서버에서만. 성공 시 httpOnly 세션 발급. */
+export async function adminLogin(password: string): Promise<{ ok: boolean }> {
+  if (!verifyAdminPassword(password)) return { ok: false };
+  issueAdminSession();
+  return { ok: true };
+}
+
+export async function adminLogout(): Promise<void> {
+  clearAdminSession();
+}
+
+/** 클라이언트 마운트 시 세션 유효성 확인용 */
+export async function adminCheckSession(): Promise<boolean> {
+  return isAdmin();
+}
 
 export interface Feedback {
   id: string;
@@ -52,6 +75,7 @@ export interface KpiData {
 }
 
 export async function adminFetchStudios(): Promise<Studio[]> {
+  assertAdmin();
   const admin = createAdminClient();
   const all: Studio[] = [];
   let offset = 0;
@@ -70,6 +94,7 @@ export async function adminFetchStudios(): Promise<Studio[]> {
 }
 
 export async function adminFetchFeedbacks(): Promise<Feedback[]> {
+  assertAdmin();
   const admin = createAdminClient();
   const { data } = await admin
     .from('feedbacks')
@@ -80,6 +105,7 @@ export async function adminFetchFeedbacks(): Promise<Feedback[]> {
 }
 
 export async function adminFetchReports(): Promise<StudioReport[]> {
+  assertAdmin();
   const admin = createAdminClient();
   const { data } = await admin
     .from('studio_reports')
@@ -90,6 +116,7 @@ export async function adminFetchReports(): Promise<StudioReport[]> {
 }
 
 export async function adminFetchRequests(): Promise<StudioRequest[]> {
+  assertAdmin();
   const admin = createAdminClient();
   const { data } = await admin
     .from('studio_requests')
@@ -100,6 +127,7 @@ export async function adminFetchRequests(): Promise<StudioRequest[]> {
 }
 
 export async function adminTogglePublish(id: string, current: boolean): Promise<{ error?: string }> {
+  assertAdmin();
   const admin = createAdminClient();
   const { error } = await admin
     .from('studios')
@@ -109,6 +137,7 @@ export async function adminTogglePublish(id: string, current: boolean): Promise<
 }
 
 export async function adminToggleReportStatus(id: string, current: string): Promise<{ error?: string }> {
+  assertAdmin();
   const next = current === 'pending' ? 'resolved' : 'pending';
   const admin = createAdminClient();
   const { error } = await admin
@@ -119,6 +148,7 @@ export async function adminToggleReportStatus(id: string, current: string): Prom
 }
 
 export async function adminApproveRequest(req: StudioRequest): Promise<{ error?: string }> {
+  assertAdmin();
   const admin = createAdminClient();
   const { error } = await admin.from('studios').insert({
     name: req.name,
@@ -146,6 +176,7 @@ export async function adminApproveRequest(req: StudioRequest): Promise<{ error?:
 }
 
 export async function adminFetchStudio(id: string): Promise<Studio | null> {
+  assertAdmin();
   const admin = createAdminClient();
   const { data } = await admin.from('studios').select('*').eq('id', id).single();
   return (data as Studio) ?? null;
@@ -155,6 +186,7 @@ export async function adminSaveStudio(
   id: string,
   fields: Partial<Studio>
 ): Promise<{ error?: string }> {
+  assertAdmin();
   const admin = createAdminClient();
   const { error } = await admin
     .from('studios')
@@ -166,6 +198,7 @@ export async function adminSaveStudio(
 export async function adminUploadStudioPhoto(
   formData: FormData
 ): Promise<{ url?: string; error?: string }> {
+  assertAdmin();
   const admin = createAdminClient();
   const file = formData.get('file') as File | null;
   const studioId = formData.get('studioId') as string | null;
@@ -186,6 +219,7 @@ export async function adminUploadStudioPhoto(
 }
 
 export async function adminRejectRequest(id: string): Promise<{ error?: string }> {
+  assertAdmin();
   const admin = createAdminClient();
   const { error } = await admin
     .from('studio_requests')
@@ -195,6 +229,7 @@ export async function adminRejectRequest(id: string): Promise<{ error?: string }
 }
 
 export async function adminFetchKpi(): Promise<KpiData> {
+  assertAdmin();
   const admin = createAdminClient();
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Studio } from '@/types/studio';
-import { adminFetchStudio, adminSaveStudio, adminUploadStudioPhoto } from '../actions';
+import { adminFetchStudio, adminSaveStudio, adminUploadStudioPhoto, adminCheckSession } from '../actions';
 
 const inputClass =
   'w-full px-3 py-2.5 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/30 focus:outline-none focus:border-comic-pink';
@@ -18,17 +18,18 @@ export default function AdminEditPage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('admin_auth') !== 'true') {
-      router.replace('/admin');
-      return;
-    }
     async function load() {
+      const ok = await adminCheckSession();
+      if (!ok) {
+        router.replace('/admin');
+        return;
+      }
       const data = await adminFetchStudio(id);
       if (data) setStudio(data);
       setLoading(false);
     }
     load();
-  }, [id]);
+  }, [id, router]);
 
   async function handleSave() {
     if (!studio) return;

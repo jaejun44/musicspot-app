@@ -17,6 +17,9 @@ import {
   adminApproveRequest,
   adminRejectRequest,
   adminFetchKpi,
+  adminLogin,
+  adminLogout,
+  adminCheckSession,
 } from './actions';
 
 
@@ -45,9 +48,10 @@ export default function AdminPage() {
   const [awardResult, setAwardResult] = useState<{ ok?: boolean; awarded?: number; error?: string } | null>(null);
 
   useEffect(() => {
-    if (localStorage.getItem('admin_auth') === 'true') {
-      setAuthed(true);
-    }
+    // httpOnly 쿠키 세션을 서버에서 확인 (localStorage 우회 불가)
+    adminCheckSession().then((ok) => {
+      if (ok) setAuthed(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -60,14 +64,23 @@ export default function AdminPage() {
     }
   }, [authed]);
 
-  function handleLogin(e: React.FormEvent) {
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      localStorage.setItem('admin_auth', 'true');
-      setAuthed(true);
-      setAuthError('');
-    } else {
-      setAuthError('비밀번호가 틀렸습니다');
+    setLoggingIn(true);
+    setAuthError('');
+    try {
+      const res = await adminLogin(password);
+      if (res.ok) {
+        setAuthed(true);
+      } else {
+        setAuthError('비밀번호가 틀렸습니다');
+      }
+    } catch {
+      setAuthError('로그인 중 오류가 발생했습니다');
+    } finally {
+      setLoggingIn(false);
     }
   }
 
@@ -96,10 +109,11 @@ export default function AdminPage() {
           )}
           <button
             type="submit"
-            className="w-full py-3 bg-comic-pink border-[2px] border-comic-black text-white font-bold"
+            disabled={loggingIn}
+            className="w-full py-3 bg-comic-pink border-[2px] border-comic-black text-white font-bold disabled:opacity-60"
             style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
           >
-            확인
+            {loggingIn ? '확인 중…' : '확인'}
           </button>
         </form>
       </div>
@@ -181,10 +195,9 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/award-titles', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ADMIN_PASSWORD}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        // 인증은 httpOnly 쿠키 세션으로 처리 (서버에서 assertAdmin)
+        credentials: 'same-origin',
         body: JSON.stringify({ year: awardYear, quarter: awardQuarter, country: awardCountry, top_n: awardTopN }),
       });
       const json = await res.json();
