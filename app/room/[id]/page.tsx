@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { cache } from 'react';
 import { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
+import { localeAlternates } from '@/lib/seo';
 import RoomDetailClient from './_components/RoomDetailClient';
 
 interface Props {
@@ -69,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: pageUrl },
+    alternates: localeAlternates(pageUrl),
     openGraph: {
       title,
       description,

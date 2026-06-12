@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { expandRegion } from '@/lib/region-alias';
 import { REGIONS, getRegionBySlug, CITY_ISO } from '@/lib/regions';
+import { localeAlternates } from '@/lib/seo';
 import { Studio } from '@/types/studio';
 import RoomCard from '@/components/RoomCard';
 import Navigation from '@/components/Navigation';
@@ -63,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: localeAlternates(url),
     openGraph: {
       title,
       description,

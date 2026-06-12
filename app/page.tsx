@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import HomeClient from './_components/HomeClient';
+import { localeAlternates } from '@/lib/seo';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Music Spot — 8마디로 밴드를 만든다',
   description:
     '국내 1,000개+ 합주실·연습실을 지도와 목록으로 한눈에. 위치·가격·드럼 여부로 빠르게 필터링하고 바로 문의하세요.',
-  alternates: { canonical: SITE_URL },
+  alternates: localeAlternates(SITE_URL),
   openGraph: {
     title: 'Music Spot — 8마디로 밴드를 만든다',
     description: '국내 1,000개+ 합주실·연습실을 지도와 목록으로 한눈에 확인하세요.',

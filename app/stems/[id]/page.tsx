@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
+import { localeAlternates } from '@/lib/seo';
 import StemsClient from '../_components/StemsClient';
 
 interface Props {
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: localeAlternates(url),
     openGraph: {
       title,
       description,

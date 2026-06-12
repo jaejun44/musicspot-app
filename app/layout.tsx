@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE_URL,
+    // 현재 한국어 단일 언어. ko-KR + x-default 만 명시(일본어 페이지 생기면 'ja-JP' 한 줄 추가).
+    languages: {
+      'ko-KR': SITE_URL,
+      'x-default': SITE_URL,
+    },
   },
   verification: {
     google: 'vNBz8abwMAI7rha-at3lGL10sJDZxFVS6-dIbg2vgME',
