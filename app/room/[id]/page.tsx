@@ -30,7 +30,9 @@ export async function generateStaticParams() {
 const getStudio = cache(async (id: string) => {
   const { data } = await supabase
     .from('studios')
-    .select('id, name, address, phone, lat, lng, price_per_hour, price_info, photos, hours')
+    .select(
+      'id, name, address, phone, lat, lng, price_per_hour, price_info, photos, hours, region, review_avg, review_count'
+    )
     .eq('id', id)
     .eq('is_published', true)
     .single();
@@ -86,6 +88,7 @@ export default async function RoomDetailPage({ params }: Props) {
           address: {
             '@type': 'PostalAddress',
             streetAddress: data.address,
+            ...(data.region && { addressRegion: data.region }),
             addressCountry: 'KR',
           },
         }),
@@ -102,6 +105,18 @@ export default async function RoomDetailPage({ params }: Props) {
         }),
         ...(data.photos?.[0] && { image: data.photos[0] }),
         ...(data.hours && { openingHours: data.hours }),
+        // 리뷰가 실제로 있을 때만 aggregateRating 노출(빈 평점은 구글이 무효 마크업으로 간주).
+        ...(data.review_count &&
+          data.review_count > 0 &&
+          data.review_avg != null && {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: Number(data.review_avg).toFixed(1),
+              reviewCount: data.review_count,
+              bestRating: 5,
+              worstRating: 1,
+            },
+          }),
       }
     : null;
 
