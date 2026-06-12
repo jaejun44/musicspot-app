@@ -72,5 +72,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticRoutes, ...regionRoutes, ...studioRoutes, ...postRoutes];
+  // 8마디 챌린지 프로젝트 (공유 바이럴 페이지)
+  const stemRoutes: MetadataRoute.Sitemap = [];
+  const { data: stems } = await supabase
+    .from('stem_projects')
+    .select('id, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (stems) {
+    for (const stem of stems) {
+      stemRoutes.push({
+        url: `${SITE_URL}/stems/${stem.id}`,
+        lastModified: new Date(stem.created_at),
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      });
+    }
+  }
+
+  return [...staticRoutes, ...regionRoutes, ...studioRoutes, ...postRoutes, ...stemRoutes];
 }

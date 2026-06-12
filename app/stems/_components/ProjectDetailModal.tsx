@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Pause, Music, Trash2, Pencil, Download, Video, ExternalLink } from 'lucide-react';
+import { X, Play, Pause, Music, Trash2, Pencil, Download, Video, ExternalLink, Share2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { StemProject } from '@/types/stem';
+import { buildShareUrl } from '@/lib/share-utm';
+import { trackEvent } from '@/lib/analytics';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 
 interface StemTrack {
@@ -65,6 +67,56 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     await supabase.from('stem_projects').update({ is_open: newVal }).eq('id', project.id);
     setLocalIsOpen(newVal);
     onUpdate();
+  }
+
+  const [shareCopied, setShareCopied] = useState(false);
+
+  async function handleShare() {
+    const shareUrl = buildShareUrl(`/stems/${project.id}`, 'kakao', 'challenge', project.id);
+    const linkUrl = buildShareUrl(`/stems/${project.id}`, 'link', 'challenge', project.id);
+    const ogImage = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com'}/stems/${project.id}/opengraph-image`;
+
+    trackEvent('share_challenge', { project_id: project.id });
+
+    // 1순위: 카카오 공유
+    if (window.Kakao?.isInitialized()) {
+      try {
+        window.Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: `${project.title} — 8마디 챌린지`,
+            description: `${project.creator_name} 님이 시작한 릴레이. 8마디를 이어보세요!`,
+            imageUrl: ogImage,
+            link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
+          },
+          buttons: [
+            { title: '이어서 만들기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } },
+          ],
+        });
+        return;
+      } catch {
+        // 폴백으로 진행
+      }
+    }
+
+    // 2순위: 네이티브 공유 시트
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: project.title, url: linkUrl });
+        return;
+      } catch {
+        // 사용자가 취소했거나 미지원 → 클립보드 폴백
+      }
+    }
+
+    // 3순위: 클립보드 복사
+    try {
+      await navigator.clipboard.writeText(linkUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      // 무시
+    }
   }
 
   async function handleDeleteTrack(id: string) {
@@ -147,9 +199,19 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   {project.creator_emoji} {project.creator_name}
                 </p>
               </div>
-              <button onClick={onClose} className="p-1 flex-shrink-0">
-                <X className="w-5 h-5 text-[#0A0A0A]/60" />
-              </button>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={handleShare}
+                  className="p-1.5 flex items-center gap-1 text-[12px] font-bold text-[#FF3D77]"
+                  aria-label="프로젝트 공유"
+                >
+                  <Share2 className="w-4 h-4" />
+                  {shareCopied ? '복사됨!' : '공유'}
+                </button>
+                <button onClick={onClose} className="p-1" aria-label="닫기">
+                  <X className="w-5 h-5 text-[#0A0A0A]/60" />
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">

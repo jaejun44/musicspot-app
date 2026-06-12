@@ -17,7 +17,12 @@ type StemProjectRow = Database['public']['Tables']['stem_projects']['Row'] & {
   stem_tracks: Array<{ count: number }>;
 };
 
-export default function StemsClient() {
+interface StemsClientProps {
+  /** 공유 링크(/stems/[id])로 진입 시 자동으로 열 프로젝트 id */
+  initialProjectId?: string;
+}
+
+export default function StemsClient({ initialProjectId }: StemsClientProps = {}) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [projects, setProjects] = useState<StemProject[]>([]);
@@ -28,6 +33,13 @@ export default function StemsClient() {
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  // 공유 링크로 진입 시 해당 프로젝트 모달 자동 오픈
+  useEffect(() => {
+    if (!initialProjectId || projects.length === 0) return;
+    const target = projects.find((p) => p.id === initialProjectId);
+    if (target) setSelectedProject(target);
+  }, [initialProjectId, projects]);
 
   async function fetchProjects() {
     const { data } = await supabase
