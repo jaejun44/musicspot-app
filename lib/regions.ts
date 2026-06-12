@@ -10,6 +10,16 @@ export interface RegionMeta {
   city: string; // 상위 도시 (서울/경기/부산 등)
 }
 
+/** 도시명 → ISO 3166-2:KR 코드 (geo.region 메타태그용) */
+export const CITY_ISO: Record<string, string> = {
+  서울: 'KR-11',
+  경기: 'KR-41',
+  인천: 'KR-28',
+  부산: 'KR-26',
+  대구: 'KR-27',
+  대전: 'KR-30',
+};
+
 export const REGIONS: RegionMeta[] = [
   { slug: 'hongdae', label: '홍대', keyword: '홍대', city: '서울' },
   { slug: 'hapjeong', label: '합정', keyword: '합정', city: '서울' },

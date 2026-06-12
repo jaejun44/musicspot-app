@@ -2,9 +2,25 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import CommunityClient from './_components/CommunityClient';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
+
 export const metadata: Metadata = {
   title: '커뮤니티 | Music Spot',
   description: '뮤지션들의 이야기가 모이는 곳. 연습실 후기, 밴드 구인, 자유 게시판.',
+  alternates: { canonical: `${SITE_URL}/community` },
+  openGraph: {
+    title: '커뮤니티 | Music Spot',
+    description: '뮤지션들의 이야기가 모이는 곳. 연습실 후기, 밴드 구인, 자유 게시판.',
+    url: `${SITE_URL}/community`,
+    siteName: 'Music Spot',
+    type: 'website',
+    locale: 'ko_KR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '커뮤니티 | Music Spot',
+    description: '뮤지션들의 이야기가 모이는 곳.',
+  },
 };
 
 export default function CommunityPage() {

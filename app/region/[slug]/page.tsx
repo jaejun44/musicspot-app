@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { expandRegion } from '@/lib/region-alias';
-import { REGIONS, getRegionBySlug } from '@/lib/regions';
+import { REGIONS, getRegionBySlug, CITY_ISO } from '@/lib/regions';
 import { Studio } from '@/types/studio';
 import RoomCard from '@/components/RoomCard';
 import Navigation from '@/components/Navigation';
@@ -53,6 +53,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = `${region.city} ${region.label} 근처 합주실·연습실을 한눈에. 위치·가격·드럼 여부로 비교하고 바로 문의하세요.`;
   const url = `${SITE_URL}/region/${region.slug}`;
 
+  // 로컬 검색엔진용 geo 메타태그
+  const geoMeta: Record<string, string> = {
+    'geo.placename': `${region.city} ${region.label}`,
+  };
+  const iso = CITY_ISO[region.city];
+  if (iso) geoMeta['geo.region'] = iso;
+
   return {
     title,
     description,
@@ -66,6 +73,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: 'ko_KR',
     },
     twitter: { card: 'summary_large_image', title, description },
+    other: geoMeta,
   };
 }
 

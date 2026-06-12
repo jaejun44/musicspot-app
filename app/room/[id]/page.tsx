@@ -55,6 +55,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `₩${data.price_per_hour.toLocaleString()}/h`
     : data.price_info ?? '';
   const description = [data.address, price, '합주 연습실 예약'].filter(Boolean).join(' · ');
+
+  // 좌표 있을 때만 geo 메타태그(로컬 검색 신호)
+  const geoMeta: Record<string, string> | undefined =
+    data.lat != null && data.lng != null
+      ? {
+          'geo.position': `${data.lat};${data.lng}`,
+          ICBM: `${data.lat}, ${data.lng}`,
+          ...(data.region && { 'geo.placename': data.region }),
+        }
+      : undefined;
+
   return {
     title,
     description,
@@ -72,6 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
     },
+    ...(geoMeta && { other: geoMeta }),
   };
 }
 
