@@ -112,6 +112,31 @@
 - BandMatching "함께 자주 호흡 맞춘 뮤지션" 섹션
 - `/admin` KPI 탭 시즌 시상 폼 + `app/api/admin/award-titles/route.ts`
 
+## ✅ Phase 13 — 보안·성능·SEO 배포 (2026-06-12)
+
+### 보안
+- 어드민 인증 서버화(httpOnly 세션, `NEXT_PUBLIC_ADMIN_PASSWORD` 제거) — 커밋 `5a06d96`
+- Server Action 12개 `assertAdmin()` 가드
+- 보안 헤더 5종 (`next.config.js`)
+- RLS 39개 테이블 전부 활성화(마지막 `user_mutual_responses`) — `supabase/03_fix_user_mutual_responses.sql`
+
+### 성능
+- ISR 적용: room/community/u/sitemap — 커밋 `595f104` 외
+- room `generateStaticParams` 500개 프리렌더
+
+### 마케팅·SEO
+- 지역 SEO 페이지 `/region/[slug]` 25개 + sitemap·푸터 내부링크 — 커밋 `7fbd4b1`
+- room JSON-LD 강화(aggregateRating·addressRegion) + region OG이미지 + OG/geo 메타 — 커밋 `d1628a3`
+- 8마디 공유 페이지 `/stems/[id]` + 동적 OG 카드 + 공유 버튼(바이럴 루프) — 커밋 `4864094`
+- hreflang ko-KR+x-default 기초(`lib/seo.ts`, 일본어 확장 대비) — 커밋 `f833164`
+
+### 남은 항목 / TODO
+- 결제 금액 서버검증 (실결제 PG 붙기 전 필수)
+- 검색 거리정렬 서버화(Postgres RPC) — 데이터 증가 대비
+- 중복 RLS 정책 정리 (posts/bookings 등)
+- notifications insert 정책 강화(현재 로그인 누구나 → DB 트리거로)
+- 일본어 페이지 + ja hreflang 활성화 (일본 진출 시점)
+
 ---
 
 ## 진행 중 / 다음 작업
