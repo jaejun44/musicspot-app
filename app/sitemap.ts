@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
+import { REGIONS } from '@/lib/regions';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
@@ -16,6 +17,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/feed`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
     { url: `${SITE_URL}/stems`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
   ];
+
+  // 지역 SEO 페이지 (롱테일 검색 유입)
+  const regionRoutes: MetadataRoute.Sitemap = REGIONS.map((r) => ({
+    url: `${SITE_URL}/region/${r.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
+  }));
 
   // Dynamic studio pages — paginate to handle >1,000 rows
   const studioRoutes: MetadataRoute.Sitemap = [];
@@ -63,5 +72,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticRoutes, ...studioRoutes, ...postRoutes];
+  return [...staticRoutes, ...regionRoutes, ...studioRoutes, ...postRoutes];
 }
