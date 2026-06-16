@@ -10,6 +10,7 @@ import HotRooms from '@/components/HotRooms';
 import FinalCTA from '@/components/FinalCTA';
 import SiteFooter from '@/components/SiteFooter';
 import ThemeSongPlayer from '@/components/ThemeSongPlayer';
+import WelcomeSheet from '@/components/WelcomeSheet';
 
 export default function HomeClient() {
   const [scrollY, setScrollY] = useState(0);
@@ -38,6 +39,7 @@ export default function HomeClient() {
       <HotRooms />
       <FinalCTA />
       <SiteFooter />
+      <WelcomeSheet />
     </div>
   );
 }

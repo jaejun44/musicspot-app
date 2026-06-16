@@ -29,10 +29,32 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
   const [showCreate, setShowCreate] = useState(false);
   const [editingProject, setEditingProject] = useState<StemProject | null>(null);
   const [selectedProject, setSelectedProject] = useState<StemProject | null>(null);
+  const [introOpen, setIntroOpen] = useState(false);
 
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  // 8마디 처음인 사용자에게 인트로 펼침(1회성). 이후엔 접힌 토글만.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!localStorage.getItem('ms_stems_intro')) setIntroOpen(true);
+    } catch {
+      // localStorage 차단 환경 → 펼침 생략
+    }
+  }, []);
+
+  function dismissIntro() {
+    setIntroOpen(false);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('ms_stems_intro', '1');
+      } catch {
+        // 무시
+      }
+    }
+  }
 
   // 공유 링크로 진입 시 해당 프로젝트 모달 자동 오픈
   useEffect(() => {
@@ -136,6 +158,50 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
             릴레이로 완성하는 우리의 리프
           </p>
         </motion.div>
+      </div>
+
+      {/* 8마디란? 인트로 (1회성 펼침, 이후 접힌 토글) */}
+      <div className="px-4 pb-3 max-w-2xl mx-auto">
+        {introOpen ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-[16px] border-[3px] border-[#0A0A0A] px-4 py-3.5"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <p
+                className="text-[14px] font-bold text-[#0A0A0A]"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                🎵 8마디 챌린지란?
+              </p>
+              <button
+                onClick={dismissIntro}
+                className="text-[12px] font-bold text-[#0A0A0A]/40 shrink-0"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                알겠어요 ✕
+              </button>
+            </div>
+            <p
+              className="mt-1.5 text-[13px] text-[#0A0A0A]/60 font-bold leading-relaxed"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              누군가 8마디를 올리면, 다음 사람이 이어서 8마디를 더해 음악을 완성하는 릴레이예요.
+              <br />
+              <span className="text-[#FF3D77]">🎸 던지기 → 🎯 이어받기 → 🔥 밴드 완성</span>
+            </p>
+          </motion.div>
+        ) : (
+          <button
+            onClick={() => setIntroOpen(true)}
+            className="text-[12px] font-bold text-[#0A0A0A]/50 bg-white/80 rounded-[10px] border-[2px] border-[#0A0A0A] px-3 py-1.5"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+          >
+            🎵 8마디 챌린지란? ⌄
+          </button>
+        )}
       </div>
 
       {/* WaxMixer 플레이어 */}
