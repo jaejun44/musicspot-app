@@ -10,6 +10,11 @@ import Navigation from '@/components/Navigation';
 import { Studio } from '@/types/studio';
 import Link from 'next/link';
 import { trackMapMarkerClick } from '@/lib/analytics';
+import { getDistanceKm } from '@/lib/distance';
+
+function formatDistance(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+}
 
 export default function SearchClient() {
   const {
@@ -30,6 +35,9 @@ export default function SearchClient() {
 
   const [view, setView] = useState<'list' | 'map'>('list');
   const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
+
+  // 첫 진입(위치·검색어 모두 없음)일 때만 '내 주변' 유도 배너 노출
+  const showNearbyPrompt = userLat == null && !query;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/ms_character/bg-folkart-tile.png)', backgroundRepeat: 'repeat', backgroundSize: '120px 120px' }}>
@@ -55,6 +63,28 @@ export default function SearchClient() {
         </p>
         <ViewToggle view={view} onChange={setView} />
       </div>
+
+      {/* 첫 진입 '내 주변' 유도 배너 */}
+      {showNearbyPrompt && (
+        <div className="px-4 pt-4">
+          <button
+            onClick={onGps}
+            className="w-full flex items-center gap-3 bg-[#FF3D77] text-white rounded-[16px] border-[3px] border-[#0A0A0A] px-5 py-4 text-left"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+          >
+            <span className="text-2xl flex-shrink-0">📍</span>
+            <span className="flex-1 min-w-0">
+              <span className="block font-bold text-[15px]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                내 주변 연습실 보기
+              </span>
+              <span className="block text-[12px] text-white/80 mt-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                위치를 켜면 가까운 순으로 찾아드려요
+              </span>
+            </span>
+            <span className="flex-shrink-0 font-bold text-[20px]">→</span>
+          </button>
+        </div>
+      )}
 
       {/* 본문 */}
       <div className="flex-1 flex flex-col min-h-0">
@@ -101,6 +131,14 @@ export default function SearchClient() {
                       </p>
                       <p className="text-[12px] text-[#0A0A0A]/50 truncate">
                         📍 {selectedStudio.region ?? selectedStudio.address ?? ''}
+                        {userLat != null &&
+                          userLng != null &&
+                          selectedStudio.lat != null &&
+                          selectedStudio.lng != null && (
+                            <span className="text-[#FF3D77] font-bold ml-1">
+                              · {formatDistance(getDistanceKm(userLat, userLng, selectedStudio.lat, selectedStudio.lng))}
+                            </span>
+                          )}
                       </p>
                     </div>
                     <span

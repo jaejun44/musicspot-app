@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Studio, StudioFilters } from '@/types/studio';
 import { sortByDistanceAndQuality } from '@/lib/sort';
 import type { StudioWithDistance } from '@/lib/sort';
+import { getDistanceKm } from '@/lib/distance';
 import { expandRegion } from '@/lib/region-alias';
 
 const PAGE_SIZE = 20;
@@ -63,36 +64,55 @@ export function useStudios(): UseStudiosReturn {
     return query;
   }
 
-  /** GPS 모드: 전체 배치 fetch → 거리 정렬 → 반경 필터 → 클라이언트 페이지네이션 */
+  /** GPS 모드: nearby_studios RPC로 서버 정렬·반경필터 → 클라이언트 페이지네이션
+   *  RPC 실패(확장 미설치 등) 시 기존 전체 fetch + 클라 정렬로 폴백. */
   const fetchGps = useCallback(async (opts: UseStudiosOptions) => {
     const { lat, lng, filters } = opts;
     if (!lat || !lng) return;
 
     setLoading(true);
-    const all: Studio[] = [];
-    let offset = 0;
-
-    while (true) {
-      let query = supabase
-        .from('studios')
-        .select('*')
-        .eq('is_published', true)
-        .range(offset, offset + BATCH_SIZE - 1);
-
-      query = applyFilters(query, filters);
-
-      const { data, error } = await query;
-      if (error || !data) break;
-
-      all.push(...(data as unknown as Studio[]));
-      if (data.length < BATCH_SIZE) break;
-      offset += BATCH_SIZE;
-    }
-
-    const withCoords = all.filter((s) => s.lat != null && s.lng != null);
     const radius = filters?.radius ?? 3;
-    const sorted = sortByDistanceAndQuality(withCoords, lat, lng);
-    const inRadius = sorted.filter((s) => s.distance <= radius);
+
+    // 1순위: 서버 RPC (정렬·반경필터를 DB에서 처리, 최대 200개까지 캐싱)
+    const { data: rpcData, error: rpcError } = await supabase.rpc('nearby_studios', {
+      p_lat: lat,
+      p_lng: lng,
+      p_radius_km: radius,
+      p_limit: 200,
+      p_offset: 0,
+    });
+
+    let inRadius: StudioWithDistance[];
+
+    if (!rpcError && rpcData) {
+      // 서버가 거리순 정렬해 반환. 거리값은 표시용으로 클라에서 계산.
+      inRadius = (rpcData as Studio[]).map((s) => ({
+        ...s,
+        distance:
+          s.lat != null && s.lng != null ? getDistanceKm(lat, lng, s.lat, s.lng) : 999,
+      }));
+    } else {
+      // 폴백: 전체 배치 fetch → 클라 정렬 → 반경 필터
+      const all: Studio[] = [];
+      let offset = 0;
+      while (true) {
+        let query = supabase
+          .from('studios')
+          .select('*')
+          .eq('is_published', true)
+          .range(offset, offset + BATCH_SIZE - 1);
+        query = applyFilters(query, filters);
+        const { data, error } = await query;
+        if (error || !data) break;
+        all.push(...(data as unknown as Studio[]));
+        if (data.length < BATCH_SIZE) break;
+        offset += BATCH_SIZE;
+      }
+      const withCoords = all.filter((s) => s.lat != null && s.lng != null);
+      inRadius = sortByDistanceAndQuality(withCoords, lat, lng).filter(
+        (s) => s.distance <= radius
+      );
+    }
 
     gpsResultsRef.current = inRadius;
     pageRef.current = 0;
