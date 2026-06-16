@@ -83,6 +83,15 @@ export default function SiteFooter() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/region"
+                  className="text-[#F5FF4F] hover:text-[#FF3D77] transition-colors font-bold"
+                  style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
+                >
+                  전체 지역 보기 →
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -112,7 +112,7 @@ export default async function RegionPage({ params }: Props) {
         <nav className="text-xs font-bold text-comic-black/50 mb-3">
           <Link href="/" className="hover:text-comic-pink">홈</Link>
           <span className="mx-1.5">/</span>
-          <Link href="/search" className="hover:text-comic-pink">연습실</Link>
+          <Link href="/region" className="hover:text-comic-pink">지역</Link>
           <span className="mx-1.5">/</span>
           <span className="text-comic-black">{region.label}</span>
         </nav>
