@@ -40,7 +40,21 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   const isOwner = !!user && user.id === project.creator_id;
   const [loadingTracks, setLoadingTracks] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [justUploaded, setJustUploaded] = useState(false);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
+
+  // 진행·명예 요약: 고유 참여자 이모지 스택 + 카운트 (트랙 등장 순서 유지, 중복 제거)
+  const seenParticipants = new Set<string>();
+  const participantEmojis: string[] = [];
+  for (const t of tracks) {
+    const key = t.user_id ?? t.user_name;
+    if (seenParticipants.has(key)) continue;
+    seenParticipants.add(key);
+    participantEmojis.push(t.user_emoji);
+  }
+  const liveTrackCount = tracks.length || (project.track_count ?? 0);
+  const participantCount = participantEmojis.length;
+  const shareCount = project.share_count ?? 0;
 
   useEffect(() => {
     fetchTracks();
@@ -218,6 +232,33 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
               </div>
             </div>
 
+            {/* 진행 요약 바 */}
+            {liveTrackCount > 0 && (
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                {participantEmojis.length > 0 && (
+                  <div className="flex items-center">
+                    {participantEmojis.slice(0, 5).map((emoji, i) => (
+                      <span
+                        key={i}
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-white border-[2px] border-[#0A0A0A] text-[12px]"
+                        style={{ marginLeft: i === 0 ? 0 : -6, zIndex: 5 - i }}
+                      >
+                        {emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p
+                  className="text-[11px] font-bold text-[#0A0A0A]/60"
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  총 <span className="text-[#FF3D77]">{liveTrackCount}마디</span> 이어짐
+                  {participantCount > 0 && <> · 참여자 {participantCount}명</>}
+                  {shareCount > 0 && <> · 🔥 공유 {shareCount}</>}
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
               <span
                 className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[11px] font-bold rounded-[6px]"
@@ -375,7 +416,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                                 className="text-[10px] text-[#0A0A0A]/30 font-bold"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
-                                #{track.track_order}
+                                {track.track_order}번째 주자
                               </span>
 
                               <a
@@ -494,7 +535,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                             className="text-[10px] text-[#0A0A0A]/30 font-bold flex-shrink-0"
                             style={{ fontFamily: 'Pretendard, sans-serif' }}
                           >
-                            #{track.track_order}
+                            {track.track_order}번째 주자
                           </span>
 
                           <a
@@ -522,6 +563,33 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
               )}
             </div>
 
+            {/* 업로드 후 자랑 CTA — 방금 참여한 사람이 바로 재공유하도록 (루프 가속) */}
+            {justUploaded && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col gap-2.5 p-4 bg-[#F5FF4F] rounded-[16px] border-[3px] border-[#0A0A0A]"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+              >
+                <p
+                  className="text-[14px] font-bold text-[#0A0A0A] text-center"
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  🎉 내 8마디 추가 완료!
+                  <br />
+                  <span className="text-[12px] text-[#0A0A0A]/60">친구에게 자랑하고 다음 주자를 불러보세요</span>
+                </p>
+                <button
+                  onClick={handleShare}
+                  className="w-full py-3 bg-[#FF3D77] text-white rounded-[12px] border-[3px] border-[#0A0A0A] text-[14px] font-bold flex items-center justify-center gap-1.5"
+                  style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+                >
+                  <Share2 className="w-4 h-4" />
+                  {shareCopied ? '복사됨!' : '내 마디 자랑하기 🔥'}
+                </button>
+              </motion.div>
+            )}
+
             {/* Upload panel */}
             {localIsOpen && user && (
               <div>
@@ -538,6 +606,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   onUploaded={() => {
                     // 트랙 업로드 = 릴레이 패스 1회. pass_count 원자적 증가 (fire-and-forget)
                     void supabase.rpc('increment_pass_count', { p_project_id: project.id });
+                    setJustUploaded(true);
                     fetchTracks();
                     onUpdate();
                   }}

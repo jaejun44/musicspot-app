@@ -11,4 +11,6 @@ export interface StemProject {
   is_open: boolean;
   created_at: string;
   track_count?: number;
+  share_count?: number;
+  pass_count?: number;
 }

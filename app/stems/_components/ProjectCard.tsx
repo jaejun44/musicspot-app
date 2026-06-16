@@ -25,6 +25,9 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
   const keyColor = KEY_COLORS[project.key_signature[0]] ?? '#F5FF4F';
   const isOwner = !!user && user.id === project.creator_id;
   const isExample = project.creator_name.startsWith('[이용예시]');
+  const trackCount = project.track_count ?? 0;
+  const shareCount = project.share_count ?? 0;
+  const passCount = project.pass_count ?? 0;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -161,16 +164,15 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
         </p>
       )}
 
-      {/* 하단 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[14px]">🎧</span>
-          <span
-            className="text-[12px] font-bold text-[#0A0A0A]/60"
-            style={{ fontFamily: 'Pretendard, sans-serif' }}
-          >
-            트랙 {project.track_count ?? 0}개
-          </span>
+      {/* 하단 — 진행·명예 스탯 */}
+      <div className="flex items-center justify-between mb-2">
+        <div
+          className="flex items-center gap-2.5 text-[12px] font-bold text-[#0A0A0A]/60"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          <span>🎸 {trackCount}명 참여</span>
+          {shareCount > 0 && <span className="text-[#FF3D77]">🔥 {shareCount}</span>}
+          {passCount > 0 && <span className="text-[#41C66B]">🎯 {passCount}</span>}
         </div>
         <span
           className="text-[11px] text-[#0A0A0A]/30 font-bold"
@@ -179,6 +181,19 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
           {project.created_at.slice(0, 10)}
         </span>
       </div>
+
+      {/* 참여 유도 진행 문구 */}
+      {project.is_open && (
+        <div
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] bg-[#41C66B]/10 border-[2px] border-[#41C66B]/30"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          <span className="text-[12px]">🎵</span>
+          <span className="text-[11px] font-bold text-[#0A0A0A]/70">
+            참여 가능 · <span className="text-[#41C66B]">{trackCount + 1}번째 주자</span> 모집중
+          </span>
+        </div>
+      )}
     </motion.div>
   );
 }

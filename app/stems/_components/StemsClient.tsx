@@ -84,6 +84,8 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
         is_open: row.is_open,
         created_at: row.created_at,
         track_count: row.stem_tracks?.[0]?.count ?? 0,
+        share_count: row.share_count ?? 0,
+        pass_count: row.pass_count ?? 0,
       } satisfies StemProject));
       setProjects(mapped);
     }
