@@ -132,10 +132,23 @@
 
 ### 남은 항목 / TODO
 - 결제 금액 서버검증 (실결제 PG 붙기 전 필수)
-- 검색 거리정렬 서버화(Postgres RPC) — 데이터 증가 대비
+- ~~검색 거리정렬 서버화(Postgres RPC)~~ → ✅ Phase 14에서 완료
 - 중복 RLS 정책 정리 (posts/bookings 등)
 - notifications insert 정책 강화(현재 로그인 누구나 → DB 트리거로)
 - 일본어 페이지 + ja hreflang 활성화 (일본 진출 시점)
+
+## ✅ Phase 14 — 검색·지도 경험 복구·개선 (2026-06-12)
+
+### 검색·지도
+- 카카오맵 SDK 자동 로드 복구(메인에 SDK 로더가 없어 지도뷰가 안 뜨던 버그 수정) — 커밋 `edc3305`
+- 마커 클러스터링(MarkerClusterer) + 로딩/에러 UI — `RoomMapView.tsx` 전면 재작성
+- 마커 미니카드 거리(km/m) 표시 — `SearchClient.tsx`
+- 검색 첫 진입 '내 주변 연습실 보기' CTA 배너 — `SearchClient.tsx`
+- 거리정렬 서버화 `nearby_studios` RPC(earthdistance + GiST 인덱스) + 클라 폴백 — `supabase/04_nearby_studios_rpc.sql`, `hooks/useStudios.ts` (Supabase 실행·테스트 완료)
+
+### TODO 갱신
+- (해결됨) 검색 거리정렬 서버화 → 완료
+- (해결됨) 지도뷰 미동작 버그 → 복구
 
 ---
 
