@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { X, Play, Pause, Music, Trash2, Pencil, Download, Video, ExternalLink, Share2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete }: Props) {
+  const router = useRouter();
   const [tracks, setTracks] = useState<StemTrack[]>([]);
   const [localIsOpen, setLocalIsOpen] = useState(project.is_open);
   const isOwner = !!user && user.id === project.creator_id;
@@ -77,6 +79,8 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     const ogImage = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com'}/stems/${project.id}/opengraph-image`;
 
     trackEvent('share_challenge', { project_id: project.id });
+    // share_count 원자적 증가 (fire-and-forget — 공유 UX를 막지 않음)
+    void supabase.rpc('increment_share_count', { p_project_id: project.id });
 
     // 1순위: 카카오 공유
     if (window.Kakao?.isInitialized()) {
@@ -532,6 +536,8 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   projectId={project.id}
                   trackOrder={tracks.length + 1}
                   onUploaded={() => {
+                    // 트랙 업로드 = 릴레이 패스 1회. pass_count 원자적 증가 (fire-and-forget)
+                    void supabase.rpc('increment_pass_count', { p_project_id: project.id });
                     fetchTracks();
                     onUpdate();
                   }}
@@ -539,15 +545,28 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
               </div>
             )}
 
-            {/* Login nudge */}
+            {/* 비로그인 CTA — 공유받은 사용자를 능동적으로 릴레이에 끌어들임 (returnTo로 복귀) */}
             {localIsOpen && !user && (
-              <div className="flex flex-col items-center py-6 bg-white rounded-[16px] border-[2px] border-[#0A0A0A]/20">
+              <div className="flex flex-col items-center gap-3 py-6 px-4 bg-white rounded-[16px] border-[2px] border-[#0A0A0A]">
                 <p
-                  className="text-[13px] font-bold text-[#0A0A0A]/50 text-center"
+                  className="text-[14px] font-bold text-[#0A0A0A] text-center leading-relaxed"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  트랙을 추가하려면 로그인이 필요해요 🎵
+                  이 릴레이에 8마디를 이어볼래요? 🎸
+                  <br />
+                  <span className="text-[12px] text-[#0A0A0A]/50">로그인하면 바로 이 프로젝트로 돌아와요</span>
                 </p>
+                <motion.button
+                  whileHover={{ y: 2, boxShadow: '2px 2px 0 #0A0A0A' }}
+                  whileTap={{ scale: 0.96, y: 2 }}
+                  onClick={() =>
+                    router.push(`/login?returnTo=${encodeURIComponent(`/stems/${project.id}`)}`)
+                  }
+                  className="w-full py-3.5 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[14px] font-bold"
+                  style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+                >
+                  이어서 8마디 만들기 →
+                </motion.button>
               </div>
             )}
           </div>

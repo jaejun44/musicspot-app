@@ -89,9 +89,16 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
     { icon: '🔥', text: '답마디 받으면 밴드가 만들어진다' },
   ];
 
+  // 비로그인 → 로그인 후 복귀할 내부 경로. 공유 프로젝트 진입 상태면 해당 프로젝트로.
+  const loginReturnTo = initialProjectId ? `/stems/${initialProjectId}` : '/stems';
+
+  function gotoLogin() {
+    router.push(`/login?returnTo=${encodeURIComponent(loginReturnTo)}`);
+  }
+
   function openCreate() {
     if (loading) return;
-    if (!user) { router.push('/login'); return; }
+    if (!user) { gotoLogin(); return; }
     setShowCreate(true);
   }
 
@@ -254,7 +261,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
           whileTap={{ scale: 0.92, y: 2 }}
           onClick={() => {
             if (loading) return;
-            if (!user) { router.push('/login'); return; }
+            if (!user) { gotoLogin(); return; }
             setShowCreate(true);
           }}
           className="w-14 h-14 bg-[#41C66B] rounded-full border-[3px] border-[#0A0A0A] flex items-center justify-center text-[24px]"

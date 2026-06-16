@@ -2,22 +2,32 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/lib/supabase';
+import { safeInternalPath } from '@/lib/safe-redirect';
 
 type Step = 'select' | 'email-input' | 'email-sent';
 
 export default function LoginClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('select');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // 공유 링크에서 넘어온 복귀 경로(returnTo|next). 내부 경로만 허용(오픈 리다이렉트 방지).
+  const returnTo = safeInternalPath(
+    searchParams.get('returnTo') ?? searchParams.get('next'),
+    '',
+  );
+
   const redirectTo =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/auth/callback`
+      ? `${window.location.origin}/auth/callback${
+          returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''
+        }`
       : '/auth/callback';
 
   async function handleOAuth(provider: 'kakao' | 'google') {

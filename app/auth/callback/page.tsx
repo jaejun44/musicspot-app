@@ -3,15 +3,23 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { safeInternalPath } from '@/lib/safe-redirect';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // 공유 링크 → 로그인 → 콜백 복귀 경로. 내부 경로만 허용(오픈 리다이렉트 방지).
+    const rawReturnTo =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('returnTo')
+        : null;
+    const dest = safeInternalPath(rawReturnTo, '/my-bookings');
+
     // Supabase JS SDK가 URL의 code를 자동으로 세션으로 교환함
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace('/my-bookings');
+        router.replace(dest);
       } else {
         router.replace('/login');
       }
