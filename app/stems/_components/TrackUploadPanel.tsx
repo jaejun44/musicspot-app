@@ -2,14 +2,15 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Mic, Square, Video } from 'lucide-react';
+import { Upload, Mic, Square, Video, Guitar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
+import JamRecorder from './JamRecorder';
 
 const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
 const MAX_FILE_BYTES = 30 * 1024 * 1024;
 
-type UploadMode = 'file' | 'record' | 'youtube';
+type UploadMode = 'file' | 'record' | 'youtube' | 'jam';
 
 export function extractYoutubeId(url: string): string | null {
   const match = url.match(
@@ -23,9 +24,13 @@ interface Props {
   projectId: string;
   trackOrder: number;
   onUploaded: () => void;
+  /** 프로젝트 BPM — JAM(함께 연주) 카운트인·8마디 길이 계산용. */
+  bpm?: number;
+  /** 이전 트랙들의 오디오 URL — JAM 모드에서 합주로 깔아준다. */
+  prevTrackUrls?: string[];
 }
 
-export default function TrackUploadPanel({ user, projectId, trackOrder, onUploaded }: Props) {
+export default function TrackUploadPanel({ user, projectId, trackOrder, onUploaded, bpm = 90, prevTrackUrls = [] }: Props) {
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const [file, setFile] = useState<File | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -130,7 +135,7 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
   const canSubmit =
     uploadMode === 'file'
       ? !!file
-      : uploadMode === 'record'
+      : uploadMode === 'record' || uploadMode === 'jam'
       ? !!recordedBlob
       : !!youtubeId;
 
@@ -220,7 +225,7 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
         className="flex rounded-[12px] border-[2px] border-[#0A0A0A] overflow-hidden"
         style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
       >
-        {(['file', 'record', 'youtube'] as UploadMode[]).map((mode) => (
+        {(['jam', 'file', 'record', 'youtube'] as UploadMode[]).map((mode) => (
           <button
             key={mode}
             onClick={() => switchMode(mode)}
@@ -232,7 +237,9 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
             ].join(' ')}
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {mode === 'file' ? (
+            {mode === 'jam' ? (
+              <><Guitar className="w-3 h-3" /> 함께</>
+            ) : mode === 'file' ? (
               <><Upload className="w-3 h-3" /> 파일</>
             ) : mode === 'record' ? (
               <><Mic className="w-3 h-3" /> 녹음</>
@@ -242,6 +249,39 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
           </button>
         ))}
       </div>
+
+      {/* JAM MODE — 놀이형 동시 녹음 */}
+      {uploadMode === 'jam' && (
+        recordedBlob ? (
+          <div className="flex flex-col items-center gap-3 p-5 bg-white rounded-[16px] border-[3px] border-dashed border-[#41C66B]">
+            <div className="w-12 h-12 rounded-full bg-[#41C66B]/20 border-[3px] border-[#41C66B] flex items-center justify-center">
+              <span className="text-[22px]">✅</span>
+            </div>
+            <p className="text-[12px] font-bold text-[#41C66B]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+              합주 녹음 완료!
+            </p>
+            {previewUrl && <audio src={previewUrl} controls className="w-full rounded-[10px]" />}
+            <button
+              onClick={() => { setRecordedBlob(null); setPreview(null); setUploadError(''); }}
+              className="text-[11px] font-bold text-[#0A0A0A]/40 underline"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              다시 녹음하기
+            </button>
+          </div>
+        ) : (
+          <JamRecorder
+            projectId={projectId}
+            bpm={bpm}
+            trackUrls={prevTrackUrls}
+            onRecorded={(blob) => {
+              setRecordedBlob(blob);
+              setPreview(URL.createObjectURL(blob));
+              setUploadError('');
+            }}
+          />
+        )
+      )}
 
       {/* FILE MODE */}
       {uploadMode === 'file' && (
@@ -424,7 +464,13 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
         className="w-full py-3.5 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px] disabled:opacity-50"
         style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
       >
-        {uploading ? '업로드 중...' : uploadMode === 'youtube' ? '🎬 유튜브 트랙 등록!' : '🎵 트랙 추가!'}
+        {uploading
+          ? '업로드 중...'
+          : uploadMode === 'youtube'
+          ? '🎬 유튜브 트랙 등록!'
+          : uploadMode === 'jam'
+          ? '🎸 합주 트랙 추가!'
+          : '🎵 트랙 추가!'}
       </motion.button>
     </div>
   );

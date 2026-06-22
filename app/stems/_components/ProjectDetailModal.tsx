@@ -10,6 +10,7 @@ import type { StemProject } from '@/types/stem';
 import { buildShareUrl } from '@/lib/share-utm';
 import { trackEvent } from '@/lib/analytics';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
+import { createAudioContext, resumeContext, loadTracks, playEnsemble, type EnsembleHandle } from '@/lib/ensemble-audio';
 
 interface StemTrack {
   id: string;
@@ -43,6 +44,12 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   const [justUploaded, setJustUploaded] = useState(false);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
+  // 전체 합주 듣기 (여러 트랙 동시 재생 — Web Audio)
+  const [ensembleState, setEnsembleState] = useState<'idle' | 'loading' | 'playing'>('idle');
+  const ensembleCtxRef = useRef<AudioContext | null>(null);
+  const ensembleHandleRef = useRef<EnsembleHandle | null>(null);
+  const ensembleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // 진행·명예 요약: 고유 참여자 이모지 스택 + 카운트 (트랙 등장 순서 유지, 중복 제거)
   const seenParticipants = new Set<string>();
   const participantEmojis: string[] = [];
@@ -64,8 +71,46 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     return () => {
       audioRefs.current.forEach((audio) => { audio.pause(); audio.src = ''; });
       audioRefs.current.clear();
+      // 합주 재생 정리
+      if (ensembleTimerRef.current) clearTimeout(ensembleTimerRef.current);
+      ensembleHandleRef.current?.stop();
+      if (ensembleCtxRef.current) { try { void ensembleCtxRef.current.close(); } catch { /* 무시 */ } }
     };
   }, []);
+
+  function stopEnsemble() {
+    if (ensembleTimerRef.current) { clearTimeout(ensembleTimerRef.current); ensembleTimerRef.current = null; }
+    ensembleHandleRef.current?.stop();
+    ensembleHandleRef.current = null;
+    if (ensembleCtxRef.current) { try { void ensembleCtxRef.current.close(); } catch { /* 무시 */ } ensembleCtxRef.current = null; }
+    setEnsembleState('idle');
+  }
+
+  async function toggleEnsemble() {
+    if (ensembleState !== 'idle') { stopEnsemble(); return; }
+    const urls = tracks.filter((t) => !!t.file_url).map((t) => t.file_url as string);
+    if (urls.length === 0) return;
+
+    // 개별 재생 중이면 정지
+    if (playingId) {
+      const a = audioRefs.current.get(playingId);
+      if (a) { a.pause(); a.currentTime = 0; }
+      setPlayingId(null);
+    }
+
+    setEnsembleState('loading');
+    const ctx = createAudioContext();
+    ensembleCtxRef.current = ctx;
+    await resumeContext(ctx);
+    const buffers = await loadTracks(urls, ctx);
+    if (ensembleCtxRef.current !== ctx) return; // 취소됨
+    if (buffers.length === 0) { stopEnsemble(); return; }
+
+    ensembleHandleRef.current = playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
+    setEnsembleState('playing');
+    const maxDur = Math.max(...buffers.map((b) => b.duration));
+    ensembleTimerRef.current = setTimeout(() => stopEnsemble(), (maxDur + 0.3) * 1000);
+  }
 
   async function fetchTracks() {
     setLoadingTracks(true);
@@ -332,12 +377,33 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
           <div className="flex-1 overflow-y-auto p-5 pb-10 flex flex-col gap-6">
             {/* Track list */}
             <div>
-              <h3
-                className="text-[15px] font-bold text-[#0A0A0A] mb-3"
-                style={{ fontFamily: 'Bungee, sans-serif' }}
-              >
-                TRACKS 🎧
-              </h3>
+              <div className="flex items-center justify-between mb-3 gap-2">
+                <h3
+                  className="text-[15px] font-bold text-[#0A0A0A]"
+                  style={{ fontFamily: 'Bungee, sans-serif' }}
+                >
+                  TRACKS 🎧
+                </h3>
+                {tracks.filter((t) => !!t.file_url).length >= 2 && (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={toggleEnsemble}
+                    className={[
+                      'flex items-center gap-1.5 px-3 py-2 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold',
+                      ensembleState !== 'idle' ? 'bg-[#0A0A0A] text-white' : 'bg-[#41C66B] text-[#0A0A0A]',
+                    ].join(' ')}
+                    style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                  >
+                    {ensembleState === 'loading' ? (
+                      <><div className="w-3 h-3 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
+                    ) : ensembleState === 'playing' ? (
+                      <><Pause className="w-3.5 h-3.5" /> 합주 정지</>
+                    ) : (
+                      <><Play className="w-3.5 h-3.5 fill-[#0A0A0A]" /> 전체 합주 듣기</>
+                    )}
+                  </motion.button>
+                )}
+              </div>
 
               {loadingTracks ? (
                 <div className="flex justify-center py-8">
@@ -603,6 +669,10 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   user={user}
                   projectId={project.id}
                   trackOrder={tracks.length + 1}
+                  bpm={project.bpm}
+                  prevTrackUrls={tracks
+                    .filter((t) => !!t.file_url)
+                    .map((t) => t.file_url as string)}
                   onUploaded={() => {
                     // 트랙 업로드 = 릴레이 패스 1회. pass_count 원자적 증가 (fire-and-forget)
                     void supabase.rpc('increment_pass_count', { p_project_id: project.id });
