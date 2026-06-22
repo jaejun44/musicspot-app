@@ -196,36 +196,34 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
           <div className="w-14 h-14 rounded-full bg-[#FFB627]/15 border-[3px] border-[#FFB627] flex items-center justify-center">
             <span className="text-[26px]">🎸</span>
           </div>
-          {/* 모드 선택: 쌓기(합주) vs 이어붙이기(확장) — 첫 주자는 선택 불필요 */}
-          {!isFirstRunner && (
-            <div
-              className="flex w-full rounded-[12px] border-[2px] border-[#0A0A0A] overflow-hidden"
-              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
-            >
-              {(['extend', 'layer'] as JamMode[]).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={[
-                    'flex-1 py-2.5 text-[11px] font-bold transition-colors',
-                    mode === m ? 'bg-[#0A0A0A] text-white' : 'bg-white text-[#0A0A0A]/50 hover:bg-[#0A0A0A]/5',
-                  ].join(' ')}
-                  style={{ fontFamily: 'Pretendard, sans-serif' }}
-                >
-                  {m === 'extend' ? '➡️ 이어붙이기 (8마디 확장)' : '🔼 쌓기 (합주로 두껍게)'}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* 모드 선택: 쌓기(합주) vs 이어붙이기(확장) — 항상 표시(발견성). 첫 주자는 결과 동일. */}
+          <div
+            className="flex w-full rounded-[12px] border-[2px] border-[#0A0A0A] overflow-hidden"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            {(['extend', 'layer'] as JamMode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={[
+                  'flex-1 py-2.5 text-[11px] font-bold transition-colors',
+                  mode === m ? 'bg-[#0A0A0A] text-white' : 'bg-white text-[#0A0A0A]/50 hover:bg-[#0A0A0A]/5',
+                ].join(' ')}
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                {m === 'extend' ? '➡️ 이어붙이기 (8마디 확장)' : '🔼 쌓기 (합주로 두껍게)'}
+              </button>
+            ))}
+          </div>
           <p
             className="text-[12px] text-[#0A0A0A]/60 font-bold text-center leading-relaxed"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {isFirstRunner ? (
               <>
-                첫 주자예요! 카운트인 4박 뒤 바로 녹음돼요.
+                첫 8마디예요! 카운트인 4박 뒤 바로 녹음돼요 🥁
                 <br />
-                메트로놈에 맞춰 8마디를 연주하세요 🥁
+                <span className="text-[11px] text-[#0A0A0A]/40">다음 주자가 이어붙이거나(확장) 쌓을 수(합주) 있어요</span>
               </>
             ) : mode === 'extend' ? (
               <>
