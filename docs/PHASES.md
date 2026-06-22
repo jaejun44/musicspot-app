@@ -181,6 +181,67 @@
 - 명성 배지 자동 부여(첫 마디·10연속 등) — 필요 시
 - 잔디 데이터 쌓이면 리더보드 기간 토글·시즌제
 
+## ✅ Phase 17 — 8마디 놀이형 동시 녹음(JAM): 쌓기/이어붙이기 (2026-06-22)
+
+> **핵심 목표**: "주고받기를 쉽게" — 클릭 한 번으로 카운트인 → (반주 깔고) 동시 녹음 → 자동 정지 → 저장.
+> 레벨 A(놀이 우선, 레이턴시 보정 없음). 정밀 싱크 X, "같은 시점 start"만 맞춤.
+
+### 무엇을 만들었나
+- JAM 모드: 메트로놈 4박 카운트인 → 8마디 자동 녹음. 녹음본은 **내 마이크 단독 webm**(반주 미합성).
+- 두 가지 기여 방식(녹음 시 선택):
+  - **쌓기(layer)** — 같은 8마디(최근 섹션) 위에 겹침. 녹음 중 그 섹션 반주가 깔림 → 동시 녹음 → 합주로 두꺼워짐.
+  - **이어붙이기(extend)** — 새 8마디(다음 섹션) 추가. 카운트인 후 내 연주만 녹음 → 곡이 길어짐.
+- 재생: **섹션 내 동시 + 섹션 간 순차**. 녹음 직후 미리듣기 + 모달 "전체 곡 듣기".
+
+### 아키텍처 (유지보수용 — 어디를 고치면 되나)
+```
+lib/ensemble-audio.ts   Web Audio 코어. AudioContext 생성/resume(iOS webkit 폴백+무음 unlock),
+                        loadTracks/loadTracksAligned(fetch→decodeAudioData),
+                        playSequence(섹션 배열 재생) ← playEnsemble은 이것의 단일섹션 래퍼,
+                        createMasterChain(게인0.85+리미터, 클리핑 방지), sequenceDuration.
+lib/metronome.ts        scheduleCountIn(bpm·박수→클릭음 예약, 끝나는 ctx시간 반환),
+                        eightBarsDuration(=60/bpm*4박*8마디).
+lib/mic.ts              acquireMic(): getUserMedia 공통 래퍼. secure-context 체크 +
+                        에러 원인별 한국어 메시지 + 진단(권한상태·장치수·브라우저).
+                        음악용으로 echoCancellation/noiseSuppression/autoGainControl=false.
+JamRecorder.tsx         녹음 UI/플로우. 모드 토글, 카운트인 숫자, 마디 진행바.
+                        onRecorded(blob, mode)로 부모에 전달. unmount 시 stream/ctx/timer 정리.
+TrackUploadPanel.tsx    'jam' 탭 추가. JamRecorder의 blob을 기존 recordedBlob 업로드 경로로 재사용(중복 X).
+                        sectionFor(mode)로 저장 section 계산. 녹음 직후 합주/이어 미리듣기.
+ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/layerBackingUrls/latestSection)해
+                        TrackUploadPanel에 전달. "전체 곡 듣기"=playSequence.
+```
+
+### 데이터 모델
+- `stem_tracks.section` (int, NOT NULL, default 1) 추가 — 마이그레이션 `add_section_to_stem_tracks`.
+  - **같은 section = 레이어(동시재생)**, **다음 section = 이어붙이기(순차재생)**.
+  - 기존 트랙 전부 section=1 → 기존 동작(동시재생) 그대로 보존(무중단).
+- section 계산 규칙(`sectionFor`): 트랙 없으면 1 / 쌓기=최근섹션 / 이어붙이기=최근섹션+1.
+  JAM 외 업로드(파일·녹음·유튜브)는 이어붙이기로 새 섹션.
+
+### 동기화 방식 (왜 이렇게 짰나)
+- **합주 재생**은 BufferSourceNode를 같은 `ctx.currentTime`에 start → 샘플 단위 정밀.
+- **마이크 녹음 start**는 ctx 시간 예약 불가 → 카운트인 endTime까지 `setTimeout` 근사. 둘은 독립이고
+  "같은 시점 start"만 맞춤(레벨 A, 의도된 한계). 섹션 길이는 "그 섹션 최장 트랙 길이" 기준.
+
+### 디버깅 히스토리 (재발 시 참고)
+- **마이크 전면 차단**: `next.config.js`의 `Permissions-Policy: microphone=()`(빈 허용목록=모든 출처 금지)가
+  원인. → `microphone=(self)`로 수정. 콘솔 `Permissions policy violation: microphone is not allowed`가 단서.
+  Chrome이 "denied" 캐시 → 사이트 패널 "권한 재설정" 필요.
+- **녹음 뭉개짐**: getUserMedia 기본 통화가공(에코제거가 반주를 에코로 오인) → 셋 다 끔. 스피커 대신 **헤드폰** 필수.
+- **합주 클리핑**: 다중 트랙 합산 피크 → 마스터 게인+리미터.
+
+### 커밋
+- `c5afb4e` JAM 기본(카운트인+합주 동시 녹음) → `bc20e50` Permissions-Policy 수정 →
+  `af6be25` 음질(마이크 가공오프+리미터) → `321740f` 합주 미리듣기 →
+  `f896130` 전체듣기 버튼 위치 → `4263be6` 쌓기/이어붙이기 두 모드+섹션 순차재생 →
+  `cdd1b7f` 모드 토글 항상 표시.
+
+### TODO / 한계
+- 레이턴시 보정 없음(놀이용). 정밀 싱크 필요해지면 별도 설계.
+- iOS Safari AudioContext 제약 — 폴백 넣었으나 실기기 추가 검증 필요.
+- 섹션 길이를 "최장 트랙"으로 잡아 녹음이 들쭉날쭉하면 이음새가 약간 어긋날 수 있음.
+
 ---
 
 ## 진행 중 / 다음 작업
