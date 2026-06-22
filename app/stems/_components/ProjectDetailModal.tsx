@@ -377,33 +377,12 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
           <div className="flex-1 overflow-y-auto p-5 pb-10 flex flex-col gap-6">
             {/* Track list */}
             <div>
-              <div className="flex items-center justify-between mb-3 gap-2">
-                <h3
-                  className="text-[15px] font-bold text-[#0A0A0A]"
-                  style={{ fontFamily: 'Bungee, sans-serif' }}
-                >
-                  TRACKS 🎧
-                </h3>
-                {tracks.filter((t) => !!t.file_url).length >= 2 && (
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggleEnsemble}
-                    className={[
-                      'flex items-center gap-1.5 px-3 py-2 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold',
-                      ensembleState !== 'idle' ? 'bg-[#0A0A0A] text-white' : 'bg-[#41C66B] text-[#0A0A0A]',
-                    ].join(' ')}
-                    style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
-                  >
-                    {ensembleState === 'loading' ? (
-                      <><div className="w-3 h-3 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
-                    ) : ensembleState === 'playing' ? (
-                      <><Pause className="w-3.5 h-3.5" /> 합주 정지</>
-                    ) : (
-                      <><Play className="w-3.5 h-3.5 fill-[#0A0A0A]" /> 전체 합주 듣기</>
-                    )}
-                  </motion.button>
-                )}
-              </div>
+              <h3
+                className="text-[15px] font-bold text-[#0A0A0A] mb-3"
+                style={{ fontFamily: 'Bungee, sans-serif' }}
+              >
+                TRACKS 🎧
+              </h3>
 
               {loadingTracks ? (
                 <div className="flex justify-center py-8">
@@ -626,6 +605,27 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                     );
                   })}
                 </div>
+              )}
+
+              {/* 전체 합주 듣기 — 모든 트랙을 다 본 뒤, 맨 아래에서 "다 같이" 들어보는 페이오프 */}
+              {tracks.filter((t) => !!t.file_url).length >= 2 && (
+                <motion.button
+                  whileTap={{ scale: 0.97, y: 2 }}
+                  onClick={toggleEnsemble}
+                  className={[
+                    'mt-3 w-full flex items-center justify-center gap-2 py-3.5 rounded-[14px] border-[3px] border-[#0A0A0A] text-[14px] font-bold',
+                    ensembleState !== 'idle' ? 'bg-[#0A0A0A] text-white' : 'bg-[#41C66B] text-[#0A0A0A]',
+                  ].join(' ')}
+                  style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+                >
+                  {ensembleState === 'loading' ? (
+                    <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
+                  ) : ensembleState === 'playing' ? (
+                    <><Pause className="w-4 h-4" /> 합주 정지</>
+                  ) : (
+                    <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 전체 합주 듣기</>
+                  )}
+                </motion.button>
               )}
             </div>
 
