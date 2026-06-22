@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Mic, Square, Video, Guitar } from 'lucide-react';
+import { Upload, Mic, Square, Video, Guitar, Play, Pause } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import JamRecorder from './JamRecorder';
 import { acquireMic } from '@/lib/mic';
+import { createAudioContext, resumeContext, loadTracks, playEnsemble, type EnsembleHandle } from '@/lib/ensemble-audio';
 
 const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
 const MAX_FILE_BYTES = 30 * 1024 * 1024;
@@ -51,6 +52,41 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
   const streamRef = useRef<MediaStream | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
+  // JAM 합주 미리듣기 (반주 + 방금 녹음 동시 재생)
+  const [jamPreviewState, setJamPreviewState] = useState<'idle' | 'loading' | 'playing'>('idle');
+  const jamCtxRef = useRef<AudioContext | null>(null);
+  const jamHandleRef = useRef<EnsembleHandle | null>(null);
+  const jamTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function stopJamPreview() {
+    if (jamTimerRef.current) { clearTimeout(jamTimerRef.current); jamTimerRef.current = null; }
+    jamHandleRef.current?.stop();
+    jamHandleRef.current = null;
+    if (jamCtxRef.current) { try { void jamCtxRef.current.close(); } catch { /* 무시 */ } jamCtxRef.current = null; }
+    setJamPreviewState('idle');
+  }
+
+  async function toggleJamPreview() {
+    if (jamPreviewState !== 'idle') { stopJamPreview(); return; }
+    if (!previewUrlRef.current) return;
+    // 반주(이전 트랙) + 방금 녹음한 내 트랙을 동시 재생 = 합주처럼
+    const urls = [...prevTrackUrls, previewUrlRef.current];
+    setJamPreviewState('loading');
+    const ctx = createAudioContext();
+    jamCtxRef.current = ctx;
+    await resumeContext(ctx);
+    const buffers = await loadTracks(urls, ctx);
+    if (jamCtxRef.current !== ctx) return; // 취소됨
+    if (buffers.length === 0) { stopJamPreview(); return; }
+    jamHandleRef.current = playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
+    setJamPreviewState('playing');
+    const maxDur = Math.max(...buffers.map((b) => b.duration));
+    jamTimerRef.current = setTimeout(() => stopJamPreview(), (maxDur + 0.3) * 1000);
+  }
+
+  // unmount 시 합주 미리듣기 정리
+  useEffect(() => () => stopJamPreview(), []);
+
   const userName =
     user.user_metadata?.full_name ||
     user.user_metadata?.name ||
@@ -66,6 +102,7 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
   function switchMode(mode: UploadMode) {
     if (mode === uploadMode) return;
     if (isRecording) stopRecording();
+    stopJamPreview();
     setFile(null);
     setRecordedBlob(null);
     setPreview(null);
@@ -267,9 +304,38 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
             <p className="text-[12px] font-bold text-[#41C66B]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
               합주 녹음 완료!
             </p>
-            {previewUrl && <audio src={previewUrl} controls className="w-full rounded-[10px]" />}
+
+            {/* 반주 + 방금 녹음 동시 재생 = 합주처럼 들어보기 (이전 트랙 있을 때만) */}
+            {prevTrackUrls.length > 0 && (
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={toggleJamPreview}
+                className={[
+                  'w-full flex items-center justify-center gap-2 py-3 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold',
+                  jamPreviewState !== 'idle' ? 'bg-[#0A0A0A] text-white' : 'bg-[#41C66B] text-[#0A0A0A]',
+                ].join(' ')}
+                style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+              >
+                {jamPreviewState === 'loading' ? (
+                  <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
+                ) : jamPreviewState === 'playing' ? (
+                  <><Pause className="w-4 h-4" /> 합주 정지</>
+                ) : (
+                  <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 합주로 들어보기 (반주 + 내 연주)</>
+                )}
+              </motion.button>
+            )}
+
+            {/* 단독 미리듣기 (내 마이크 소리만 담김 — 반주는 합주에서만 들림) */}
+            <div className="w-full">
+              <p className="text-[10px] font-bold text-[#0A0A0A]/40 mb-1 text-center" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                내 트랙 단독 (반주 미포함)
+              </p>
+              {previewUrl && <audio src={previewUrl} controls className="w-full rounded-[10px]" />}
+            </div>
+
             <button
-              onClick={() => { setRecordedBlob(null); setPreview(null); setUploadError(''); }}
+              onClick={() => { stopJamPreview(); setRecordedBlob(null); setPreview(null); setUploadError(''); }}
               className="text-[11px] font-bold text-[#0A0A0A]/40 underline"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
