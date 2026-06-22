@@ -70,10 +70,23 @@ export function playEnsemble(buffers: AudioBuffer[], ctx: AudioContext, startTim
   const sources: AudioBufferSourceNode[] = [];
   const when = Math.max(startTime, ctx.currentTime);
 
+  // 여러 트랙을 합치면 신호가 더해져 클리핑(찌그러짐)이 난다.
+  // 마스터 게인으로 살짝 줄이고 + 리미터로 피크를 잡아 뭉개짐 방지.
+  const master = ctx.createGain();
+  master.gain.value = 0.85;
+  const limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = -3;
+  limiter.knee.value = 0;
+  limiter.ratio.value = 20;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.25;
+  master.connect(limiter);
+  limiter.connect(ctx.destination);
+
   for (const buf of buffers) {
     const src = ctx.createBufferSource();
     src.buffer = buf;
-    src.connect(ctx.destination);
+    src.connect(master);
     src.start(when);
     sources.push(src);
   }
@@ -88,6 +101,8 @@ export function playEnsemble(buffers: AudioBuffer[], ctx: AudioContext, startTim
         }
         src.disconnect();
       }
+      master.disconnect();
+      limiter.disconnect();
     },
   };
 }

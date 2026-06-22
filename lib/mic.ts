@@ -70,7 +70,15 @@ export async function acquireMic(): Promise<MicResult> {
     };
   }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // 음악 녹음용: 통화용 가공(에코제거·노이즈억제·자동게인)을 끈다.
+    // 이걸 켜두면 깔린 반주를 에코/노이즈로 오인해 음악이 뭉개진다.
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
     return { stream };
   } catch (e) {
     const diag = await micDiagnostics();
