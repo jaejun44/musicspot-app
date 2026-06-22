@@ -6,6 +6,7 @@ import { Upload, Mic, Square, Video, Guitar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import JamRecorder from './JamRecorder';
+import { acquireMic } from '@/lib/mic';
 
 const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
 const MAX_FILE_BYTES = 30 * 1024 * 1024;
@@ -75,8 +76,13 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
 
   async function startRecording() {
     setUploadError('');
+    const mic = await acquireMic();
+    if ('error' in mic) {
+      setUploadError(mic.error);
+      return;
+    }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = mic.stream;
       streamRef.current = stream;
       audioChunksRef.current = [];
       setRecordedBlob(null);
@@ -111,7 +117,8 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
         setRecordingTime((t) => t + 1);
       }, 1000);
     } catch {
-      setUploadError('마이크 접근 권한이 필요합니다. 브라우저 설정에서 허용해주세요.');
+      mic.stream.getTracks().forEach((t) => t.stop());
+      setUploadError('녹음을 시작할 수 없어요. 브라우저가 이 형식의 녹음을 지원하는지 확인해주세요.');
     }
   }
 
