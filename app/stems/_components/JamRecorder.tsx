@@ -86,12 +86,43 @@ export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: P
     setCountNumber(0);
     setPhase('preparing');
 
-    // 1) 마이크
+    // 1) 마이크 — secure context(HTTPS/localhost)가 아니면 mediaDevices 자체가 없다
     let stream: MediaStream;
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      const insecure =
+        typeof window !== 'undefined' &&
+        window.location.protocol !== 'https:' &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1';
+      setError(
+        insecure
+          ? `이 주소(${window.location.host})에선 마이크를 못 써요. 브라우저가 HTTPS 또는 localhost에서만 마이크를 허용합니다. https:// 주소나 localhost로 접속해주세요.`
+          : '이 브라우저에서 마이크 기능(getUserMedia)을 지원하지 않습니다.'
+      );
+      setPhase('error');
+      return;
+    }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setError('마이크 접근 권한이 필요합니다. 브라우저 설정에서 허용해주세요.');
+    } catch (e) {
+      const err = e as DOMException;
+      let msg: string;
+      switch (err?.name) {
+        case 'NotAllowedError':
+        case 'SecurityError':
+          msg = '마이크 접근이 거부됐어요. 주소창 왼쪽 자물쇠 아이콘 → 마이크 → 허용 후 새로고침해주세요.';
+          break;
+        case 'NotFoundError':
+        case 'OverconstrainedError':
+          msg = '사용할 마이크 장치를 찾지 못했어요. 마이크가 연결돼 있는지 확인해주세요.';
+          break;
+        case 'NotReadableError':
+          msg = '마이크를 다른 앱/탭이 쓰고 있어요. 줌·녹음기·다른 탭 등을 끄고 다시 시도해주세요.';
+          break;
+        default:
+          msg = `마이크를 열 수 없어요 (${err?.name || '알 수 없는 오류'}: ${err?.message || ''}).`;
+      }
+      setError(msg);
       setPhase('error');
       return;
     }
