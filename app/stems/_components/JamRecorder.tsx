@@ -14,23 +14,29 @@ import { acquireMic } from '@/lib/mic';
 
 type Phase = 'idle' | 'preparing' | 'countin' | 'recording' | 'done' | 'error';
 
+export type JamMode = 'layer' | 'extend';
+
 interface Props {
   projectId: string;
   bpm: number;
-  /** 이전 트랙들(이전 마디 전부)의 오디오 URL. 비어 있으면 첫 주자(합주 없이 카운트인+녹음만). */
-  trackUrls: string[];
-  onRecorded: (blob: Blob) => void;
+  /** 쌓기(레이어) 모드에서 깔아줄 최근 섹션의 트랙 URL. */
+  layerBackingUrls: string[];
+  /** 기존 트랙이 있는지. false면 첫 주자(모드 선택 무의미, 카운트인+녹음만). */
+  hasPrevious: boolean;
+  onRecorded: (blob: Blob, mode: JamMode) => void;
 }
 
 const BARS = 8;
 const BEATS_PER_BAR = 4;
 const COUNT_IN_BEATS = 4;
 
-export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: Props) {
+export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevious, onRecorded }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [countNumber, setCountNumber] = useState(0);
   const [currentBar, setCurrentBar] = useState(0);
   const [error, setError] = useState('');
+  // 기본값: 이어붙이기(확장) — "8마디 추가"의 자연스러운 모델. 첫 주자는 어차피 동일.
+  const [mode, setMode] = useState<JamMode>('extend');
 
   // 정리 대상 refs
   const ctxRef = useRef<AudioContext | null>(null);
@@ -43,7 +49,9 @@ export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: P
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const totalSec = eightBarsDuration(bpm, BARS, BEATS_PER_BAR);
-  const isFirstRunner = trackUrls.length === 0;
+  const isFirstRunner = !hasPrevious;
+  // 쌓기 모드일 때만 반주를 깐다(같은 8마디 위에 겹침). 이어붙이기는 새 섹션이라 반주 없음.
+  const backingUrls = mode === 'layer' ? layerBackingUrls : [];
 
   const cleanup = useCallback((closeCtx: boolean) => {
     timersRef.current.forEach((t) => clearTimeout(t));
@@ -102,10 +110,10 @@ export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: P
     ctxRef.current = ctx;
     await resumeContext(ctx);
 
-    // 3) 이전 트랙 로드 (있을 때만)
+    // 3) 반주 로드 (쌓기 모드 + 깔 트랙 있을 때만)
     let buffers: AudioBuffer[] = [];
-    if (trackUrls.length > 0) {
-      buffers = await loadTracks(trackUrls, ctx);
+    if (backingUrls.length > 0) {
+      buffers = await loadTracks(backingUrls, ctx);
     }
 
     // 마이크 준비 중 unmount/중단됐는지 확인
@@ -130,7 +138,7 @@ export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: P
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
       setPhase('done');
-      onRecorded(blob);
+      onRecorded(blob, isFirstRunner ? 'extend' : mode);
     };
 
     // 5) 카운트인 예약 → endTime(ctx 시간) 확보
@@ -188,6 +196,27 @@ export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: P
           <div className="w-14 h-14 rounded-full bg-[#FFB627]/15 border-[3px] border-[#FFB627] flex items-center justify-center">
             <span className="text-[26px]">🎸</span>
           </div>
+          {/* 모드 선택: 쌓기(합주) vs 이어붙이기(확장) — 첫 주자는 선택 불필요 */}
+          {!isFirstRunner && (
+            <div
+              className="flex w-full rounded-[12px] border-[2px] border-[#0A0A0A] overflow-hidden"
+              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+            >
+              {(['extend', 'layer'] as JamMode[]).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={[
+                    'flex-1 py-2.5 text-[11px] font-bold transition-colors',
+                    mode === m ? 'bg-[#0A0A0A] text-white' : 'bg-white text-[#0A0A0A]/50 hover:bg-[#0A0A0A]/5',
+                  ].join(' ')}
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  {m === 'extend' ? '➡️ 이어붙이기 (8마디 확장)' : '🔼 쌓기 (합주로 두껍게)'}
+                </button>
+              ))}
+            </div>
+          )}
           <p
             className="text-[12px] text-[#0A0A0A]/60 font-bold text-center leading-relaxed"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -198,11 +227,17 @@ export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: P
                 <br />
                 메트로놈에 맞춰 8마디를 연주하세요 🥁
               </>
+            ) : mode === 'extend' ? (
+              <>
+                새 8마디를 곡 <b>뒤에 이어 붙여요</b>. 카운트인 후
+                <br />
+                내 연주만 녹음 → 곡이 길어집니다 ➡️
+              </>
             ) : (
               <>
-                카운트인 끝나면 이전 트랙이 깔리고
+                최근 8마디 <b>위에 겹쳐 쌓아요</b>. 이전 트랙이 깔리고
                 <br />
-                동시에 내 연주가 녹음돼요. 같이 맞춰봐요! 🎶
+                동시에 녹음 → 합주로 두꺼워져요 🔼
               </>
             )}
           </p>

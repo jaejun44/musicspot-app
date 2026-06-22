@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 import { Upload, Mic, Square, Video, Guitar, Play, Pause } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import JamRecorder from './JamRecorder';
+import JamRecorder, { type JamMode } from './JamRecorder';
 import { acquireMic } from '@/lib/mic';
-import { createAudioContext, resumeContext, loadTracks, playEnsemble, type EnsembleHandle } from '@/lib/ensemble-audio';
+import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playEnsemble, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 
 const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
 const MAX_FILE_BYTES = 30 * 1024 * 1024;
@@ -28,11 +28,24 @@ interface Props {
   onUploaded: () => void;
   /** 프로젝트 BPM — JAM(함께 연주) 카운트인·8마디 길이 계산용. */
   bpm?: number;
-  /** 이전 트랙들의 오디오 URL — JAM 모드에서 합주로 깔아준다. */
-  prevTrackUrls?: string[];
+  /** 가장 최근 섹션 번호(0이면 트랙 없음). 새 트랙의 section 계산용. */
+  latestSection?: number;
+  /** 최근 섹션의 오디오 URL — 쌓기 모드에서 반주로 깔고, 쌓기 미리듣기에 사용. */
+  layerBackingUrls?: string[];
+  /** 섹션 순서대로 묶은 전체 오디오 URL — 이어붙이기 미리듣기(전곡+내 트랙)에 사용. */
+  orderedSectionUrls?: string[][];
 }
 
-export default function TrackUploadPanel({ user, projectId, trackOrder, onUploaded, bpm = 90, prevTrackUrls = [] }: Props) {
+export default function TrackUploadPanel({
+  user,
+  projectId,
+  trackOrder,
+  onUploaded,
+  bpm = 90,
+  latestSection = 0,
+  layerBackingUrls = [],
+  orderedSectionUrls = [],
+}: Props) {
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const [file, setFile] = useState<File | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -52,6 +65,15 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
   const streamRef = useRef<MediaStream | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
+  // JAM 녹음 모드(쌓기/이어붙이기) — onRecorded 시점에 확정, 업로드 section 계산에 사용
+  const [jamMode, setJamMode] = useState<JamMode>('extend');
+
+  // 새 트랙의 섹션 번호 계산: 트랙 없으면 1, 쌓기=최근섹션, 이어붙이기=최근섹션+1
+  function sectionFor(m: JamMode): number {
+    if (latestSection <= 0) return 1;
+    return m === 'layer' ? latestSection : latestSection + 1;
+  }
+
   // JAM 합주 미리듣기 (반주 + 방금 녹음 동시 재생)
   const [jamPreviewState, setJamPreviewState] = useState<'idle' | 'loading' | 'playing'>('idle');
   const jamCtxRef = useRef<AudioContext | null>(null);
@@ -68,20 +90,41 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
 
   async function toggleJamPreview() {
     if (jamPreviewState !== 'idle') { stopJamPreview(); return; }
-    if (!previewUrlRef.current) return;
-    // 반주(이전 트랙) + 방금 녹음한 내 트랙을 동시 재생 = 합주처럼
-    const urls = [...prevTrackUrls, previewUrlRef.current];
+    const myUrl = previewUrlRef.current;
+    if (!myUrl) return;
     setJamPreviewState('loading');
     const ctx = createAudioContext();
     jamCtxRef.current = ctx;
     await resumeContext(ctx);
-    const buffers = await loadTracks(urls, ctx);
-    if (jamCtxRef.current !== ctx) return; // 취소됨
-    if (buffers.length === 0) { stopJamPreview(); return; }
-    jamHandleRef.current = playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
+
+    let totalDur = 0;
+    if (jamMode === 'layer') {
+      // 쌓기: 최근 섹션 반주 + 내 트랙을 동시 재생
+      const buffers = await loadTracks([...layerBackingUrls, myUrl], ctx);
+      if (jamCtxRef.current !== ctx) return;
+      if (buffers.length === 0) { stopJamPreview(); return; }
+      jamHandleRef.current = playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
+      totalDur = Math.max(...buffers.map((b) => b.duration));
+    } else {
+      // 이어붙이기: 기존 전곡(섹션 순서대로) 다음에 내 트랙을 이어 재생
+      const flat = orderedSectionUrls.flat();
+      const aligned = await loadTracksAligned([...flat, myUrl], ctx);
+      if (jamCtxRef.current !== ctx) return;
+      // aligned 를 섹션 구조 + 마지막 내 트랙으로 재구성 (실패분 제외)
+      let i = 0;
+      const sections: AudioBuffer[][] = orderedSectionUrls.map((s) =>
+        s.map(() => aligned[i++]).filter((b): b is AudioBuffer => !!b)
+      );
+      const mine = aligned[i];
+      if (mine) sections.push([mine]);
+      const flatCount = sections.reduce((n, s) => n + s.length, 0);
+      if (flatCount === 0) { stopJamPreview(); return; }
+      jamHandleRef.current = playSequence(sections, ctx, ctx.currentTime + 0.1);
+      totalDur = sections.reduce((sum, s) => sum + Math.max(0, ...s.map((b) => b.duration)), 0);
+    }
+
     setJamPreviewState('playing');
-    const maxDur = Math.max(...buffers.map((b) => b.duration));
-    jamTimerRef.current = setTimeout(() => stopJamPreview(), (maxDur + 0.3) * 1000);
+    jamTimerRef.current = setTimeout(() => stopJamPreview(), (totalDur + 0.3) * 1000);
   }
 
   // unmount 시 합주 미리듣기 정리
@@ -188,6 +231,9 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
     setUploadError('');
     setUploading(true);
 
+    // JAM은 녹음 시 고른 모드, 그 외 업로드는 이어붙이기(새 섹션)로 곡 확장
+    const section = sectionFor(uploadMode === 'jam' ? jamMode : 'extend');
+
     if (uploadMode === 'youtube') {
       const { error } = await supabase.from('stem_tracks').insert({
         project_id: projectId,
@@ -198,6 +244,7 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
         youtube_url: `https://www.youtube.com/watch?v=${youtubeId}`,
         instrument: instrument.trim() || null,
         track_order: trackOrder,
+        section,
       });
 
       if (error) {
@@ -246,6 +293,7 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
       youtube_url: null,
       instrument: instrument.trim() || null,
       track_order: trackOrder,
+      section,
     });
 
     if (insertErr) {
@@ -305,8 +353,8 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
               합주 녹음 완료!
             </p>
 
-            {/* 반주 + 방금 녹음 동시 재생 = 합주처럼 들어보기 (이전 트랙 있을 때만) */}
-            {prevTrackUrls.length > 0 && (
+            {/* 결과 미리듣기 — 쌓기: 반주+내 연주 동시 / 이어붙이기: 전곡 다음에 내 연주 */}
+            {(layerBackingUrls.length > 0 || orderedSectionUrls.some((s) => s.length > 0)) && (
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={toggleJamPreview}
@@ -319,17 +367,19 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
                 {jamPreviewState === 'loading' ? (
                   <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
                 ) : jamPreviewState === 'playing' ? (
-                  <><Pause className="w-4 h-4" /> 합주 정지</>
-                ) : (
+                  <><Pause className="w-4 h-4" /> 정지</>
+                ) : jamMode === 'layer' ? (
                   <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 합주로 들어보기 (반주 + 내 연주)</>
+                ) : (
+                  <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 이어서 들어보기 (전곡 → 내 연주)</>
                 )}
               </motion.button>
             )}
 
-            {/* 단독 미리듣기 (내 마이크 소리만 담김 — 반주는 합주에서만 들림) */}
+            {/* 단독 미리듣기 (내 마이크 소리만 담김) */}
             <div className="w-full">
               <p className="text-[10px] font-bold text-[#0A0A0A]/40 mb-1 text-center" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                내 트랙 단독 (반주 미포함)
+                내 트랙 단독
               </p>
               {previewUrl && <audio src={previewUrl} controls className="w-full rounded-[10px]" />}
             </div>
@@ -346,8 +396,10 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
           <JamRecorder
             projectId={projectId}
             bpm={bpm}
-            trackUrls={prevTrackUrls}
-            onRecorded={(blob) => {
+            layerBackingUrls={layerBackingUrls}
+            hasPrevious={latestSection > 0}
+            onRecorded={(blob, m) => {
+              setJamMode(m);
               setRecordedBlob(blob);
               setPreview(URL.createObjectURL(blob));
               setUploadError('');

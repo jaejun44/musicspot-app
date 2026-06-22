@@ -10,7 +10,7 @@ import type { StemProject } from '@/types/stem';
 import { buildShareUrl } from '@/lib/share-utm';
 import { trackEvent } from '@/lib/analytics';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
-import { createAudioContext, resumeContext, loadTracks, playEnsemble, type EnsembleHandle } from '@/lib/ensemble-audio';
+import { createAudioContext, resumeContext, loadTracksAligned, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 
 interface StemTrack {
   id: string;
@@ -22,6 +22,7 @@ interface StemTrack {
   youtube_url: string | null;
   instrument: string | null;
   track_order: number;
+  section: number | null;
   created_at: string;
 }
 
@@ -63,6 +64,21 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   const participantCount = participantEmojis.length;
   const shareCount = project.share_count ?? 0;
 
+  // 섹션(8마디 블록)별 그룹핑 — 오디오 트랙만, track_order 순.
+  // 같은 section = 동시(쌓기), 섹션끼리는 순차(이어붙이기).
+  const audioTracks = tracks
+    .filter((t) => !!t.file_url)
+    .slice()
+    .sort((a, b) => a.track_order - b.track_order);
+  const sectionNums = Array.from(new Set(audioTracks.map((t) => t.section ?? 1))).sort((a, b) => a - b);
+  const orderedSectionUrls = sectionNums.map((sn) =>
+    audioTracks.filter((t) => (t.section ?? 1) === sn).map((t) => t.file_url as string)
+  );
+  const latestSection = sectionNums.length ? sectionNums[sectionNums.length - 1] : 0;
+  const layerBackingUrls = latestSection
+    ? audioTracks.filter((t) => (t.section ?? 1) === latestSection).map((t) => t.file_url as string)
+    : [];
+
   useEffect(() => {
     fetchTracks();
   }, [project.id]);
@@ -88,8 +104,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
 
   async function toggleEnsemble() {
     if (ensembleState !== 'idle') { stopEnsemble(); return; }
-    const urls = tracks.filter((t) => !!t.file_url).map((t) => t.file_url as string);
-    if (urls.length === 0) return;
+    if (orderedSectionUrls.length === 0) return;
 
     // 개별 재생 중이면 정지
     if (playingId) {
@@ -102,14 +117,20 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     const ctx = createAudioContext();
     ensembleCtxRef.current = ctx;
     await resumeContext(ctx);
-    const buffers = await loadTracks(urls, ctx);
+    // 섹션 구조 유지하며 디코드 (실패분만 제외) → 섹션 내 동시 + 섹션 간 순차 재생
+    const aligned = await loadTracksAligned(orderedSectionUrls.flat(), ctx);
     if (ensembleCtxRef.current !== ctx) return; // 취소됨
-    if (buffers.length === 0) { stopEnsemble(); return; }
+    let i = 0;
+    const sections: AudioBuffer[][] = orderedSectionUrls.map((s) =>
+      s.map(() => aligned[i++]).filter((b): b is AudioBuffer => !!b)
+    );
+    const count = sections.reduce((n, s) => n + s.length, 0);
+    if (count === 0) { stopEnsemble(); return; }
 
-    ensembleHandleRef.current = playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
+    ensembleHandleRef.current = playSequence(sections, ctx, ctx.currentTime + 0.1);
     setEnsembleState('playing');
-    const maxDur = Math.max(...buffers.map((b) => b.duration));
-    ensembleTimerRef.current = setTimeout(() => stopEnsemble(), (maxDur + 0.3) * 1000);
+    const total = sections.reduce((sum, s) => sum + Math.max(0, ...s.map((b) => b.duration)), 0);
+    ensembleTimerRef.current = setTimeout(() => stopEnsemble(), (total + 0.3) * 1000);
   }
 
   async function fetchTracks() {
@@ -607,8 +628,8 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 </div>
               )}
 
-              {/* 전체 합주 듣기 — 모든 트랙을 다 본 뒤, 맨 아래에서 "다 같이" 들어보는 페이오프 */}
-              {tracks.filter((t) => !!t.file_url).length >= 2 && (
+              {/* 전체 곡 듣기 — 섹션 순차 + 섹션 내 동시. 맨 아래에서 완성된 곡을 듣는 페이오프 */}
+              {audioTracks.length >= 2 && (
                 <motion.button
                   whileTap={{ scale: 0.97, y: 2 }}
                   onClick={toggleEnsemble}
@@ -621,9 +642,9 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   {ensembleState === 'loading' ? (
                     <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
                   ) : ensembleState === 'playing' ? (
-                    <><Pause className="w-4 h-4" /> 합주 정지</>
+                    <><Pause className="w-4 h-4" /> 정지</>
                   ) : (
-                    <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 전체 합주 듣기</>
+                    <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 전체 곡 듣기 (처음부터)</>
                   )}
                 </motion.button>
               )}
@@ -670,9 +691,9 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   projectId={project.id}
                   trackOrder={tracks.length + 1}
                   bpm={project.bpm}
-                  prevTrackUrls={tracks
-                    .filter((t) => !!t.file_url)
-                    .map((t) => t.file_url as string)}
+                  latestSection={latestSection}
+                  layerBackingUrls={layerBackingUrls}
+                  orderedSectionUrls={orderedSectionUrls}
                   onUploaded={() => {
                     // 트랙 업로드 = 릴레이 패스 1회. pass_count 원자적 증가 (fire-and-forget)
                     void supabase.rpc('increment_pass_count', { p_project_id: project.id });
