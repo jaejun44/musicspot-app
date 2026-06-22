@@ -54,6 +54,13 @@ interface HonorTitle {
   awarded_at: string;
 }
 
+interface Reputation {
+  thrown_count: number; // 던짐: 내가 던진 마디(트랙) 수
+  passed_count: number; // 이어짐: 내 던지기가 남에게 이어진 정도
+  mutual_total: number; // 추천(케미) 합
+  title_count: number;  // 명예: 보유 칭호 수
+}
+
 const POSITION_EMOJIS: Record<string, string> = {
   보컬: '🎤', 기타: '🎸', 베이스: '🎵', 드럼: '🥁', 건반: '🎹', '기타(other)': '🎶',
 };
@@ -93,6 +100,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
   const [pageLoading, setPageLoading] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [honorTitles, setHonorTitles] = useState<HonorTitle[]>([]);
+  const [reputation, setReputation] = useState<Reputation | null>(null);
 
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
@@ -103,7 +111,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
     async function load() {
       setPageLoading(true);
 
-      const [profileRes, tracksRes, postsRes, followerRes, followingRes, honorRes] = await Promise.all([
+      const [profileRes, tracksRes, postsRes, followerRes, followingRes, honorRes, repRes] = await Promise.all([
         supabase.from('user_profiles').select('*').eq('user_id', userId).maybeSingle(),
         supabase
           .from('stem_tracks')
@@ -121,6 +129,8 @@ export default function UserProfileClient({ userId }: { userId: string }) {
         supabase.from('user_follows').select('follower_id', { count: 'exact', head: true }).eq('following_id', userId),
         supabase.from('user_follows').select('following_id', { count: 'exact', head: true }).eq('follower_id', userId),
         supabase.from('user_titles').select('id, title_key, season_year, season_quarter, country, awarded_at').eq('user_id', userId).order('awarded_at', { ascending: false }),
+        // 명성 집계 RPC (supabase/06_user_reputation.sql). 미배포 시 error → 아래에서 fallback 처리.
+        supabase.rpc('user_reputation', { p_user_id: userId }),
       ]);
 
       setProfile(profileRes.data ?? null);
@@ -129,6 +139,19 @@ export default function UserProfileClient({ userId }: { userId: string }) {
       setFollowerCount(followerRes.count ?? 0);
       setFollowingCount(followingRes.count ?? 0);
       setHonorTitles(honorRes.data ?? []);
+
+      // RPC는 단일 행 배열로 반환. 미배포/오류 시 null → 렌더에서 트랙·칭호로 fallback.
+      const repRow = Array.isArray(repRes.data) ? repRes.data[0] : repRes.data;
+      setReputation(
+        repRow
+          ? {
+              thrown_count: Number(repRow.thrown_count) || 0,
+              passed_count: Number(repRow.passed_count) || 0,
+              mutual_total: Number(repRow.mutual_total) || 0,
+              title_count: Number(repRow.title_count) || 0,
+            }
+          : null,
+      );
       setPageLoading(false);
     }
 
@@ -229,6 +252,15 @@ export default function UserProfileClient({ userId }: { userId: string }) {
 
   const positionEmoji = POSITION_EMOJIS[profile.instruments[0] ?? ''] ?? '🎶';
 
+  // RPC 미배포/오류 시에도 카드가 깨지지 않도록 가용 데이터로 fallback
+  // (트랙 목록은 20개 cap이라 미배포 상태에서는 던짐이 과소집계될 수 있으나 일시적)
+  const rep: Reputation = reputation ?? {
+    thrown_count: tracks.length,
+    passed_count: 0,
+    mutual_total: 0,
+    title_count: honorTitles.length,
+  };
+
   return (
     <div className="min-h-screen bg-[#FFF8F0]">
       <Navigation />
@@ -301,32 +333,82 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                     팔로잉
                   </p>
                 </div>
-                <div className="text-center">
-                  <p className="text-[16px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
-                    {tracks.length}
-                  </p>
-                  <p className="text-[10px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                    트랙
-                  </p>
-                </div>
               </div>
             </div>
           </div>
 
-          {/* 명예 타이틀 */}
-          {honorTitles.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {honorTitles.map((ht) => (
-                <span
-                  key={ht.id}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[10px]"
-                  style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
-                >
-                  {formatTitleLabel(ht)}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* 명성 카드 — GitHub식 명성 (던짐·이어짐·명예) */}
+          {/* TODO(잔디 씨앗): 최근 N주 던지기 활동을 작은 캘린더 점(잔디 축소판)으로 추가.
+              주차별 집계 쿼리/RPC 필요 → 활동 데이터가 쌓인 뒤 도입. */}
+          <div className="mb-3">
+            {rep.thrown_count > 0 ? (
+              <>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { emoji: '🎸', label: '던짐', value: rep.thrown_count },
+                    { emoji: '🔗', label: '이어짐', value: rep.passed_count },
+                    { emoji: '🏆', label: '명예', value: rep.title_count },
+                  ] as { emoji: string; label: string; value: number }[]).map((s) => (
+                    <div
+                      key={s.label}
+                      className="bg-[#FFF8F0] rounded-[14px] border-[2px] border-[#0A0A0A] py-3 px-1 text-center"
+                      style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
+                    >
+                      <p className="text-[18px] leading-none mb-1">{s.emoji}</p>
+                      <p className="text-[22px] font-bold text-[#0A0A0A] leading-none" style={{ fontFamily: 'Bungee, sans-serif' }}>
+                        {s.value}
+                      </p>
+                      <p className="text-[10px] text-[#0A0A0A]/50 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                        {s.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 최신 명예 칭호 뱃지 */}
+                {honorTitles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {honorTitles.map((ht) => (
+                      <span
+                        key={ht.id}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[10px]"
+                        style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+                      >
+                        {formatTitleLabel(ht)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* 본인 넛지: 가볍게 다음 행동 유도 */}
+                {isSelf && (
+                  <Link
+                    href="/stems"
+                    className="flex items-center justify-center gap-1 mt-3 py-2.5 bg-[#F5FF4F] rounded-[12px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold"
+                    style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                  >
+                    🎸 오늘도 한 마디 던지기 →
+                  </Link>
+                )}
+              </>
+            ) : (
+              /* 활동 0 — 빈 숫자 자랑 대신 행동 유도 CTA (무대가 비어 보이지 않게) */
+              <Link
+                href="/stems"
+                className="block bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] px-4 py-4 text-center"
+                style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+              >
+                <p className="text-[14px] font-bold text-white leading-snug" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                  아직 던진 마디가 없어요
+                </p>
+                <p className="text-[12px] font-bold text-white/90 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                  {isSelf
+                    ? '첫 8마디를 던지고 명성을 쌓아보세요 →'
+                    : '8마디 챌린지에서 명성이 쌓이는 씬을 구경해보세요 →'}
+                </p>
+              </Link>
+            )}
+          </div>
 
           {/* 뱃지 행 */}
           <div className="flex flex-wrap gap-1.5 mb-3">
