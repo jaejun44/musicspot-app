@@ -459,7 +459,7 @@ export default function TrackUploadPanel({ user, projectId, trackOrder, onUpload
       </div>
 
       {uploadError && (
-        <p className="text-[12px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+        <p className="text-[12px] font-bold text-[#FF3D77] whitespace-pre-line" style={{ fontFamily: 'Pretendard, sans-serif' }}>
           ⚠️ {uploadError}
         </p>
       )}

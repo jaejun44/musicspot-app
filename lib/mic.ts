@@ -29,6 +29,37 @@ function mapMicError(e: unknown): string {
   }
 }
 
+/** 실패 원인 추적용: 브라우저가 보고하는 권한 상태 + 마이크 장치 수 + 브라우저. */
+async function micDiagnostics(): Promise<string> {
+  let perm = 'unknown';
+  try {
+    const p = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+    perm = p.state; // granted | denied | prompt
+  } catch {
+    perm = 'query-미지원';
+  }
+  let mics = -1;
+  try {
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    mics = devs.filter((d) => d.kind === 'audioinput').length;
+  } catch {
+    /* 무시 */
+  }
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const browser = /Edg\//.test(ua)
+    ? 'Edge'
+    : /OPR\//.test(ua)
+    ? 'Opera'
+    : /Brave/.test(ua)
+    ? 'Brave'
+    : /Chrome\//.test(ua)
+    ? 'Chrome'
+    : /Safari\//.test(ua)
+    ? 'Safari'
+    : '기타';
+  return `[진단] 권한=${perm} · 마이크=${mics}개 · ${browser}`;
+}
+
 /** 마이크 스트림 획득. 실패 시 원인이 담긴 한국어 메시지를 error 로 반환. */
 export async function acquireMic(): Promise<MicResult> {
   if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
@@ -42,6 +73,7 @@ export async function acquireMic(): Promise<MicResult> {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     return { stream };
   } catch (e) {
-    return { error: mapMicError(e) };
+    const diag = await micDiagnostics();
+    return { error: `${mapMicError(e)}\n\n${diag}` };
   }
 }

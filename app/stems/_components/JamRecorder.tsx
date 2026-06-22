@@ -212,7 +212,7 @@ export default function JamRecorder({ projectId, bpm, trackUrls, onRecorded }: P
             </p>
           )}
           {phase === 'error' && error && (
-            <p className="text-[12px] font-bold text-[#FF3D77] text-center" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            <p className="text-[12px] font-bold text-[#FF3D77] text-center whitespace-pre-line" style={{ fontFamily: 'Pretendard, sans-serif' }}>
               ⚠️ {error}
             </p>
           )}
