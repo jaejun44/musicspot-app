@@ -11,10 +11,8 @@
 --   mutual_total  = 추천   : user_mutual_responses 의 response_count 합 (양쪽 당사자)
 --   title_count   = 명예   : user_titles 보유 칭호 수
 --
--- 타입 주의:
---   stem_tracks.user_id        = uuid  → p_user_id 그대로 비교
---   user_titles.user_id        = text  → p_user_id::text 캐스팅
---   user_mutual_responses.*_id = text  → p_user_id::text 캐스팅
+-- 타입 주의: 관련 컬럼(stem_tracks.user_id / user_titles.user_id /
+--   user_mutual_responses.user_a_id·user_b_id)이 모두 uuid → p_user_id 그대로 비교(캐스팅 불필요).
 --
 -- 동시성/성능: 모두 읽기 전용(STABLE). user_id 인덱스 가정. 프로필 로딩 부담 최소.
 
@@ -48,11 +46,11 @@ AS $$
     -- 추천(케미) 합: 내가 한쪽 당사자인 상호 응답 횟수 총합
     (SELECT COALESCE(sum(response_count), 0)
        FROM public.user_mutual_responses m
-      WHERE m.user_a_id = p_user_id::text
-         OR m.user_b_id = p_user_id::text),
+      WHERE m.user_a_id = p_user_id
+         OR m.user_b_id = p_user_id),
 
     -- 명예: 보유 칭호 수
-    (SELECT count(*) FROM public.user_titles ut WHERE ut.user_id = p_user_id::text);
+    (SELECT count(*) FROM public.user_titles ut WHERE ut.user_id = p_user_id);
 $$;
 
 -- 실행 권한: 비로그인(anon)도 프로필 열람 시 명성 조회 가능
