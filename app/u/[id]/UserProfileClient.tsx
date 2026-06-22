@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, Play, Pause, Music, FileText } from 'lucide-react';
 import Navigation from '@/components/Navigation';
+import ActivityGrass, { type ActivityDay } from '@/components/ActivityGrass';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 
@@ -101,6 +102,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [honorTitles, setHonorTitles] = useState<HonorTitle[]>([]);
   const [reputation, setReputation] = useState<Reputation | null>(null);
+  const [calendar, setCalendar] = useState<ActivityDay[]>([]);
 
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
@@ -111,7 +113,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
     async function load() {
       setPageLoading(true);
 
-      const [profileRes, tracksRes, postsRes, followerRes, followingRes, honorRes, repRes] = await Promise.all([
+      const [profileRes, tracksRes, postsRes, followerRes, followingRes, honorRes, repRes, calRes] = await Promise.all([
         supabase.from('user_profiles').select('*').eq('user_id', userId).maybeSingle(),
         supabase
           .from('stem_tracks')
@@ -131,6 +133,8 @@ export default function UserProfileClient({ userId }: { userId: string }) {
         supabase.from('user_titles').select('id, title_key, season_year, season_quarter, country, awarded_at').eq('user_id', userId).order('awarded_at', { ascending: false }),
         // 명성 집계 RPC (supabase/06_user_reputation.sql). 미배포 시 error → 아래에서 fallback 처리.
         supabase.rpc('user_reputation', { p_user_id: userId }),
+        // 잔디용 날짜별 던진 수 (user_activity_calendar). 미배포/오류 시 빈 배열 → 빈 잔디 처리.
+        supabase.rpc('user_activity_calendar', { p_user_id: userId, p_days: 119 }),
       ]);
 
       setProfile(profileRes.data ?? null);
@@ -152,6 +156,8 @@ export default function UserProfileClient({ userId }: { userId: string }) {
             }
           : null,
       );
+
+      setCalendar(Array.isArray(calRes.data) ? (calRes.data as ActivityDay[]) : []);
       setPageLoading(false);
     }
 
@@ -408,6 +414,11 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 </p>
               </Link>
             )}
+          </div>
+
+          {/* 잔디 — 던지기 기여 그래프 */}
+          <div className="bg-[#FFF8F0] rounded-[14px] border-[2px] border-[#0A0A0A] px-3 py-3 mb-3" style={{ boxShadow: '3px 3px 0 #0A0A0A' }}>
+            <ActivityGrass data={calendar} isSelf={isSelf} />
           </div>
 
           {/* 뱃지 행 */}

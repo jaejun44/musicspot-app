@@ -12,6 +12,7 @@ import ProjectCard from './ProjectCard';
 import CreateProjectModal from './CreateProjectModal';
 import ProjectDetailModal from './ProjectDetailModal';
 import WaxMixerPlayer from './WaxMixerPlayer';
+import LeaderboardThrowers from '@/components/LeaderboardThrowers';
 
 type StemProjectRow = Database['public']['Tables']['stem_projects']['Row'] & {
   stem_tracks: Array<{ count: number }>;
@@ -204,6 +205,11 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
             🎵 8마디 챌린지란? ⌄
           </button>
         )}
+      </div>
+
+      {/* 이번 주 리더보드 */}
+      <div className="px-4 pb-3 max-w-2xl mx-auto">
+        <LeaderboardThrowers />
       </div>
 
       {/* WaxMixer 플레이어 */}
