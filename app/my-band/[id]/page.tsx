@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 /* ─── Types ─── */
 interface Band {
@@ -63,6 +64,7 @@ function AddScheduleModal({
   onClose: () => void;
   onAdded: (s: Schedule) => void;
 }) {
+  const t = useT();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(prefillDate ?? new Date().toISOString().slice(0, 10));
   const [startTime, setStartTime] = useState('');
@@ -73,8 +75,8 @@ function AddScheduleModal({
   const [error, setError] = useState('');
 
   async function handleSave() {
-    if (!title.trim()) { setError('일정 제목을 입력해 주세요.'); return; }
-    if (!date) { setError('날짜를 선택해 주세요.'); return; }
+    if (!title.trim()) { setError(t('일정 제목을 입력해 주세요.')); return; }
+    if (!date) { setError(t('날짜를 선택해 주세요.')); return; }
     setSaving(true);
     const { data, error: err } = await supabase
       .from('band_schedules')
@@ -91,7 +93,7 @@ function AddScheduleModal({
       .select()
       .single();
     setSaving(false);
-    if (err || !data) { setError('저장에 실패했어요.'); return; }
+    if (err || !data) { setError(t('저장에 실패했어요.')); return; }
     onAdded(data);
   }
 
@@ -117,12 +119,12 @@ function AddScheduleModal({
         <div className="px-5 py-5 flex flex-col gap-4">
           <div>
             <p className="text-[13px] font-bold mb-1.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              📝 제목 <span className="text-[#FF3D77]">*</span>
+              📝 {t('제목')} <span className="text-[#FF3D77]">*</span>
             </p>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="예) 홍대 합주, 발표 공연 리허설"
+              placeholder={t('예) 홍대 합주, 발표 공연 리허설')}
               maxLength={50}
               className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[14px] font-bold focus:outline-none focus:border-[#FF3D77]"
               style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
@@ -131,7 +133,7 @@ function AddScheduleModal({
 
           <div>
             <p className="text-[13px] font-bold mb-1.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              📅 날짜 <span className="text-[#FF3D77]">*</span>
+              📅 {t('날짜')} <span className="text-[#FF3D77]">*</span>
             </p>
             <input
               type="date"
@@ -145,7 +147,7 @@ function AddScheduleModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-[13px] font-bold mb-1.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                ⏰ 시작 시간
+                ⏰ {t('시작 시간')}
               </p>
               <input
                 type="time"
@@ -157,7 +159,7 @@ function AddScheduleModal({
             </div>
             <div>
               <p className="text-[13px] font-bold mb-1.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                ⏱ 종료 시간
+                ⏱ {t('종료 시간')}
               </p>
               <input
                 type="time"
@@ -171,12 +173,12 @@ function AddScheduleModal({
 
           <div>
             <p className="text-[13px] font-bold mb-1.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              📍 장소
+              📍 {t('장소')}
             </p>
             <input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="예) 홍대 무한연습실 2호점"
+              placeholder={t('예) 홍대 무한연습실 2호점')}
               maxLength={80}
               className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[14px] font-bold focus:outline-none focus:border-[#FF3D77]"
               style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
@@ -185,12 +187,12 @@ function AddScheduleModal({
 
           <div>
             <p className="text-[13px] font-bold mb-1.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              💬 메모
+              💬 {t('메모')}
             </p>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="준비물, 세트리스트 등"
+              placeholder={t('준비물, 세트리스트 등')}
               maxLength={200}
               rows={2}
               className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[13px] font-bold resize-none focus:outline-none focus:border-[#FF3D77]"
@@ -212,8 +214,8 @@ function AddScheduleModal({
             style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
           >
             {saving ? (
-              <><span className="w-4 h-4 rounded-full border-[2px] border-white border-t-transparent animate-spin" /> 저장 중...</>
-            ) : '일정 저장 💥'}
+              <><span className="w-4 h-4 rounded-full border-[2px] border-white border-t-transparent animate-spin" /> {t('저장 중...')}</>
+            ) : t('일정 저장 💥')}
           </motion.button>
           <div className="h-2" />
         </div>
@@ -224,6 +226,7 @@ function AddScheduleModal({
 
 /* ─── Main Page ─── */
 export default function BandDetailPage() {
+  const t = useT();
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -292,7 +295,7 @@ export default function BandDetailPage() {
   }
 
   async function handleDeleteSchedule(id: string) {
-    if (!confirm('이 일정을 삭제할까요?')) return;
+    if (!confirm(t('이 일정을 삭제할까요?'))) return;
     await supabase.from('band_schedules').delete().eq('id', id);
     setSchedules((prev) => prev.filter((s) => s.id !== id));
     if (selectedDateSchedules.length <= 1) setSelectedDate(null);
@@ -316,10 +319,10 @@ export default function BandDetailPage() {
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <span className="text-[48px]">😢</span>
           <p className="text-[16px] font-bold text-[#0A0A0A]/40" style={{ fontFamily: 'Bungee, sans-serif' }}>
-            밴드를 찾을 수 없어요
+            {t('밴드를 찾을 수 없어요')}
           </p>
           <button onClick={() => router.push('/my-band')} className="text-[#FF3D77] font-bold underline">
-            돌아가기
+            {t('돌아가기')}
           </button>
         </div>
       </div>
@@ -337,7 +340,7 @@ export default function BandDetailPage() {
           className="flex items-center gap-1 text-[13px] font-bold text-[#0A0A0A]/40 mb-3"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          ‹ 내 밴드
+          ‹ {t('내 밴드')}
         </button>
         <div className="flex items-center gap-3">
           <div
@@ -362,13 +365,13 @@ export default function BandDetailPage() {
       {/* 탭 */}
       <div className="px-4 pt-3 pb-1 max-w-2xl mx-auto">
         <div className="flex gap-2">
-          {(['calendar', 'schedules', 'members'] as Tab[]).map((t) => {
+          {(['calendar', 'schedules', 'members'] as Tab[]).map((tabKey) => {
             const labels: Record<Tab, string> = { calendar: '📅 캘린더', schedules: '📋 일정', members: '👥 멤버' };
-            const active = tab === t;
+            const active = tab === tabKey;
             return (
               <motion.button
-                key={t}
-                onClick={() => setTab(t)}
+                key={tabKey}
+                onClick={() => setTab(tabKey)}
                 whileTap={{ scale: 0.96 }}
                 className={[
                   'flex-1 py-2.5 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold',
@@ -376,7 +379,7 @@ export default function BandDetailPage() {
                 ].join(' ')}
                 style={{ boxShadow: active ? '3px 3px 0 #0A0A0A' : '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
-                {labels[t]}
+                {t(labels[tabKey])}
               </motion.button>
             );
           })}
@@ -406,7 +409,7 @@ export default function BandDetailPage() {
                 {WEEKDAYS.map((d, i) => (
                   <div key={d} className={`text-center text-[11px] font-bold pb-1 ${i === 0 ? 'text-[#FF3D77]' : i === 6 ? 'text-[#4FC3F7]' : 'text-[#0A0A0A]/40'}`}
                     style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                    {d}
+                    {t(d)}
                   </div>
                 ))}
               </div>
@@ -455,13 +458,13 @@ export default function BandDetailPage() {
                     className="px-3 py-1.5 bg-[#FF3D77] text-white rounded-[10px] border-[2px] border-[#0A0A0A] text-[12px] font-bold"
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    + 일정 추가
+                    {t('+ 일정 추가')}
                   </motion.button>
                 </div>
                 {selectedDateSchedules.length === 0 ? (
                   <div className="bg-white rounded-[16px] border-[2px] border-[#0A0A0A] p-4 text-center text-[13px] text-[#0A0A0A]/40 font-bold"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                    이 날 일정이 없어요
+                    {t('이 날 일정이 없어요')}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
@@ -480,7 +483,7 @@ export default function BandDetailPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-[13px] font-bold text-[#0A0A0A]/50" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                다가오는 일정 {upcomingSchedules.length}개
+                {t('다가오는 일정 {count}개', { count: upcomingSchedules.length })}
               </p>
             </div>
             {upcomingSchedules.length === 0 ? (
@@ -525,12 +528,12 @@ export default function BandDetailPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[14px] truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                      {m.display_name ?? '뮤지션'}
+                      {m.display_name ?? t('뮤지션')}
                     </span>
                     {m.role === 'leader' && (
                       <span className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] rounded-[6px] text-[10px] font-bold flex-shrink-0"
                         style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                        리더
+                        {t('리더')}
                       </span>
                     )}
                   </div>
@@ -541,7 +544,7 @@ export default function BandDetailPage() {
                   )}
                 </div>
                 {m.user_id === user?.id && (
-                  <span className="text-[11px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Pretendard, sans-serif' }}>나</span>
+                  <span className="text-[11px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('나')}</span>
                 )}
               </motion.div>
             ))}
@@ -553,19 +556,19 @@ export default function BandDetailPage() {
                 style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
               >
                 <p className="text-[13px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                  💡 멤버 초대 방법
+                  💡 {t('멤버 초대 방법')}
                 </p>
                 <p className="text-[12px] text-[#0A0A0A]/70 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                  이 페이지 주소를 밴드 멤버에게 공유하세요.<br />
-                  멤버가 로그인 후 아래 버튼으로 합류할 수 있어요.
+                  {t('이 페이지 주소를 밴드 멤버에게 공유하세요.')}<br />
+                  {t('멤버가 로그인 후 아래 버튼으로 합류할 수 있어요.')}
                 </p>
                 <motion.button
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => { navigator.clipboard.writeText(window.location.href); alert('링크가 복사됐어요!'); }}
+                  onClick={() => { navigator.clipboard.writeText(window.location.href); alert(t('링크가 복사됐어요!')); }}
                   className="mt-3 w-full py-2.5 bg-white rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold"
                   style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  🔗 초대 링크 복사
+                  🔗 {t('초대 링크 복사')}
                 </motion.button>
               </div>
             )}
@@ -588,7 +591,7 @@ export default function BandDetailPage() {
               className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px]"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              📅 일정 추가하기
+              📅 {t('일정 추가하기')}
             </motion.button>
           </div>
         </div>
@@ -673,6 +676,7 @@ function ScheduleCard({
 
 /* ─── JoinBandButton ─── */
 function JoinBandButton({ bandId, user, onJoined }: { bandId: string; user: { id: string; user_metadata?: Record<string, unknown>; email?: string }; onJoined: () => void }) {
+  const t = useT();
   const [joining, setJoining] = useState(false);
 
   async function handleJoin() {
@@ -697,7 +701,7 @@ function JoinBandButton({ bandId, user, onJoined }: { bandId: string; user: { id
       className="w-full py-4 bg-[#41C66B] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px] mt-2"
       style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
     >
-      {joining ? '합류 중...' : '🎸 이 밴드 합류하기'}
+      {joining ? t('합류 중...') : t('🎸 이 밴드 합류하기')}
     </motion.button>
   );
 }

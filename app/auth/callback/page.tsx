@@ -4,9 +4,11 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { safeInternalPath } from '@/lib/safe-redirect';
+import { useT } from '@/lib/i18n';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const t = useT();
 
   useEffect(() => {
     // 공유 링크 → 로그인 → 콜백 복귀 경로. 내부 경로만 허용(오픈 리다이렉트 방지).
@@ -34,7 +36,7 @@ export default function AuthCallbackPage() {
           className="text-[14px] font-bold text-[#0A0A0A]/50"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          로그인 처리 중...
+          {t('로그인 처리 중...')}
         </p>
       </div>
     </div>

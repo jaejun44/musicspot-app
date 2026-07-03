@@ -13,6 +13,7 @@ import CreateProjectModal from './CreateProjectModal';
 import ProjectDetailModal from './ProjectDetailModal';
 import WaxMixerPlayer from './WaxMixerPlayer';
 import LeaderboardThrowers from '@/components/LeaderboardThrowers';
+import { useT } from '@/lib/i18n';
 
 type StemProjectRow = Database['public']['Tables']['stem_projects']['Row'] & {
   stem_tracks: Array<{ count: number }>;
@@ -24,6 +25,7 @@ interface StemsClientProps {
 }
 
 export default function StemsClient({ initialProjectId }: StemsClientProps = {}) {
+  const t = useT();
   const router = useRouter();
   const { user, loading } = useAuth();
   const [projects, setProjects] = useState<StemProject[]>([]);
@@ -93,7 +95,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
   }
 
   async function handleDeleteProject(id: string) {
-    if (!confirm('프로젝트를 삭제하시겠어요? 모든 트랙도 함께 삭제됩니다.')) return;
+    if (!confirm(t('프로젝트를 삭제하시겠어요? 모든 트랙도 함께 삭제됩니다.'))) return;
     await supabase.from('stem_tracks').delete().eq('project_id', id);
     await supabase.from('stem_projects').delete().eq('id', id);
     fetchProjects();
@@ -158,7 +160,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
             className="text-[13px] text-[#0A0A0A]/50 mt-1 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            릴레이로 완성하는 우리의 리프
+            {t('릴레이로 완성하는 우리의 리프')}
           </p>
         </motion.div>
       </div>
@@ -177,23 +179,23 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
                 className="text-[14px] font-bold text-[#0A0A0A]"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                🎵 8마디 챌린지란?
+                {t('🎵 8마디 챌린지란?')}
               </p>
               <button
                 onClick={dismissIntro}
                 className="text-[12px] font-bold text-[#0A0A0A]/40 shrink-0"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                알겠어요 ✕
+                {t('알겠어요 ✕')}
               </button>
             </div>
             <p
               className="mt-1.5 text-[13px] text-[#0A0A0A]/60 font-bold leading-relaxed"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              누군가 8마디를 올리면, 다음 사람이 이어서 8마디를 더해 음악을 완성하는 릴레이예요.
+              {t('누군가 8마디를 올리면, 다음 사람이 이어서 8마디를 더해 음악을 완성하는 릴레이예요.')}
               <br />
-              <span className="text-[#FF3D77]">🎸 던지기 → 🎯 이어받기 → 🔥 밴드 완성</span>
+              <span className="text-[#FF3D77]">{t('🎸 던지기 → 🎯 이어받기 → 🔥 밴드 완성')}</span>
             </p>
           </motion.div>
         ) : (
@@ -202,7 +204,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
             className="text-[12px] font-bold text-[#0A0A0A]/50 bg-white/80 rounded-[10px] border-[2px] border-[#0A0A0A] px-3 py-1.5"
             style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
-            🎵 8마디 챌린지란? ⌄
+            {t('🎵 8마디 챌린지란? ⌄')}
           </button>
         )}
       </div>
@@ -228,7 +230,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
             className="px-5 pt-4 pb-3 text-[#F5FF4F] text-[16px]"
             style={{ fontFamily: 'Bungee, sans-serif' }}
           >
-            이렇게 해봐 ⚡
+            {t('이렇게 해봐 ⚡')}
           </p>
           <div className="flex flex-col divide-y divide-white/10">
             {steps.map((step, i) => (
@@ -239,7 +241,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
                   <span className="text-[#F5FF4F] mr-1">0{i + 1}</span>
-                  {step.text}
+                  {t(step.text)}
                 </p>
               </div>
             ))}
@@ -255,7 +257,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
                 boxShadow: '5px 5px 0 #F5FF4F55',
               }}
             >
-              첫 챌린지 시작하기 ⚡
+              {t('첫 챌린지 시작하기 ⚡')}
             </motion.button>
           </div>
         </motion.div>
@@ -274,7 +276,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
             className="text-[12px] text-[#0A0A0A]/60 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {projects.length}개의 프로젝트
+            {t('{count}개의 프로젝트', { count: projects.length })}
           </p>
         </motion.div>
       </div>
@@ -308,8 +310,8 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
                 className="text-[15px] font-bold text-[#0A0A0A]/60 text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                아직 챌린지가 없어요.
-                <br />첫 번째 8마디를 던져보세요!
+                {t('아직 챌린지가 없어요.')}
+                <br />{t('첫 번째 8마디를 던져보세요!')}
               </p>
               <motion.button
                 whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
@@ -318,7 +320,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
                 className="px-6 py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[15px] font-bold"
                 style={{ fontFamily: 'Bungee, sans-serif', boxShadow: '5px 5px 0 #0A0A0A' }}
               >
-                챌린지 시작하기 🎸
+                {t('챌린지 시작하기 🎸')}
               </motion.button>
             </motion.div>
           </div>

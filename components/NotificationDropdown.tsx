@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
+import { useT, t as tGlobal } from '@/lib/i18n';
 
 const TYPE_EMOJI: Record<Notification['type'], string> = {
   follow: '👤',
@@ -19,11 +20,11 @@ const TYPE_EMOJI: Record<Notification['type'], string> = {
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return '방금';
-  if (m < 60) return `${m}분 전`;
+  if (m < 1) return tGlobal('방금');
+  if (m < 60) return tGlobal('{m}분 전', { m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}시간 전`;
-  return `${Math.floor(h / 24)}일 전`;
+  if (h < 24) return tGlobal('{h}시간 전', { h });
+  return tGlobal('{d}일 전', { d: Math.floor(h / 24) });
 }
 
 interface Props {
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function NotificationDropdown({ open, onClose }: Props) {
+  const t = useT();
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications();
   const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
@@ -61,7 +63,7 @@ export default function NotificationDropdown({ open, onClose }: Props) {
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-[#0A0A0A]" />
               <span className="text-[14px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                알림
+                {t('알림')}
               </span>
               {unreadCount > 0 && (
                 <span
@@ -79,7 +81,7 @@ export default function NotificationDropdown({ open, onClose }: Props) {
                   className="text-[11px] font-bold text-[#0A0A0A]/50 hover:text-[#FF3D77] transition-colors"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  모두 읽음
+                  {t('모두 읽음')}
                 </button>
               )}
               <button onClick={onClose} className="text-[#0A0A0A]/40 hover:text-[#0A0A0A] transition-colors">
@@ -94,7 +96,7 @@ export default function NotificationDropdown({ open, onClose }: Props) {
               <div className="flex flex-col items-center justify-center py-12 gap-2">
                 <Bell className="w-8 h-8 text-[#0A0A0A]/20" />
                 <p className="text-[13px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                  알림이 없습니다
+                  {t('알림이 없습니다')}
                 </p>
               </div>
             ) : (

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { MoreVertical } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import type { StemProject } from '@/types/stem';
+import { useT } from '@/lib/i18n';
 
 const KEY_COLORS: Record<string, string> = {
   C: '#FF3D77', D: '#4FC3F7', E: '#41C66B', F: '#F5FF4F',
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function ProjectCard({ project, index, user, onOpen, onEdit, onDelete }: Props) {
+  const t = useT();
   const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
   const keyColor = KEY_COLORS[project.key_signature[0]] ?? '#F5FF4F';
   const isOwner = !!user && user.id === project.creator_id;
@@ -62,7 +64,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
                 className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
                 style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
               >
-                이용예시
+                {t('이용예시')}
               </span>
             )}
             <p
@@ -88,7 +90,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
             ].join(' ')}
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {project.is_open ? '🎵 참여중' : '🔒 마감'}
+            {project.is_open ? t('🎵 참여중') : t('🔒 마감')}
           </span>
 
           {isOwner && (
@@ -111,14 +113,14 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
                     className="w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-bold text-[#0A0A0A] hover:bg-[#FFF8F0] transition-colors border-b border-[#0A0A0A]/10"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    ✏️ 수정
+                    ✏️ {t('수정')}
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(project.id); }}
                     className="w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-bold text-[#FF3D77] hover:bg-[#FF3D77]/10 transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    🗑️ 삭제
+                    🗑️ {t('삭제')}
                   </button>
                 </motion.div>
               )}
@@ -170,7 +172,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
           className="flex items-center gap-2.5 text-[12px] font-bold text-[#0A0A0A]/60"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          <span>🎸 {trackCount}명 참여</span>
+          <span>{t('🎸 {count}명 참여', { count: trackCount })}</span>
           {shareCount > 0 && <span className="text-[#FF3D77]">🔥 {shareCount}</span>}
           {passCount > 0 && <span className="text-[#41C66B]">🎯 {passCount}</span>}
         </div>
@@ -190,7 +192,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
         >
           <span className="text-[12px]">🎵</span>
           <span className="text-[11px] font-bold text-[#0A0A0A]/70">
-            참여 가능 · <span className="text-[#41C66B]">{trackCount + 1}번째 주자</span> 모집중
+            {t('참여 가능 ·')} <span className="text-[#41C66B]">{t('{count}번째 주자', { count: trackCount + 1 })}</span> {t('모집중')}
           </span>
         </div>
       )}

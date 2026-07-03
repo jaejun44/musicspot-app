@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Musician } from '../_data/musicians';
 import { trackBandContact } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 const LEVEL_COLOR: Record<Musician['level'], string> = {
   입문: '#41C66B',
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function MusicianCard({ musician, index, onContact, currentUserId, currentUserName }: Props) {
+  const t = useT();
   const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
   const isRealUser = UUID_RE.test(musician.id);
   const isExample = musician.name.startsWith('[이용예시]');
@@ -102,7 +104,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
                 className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
                 style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
               >
-                이용예시
+                {t('이용예시')}
               </span>
             )}
             <p
@@ -127,13 +129,13 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
           className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[11px] font-bold rounded-[6px]"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          {musician.position}
+          {t(musician.position)}
         </span>
         <span
           className="px-2 py-0.5 border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[6px]"
           style={{ backgroundColor: LEVEL_COLOR[musician.level] + '33', fontFamily: 'Pretendard, sans-serif' }}
         >
-          {musician.level}
+          {t(musician.level)}
         </span>
         {musician.genre.map((g) => (
           <span
@@ -179,7 +181,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
             ].join(' ')}
             style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
-            {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
+            {isFollowing ? t('✓ 팔로잉') : t('+ 팔로우')}
           </motion.button>
         )}
         {isRealUser && !isExample && (
@@ -189,7 +191,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
             className="flex-shrink-0 px-3 py-2.5 bg-[#F5FF4F] rounded-[12px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[12px] text-center"
             style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
-            프로필
+            {t('프로필')}
           </Link>
         )}
         <motion.button
@@ -198,7 +200,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
           className="flex-1 py-2.5 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
           style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
         >
-          연락하기 💥
+          {t('연락하기 💥')}
         </motion.button>
       </div>
     </motion.div>

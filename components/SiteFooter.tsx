@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 const rockerImage = '/ms_character/joy.png';
 
@@ -13,6 +16,23 @@ const FOOTER_REGIONS = [
 ];
 
 export default function SiteFooter() {
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
+
+  // 일본 모드: 연습실 관련 서비스 링크 제외
+  const services: { label: string; href: string }[] = isJapanMode
+    ? [
+        { label: t('밴드 매칭'), href: '/band-matching' },
+        { label: t('8마디 챌린지'), href: '/stems' },
+        { label: t('커뮤니티'), href: '/community' },
+      ]
+    : [
+        { label: t('연습실 예약'), href: '/search' },
+        { label: t('합주실'), href: '/search' },
+        { label: t('밴드 매칭'), href: '/search' },
+        { label: t('공연'), href: '/search' },
+      ];
+
   return (
     <footer className="bg-[#0A0A1F] text-white py-16 px-8">
       <div className="max-w-[1440px] mx-auto">
@@ -46,30 +66,31 @@ export default function SiteFooter() {
               className="mb-4"
               style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#F5FF4F' }}
             >
-              서비스
+              {t('서비스')}
             </h4>
             <ul className="space-y-2">
-              {['연습실 예약', '합주실', '밴드 매칭', '공연'].map((item) => (
-                <li key={item}>
+              {services.map((item) => (
+                <li key={item.label}>
                   <Link
-                    href="/search"
+                    href={item.href}
                     className="text-gray-300 hover:text-[#FF3D77] transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
                   >
-                    {item}
+                    {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* 지역 (SEO 내부 링크) */}
+          {/* 지역 (SEO 내부 링크) — 일본 모드 숨김 */}
+          {!isJapanMode && (
           <div>
             <h4
               className="mb-4"
               style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#F5FF4F' }}
             >
-              지역
+              {t('지역')}
             </h4>
             <ul className="space-y-2">
               {FOOTER_REGIONS.map((r) => (
@@ -79,7 +100,7 @@ export default function SiteFooter() {
                     className="text-gray-300 hover:text-[#FF3D77] transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
                   >
-                    {r.label} 연습실
+                    {r.label} {t('연습실')}
                   </Link>
                 </li>
               ))}
@@ -89,11 +110,12 @@ export default function SiteFooter() {
                   className="text-[#F5FF4F] hover:text-[#FF3D77] transition-colors font-bold"
                   style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
                 >
-                  전체 지역 보기 →
+                  {t('전체 지역 보기 →')}
                 </Link>
               </li>
             </ul>
           </div>
+          )}
 
           {/* Company */}
           <div>
@@ -101,7 +123,7 @@ export default function SiteFooter() {
               className="mb-4"
               style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#F5FF4F' }}
             >
-              회사
+              {t('회사')}
             </h4>
             <ul className="space-y-2">
               {['회사소개', '팀', '채용', '파트너'].map((item) => (
@@ -111,7 +133,7 @@ export default function SiteFooter() {
                     className="text-gray-300 hover:text-[#FF3D77] transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
                   >
-                    {item}
+                    {t(item)}
                   </a>
                 </li>
               ))}
@@ -124,7 +146,7 @@ export default function SiteFooter() {
               className="mb-4"
               style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#F5FF4F' }}
             >
-              고객지원
+              {t('고객지원')}
             </h4>
             <ul className="space-y-2">
               {['FAQ', '문의하기', '이용약관', '개인정보처리'].map((item) => (
@@ -134,7 +156,7 @@ export default function SiteFooter() {
                     className="text-gray-300 hover:text-[#FF3D77] transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
                   >
-                    {item}
+                    {t(item)}
                   </a>
                 </li>
               ))}

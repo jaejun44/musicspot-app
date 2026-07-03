@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { MoreVertical, Pencil, Trash2, MessageCircle } from 'lucide-react';
 import { Post } from '../_data/posts';
 import { supabase } from '@/lib/supabase';
+import { useT, useLocale } from '@/lib/i18n';
+import { countryFlag, contentLang } from '@/lib/geo';
+import { translateTexts } from '@/lib/translate';
 import CommentSection from './CommentSection';
 
 const CATEGORY_STYLE: Record<Post['category'], { bg: string; text: string }> = {
@@ -33,6 +36,35 @@ export default function PostCard({
   post, index, currentUserId, currentUserName, currentUserEmoji, currentUserAvatarUrl,
   initialLiked, onLikeToggle, onCommentAdded, onEdit, onDelete,
 }: Props) {
+  const t = useT();
+  const locale = useLocale();
+  const flag = countryFlag(post.country, post.language);
+  const postLang = contentLang(post.country, post.language);
+  const canTranslate = postLang !== locale; // 뷰어 언어와 다를 때만 번역 버튼 노출
+  const [translated, setTranslated] = useState<{ title: string; body: string } | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState(false);
+
+  const showTranslated = !!translated && !showOriginal;
+  const displayTitle = showTranslated ? translated!.title : post.title;
+  const displayBody = showTranslated ? translated!.body : post.body;
+
+  async function handleTranslate() {
+    if (translated) { setShowOriginal((v) => !v); return; }
+    setTranslating(true);
+    setTranslateError(false);
+    try {
+      const [tt, tb] = await translateTexts([post.title, post.body], locale);
+      setTranslated({ title: tt, body: tb });
+      setShowOriginal(false);
+    } catch {
+      setTranslateError(true);
+    } finally {
+      setTranslating(false);
+    }
+  }
+
   const [liked, setLiked] = useState(initialLiked ?? false);
   const [likeCount, setLikeCount] = useState(post.likes_count ?? 0);
   const [commentCount, setCommentCount] = useState(post.comments_count ?? 0);
@@ -93,14 +125,14 @@ export default function PostCard({
             className="px-2.5 py-1 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold"
             style={{ backgroundColor: style.bg, color: style.text, fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
           >
-            {post.category}
+            {t(post.category)}
           </span>
           {post.tags.includes('이용예시') && (
             <span
               className="px-2 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
               style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
             >
-              이용예시
+              {t('이용예시')}
             </span>
           )}
         </div>
@@ -138,7 +170,7 @@ export default function PostCard({
                           style={{ fontFamily: 'Pretendard, sans-serif' }}
                         >
                           <Pencil className="w-3.5 h-3.5" />
-                          수정
+                          {t('수정')}
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
@@ -146,13 +178,13 @@ export default function PostCard({
                           style={{ fontFamily: 'Pretendard, sans-serif' }}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          삭제
+                          {t('삭제')}
                         </button>
                       </>
                     ) : (
                       <div className="px-4 py-3">
                         <p className="text-[12px] font-bold text-[#0A0A0A] mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                          정말 삭제할까요?
+                          {t('정말 삭제할까요?')}
                         </p>
                         <div className="flex gap-2">
                           <button
@@ -160,14 +192,14 @@ export default function PostCard({
                             className="flex-1 py-1.5 bg-[#FF3D77] text-white text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]"
                             style={{ fontFamily: 'Pretendard, sans-serif' }}
                           >
-                            삭제
+                            {t('삭제')}
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
                             className="flex-1 py-1.5 bg-white text-[#0A0A0A] text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]/30"
                             style={{ fontFamily: 'Pretendard, sans-serif' }}
                           >
-                            취소
+                            {t('취소')}
                           </button>
                         </div>
                       </div>
@@ -187,14 +219,14 @@ export default function PostCard({
           className="text-[15px] font-bold text-[#0A0A0A] leading-tight hover:text-[#FF3D77] transition-colors"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          {post.title}
+          {displayTitle}
         </Link>
       ) : (
         <p
           className="text-[15px] font-bold text-[#0A0A0A] leading-tight"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          {post.title}
+          {displayTitle}
         </p>
       )}
 
@@ -203,8 +235,26 @@ export default function PostCard({
         className="text-[12px] text-[#0A0A0A]/60 font-bold leading-relaxed line-clamp-3"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
-        {post.body}
+        {displayBody}
       </p>
+
+      {/* 번역 버튼 (Instagram 스타일 — 뷰어 언어와 다를 때만) */}
+      {canTranslate && (
+        <button
+          onClick={handleTranslate}
+          disabled={translating}
+          className="self-start text-[11px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          {translating
+            ? t('번역 중...')
+            : translateError
+            ? t('번역 실패 · 다시 시도')
+            : showTranslated
+            ? t('원문 보기')
+            : t('번역 보기')}
+        </button>
+      )}
 
       {/* 태그 */}
       <div className="flex flex-wrap gap-1.5">
@@ -238,6 +288,7 @@ export default function PostCard({
             >
               {post.author}
             </span>
+            {flag && <span className="text-[13px] leading-none" title={post.country ?? undefined}>{flag}</span>}
           </Link>
         ) : (
           <div className="flex items-center gap-2">
@@ -256,6 +307,7 @@ export default function PostCard({
             >
               {post.author.replace('[이용예시] ', '')}
             </span>
+            {flag && <span className="text-[13px] leading-none" title={post.country ?? undefined}>{flag}</span>}
           </div>
         )}
         <div className="flex items-center gap-3">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Share } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -21,6 +22,7 @@ function isIOSSafari() {
 }
 
 export default function PWAInstallBanner() {
+  const t = useT();
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [mode, setMode] = useState<'android' | 'ios' | null>(null);
 
@@ -87,24 +89,24 @@ export default function PWAInstallBanner() {
                     className="text-[13px] font-bold text-[#0A0A0A] leading-tight"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    홈 화면에 추가하기 🎸
+                    {t('홈 화면에 추가하기 🎸')}
                   </p>
                   <p
                     className="text-[11px] text-[#0A0A0A]/60 font-medium mt-1 leading-relaxed"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    아래 공유 버튼을 탭한 후<br />
-                    <span className="font-bold text-[#0A0A0A]/80">"홈 화면에 추가"</span>를 선택하세요
+                    {t('아래 공유 버튼을 탭한 후')}<br />
+                    <span className="font-bold text-[#0A0A0A]/80">{t('"홈 화면에 추가"')}</span>{t('를 선택하세요')}
                   </p>
                   {/* 시각적 단계 안내 */}
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center gap-1 bg-[#FFF8F0] border-[2px] border-[#0A0A0A] rounded-[8px] px-2 py-1">
                       <Share className="w-3 h-3 text-[#0A0A0A]" />
-                      <span className="text-[10px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>공유</span>
+                      <span className="text-[10px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('공유')}</span>
                     </div>
                     <span className="text-[10px] text-[#0A0A0A]/40 font-bold">→</span>
                     <div className="bg-[#FF3D77] border-[2px] border-[#0A0A0A] rounded-[8px] px-2 py-1">
-                      <span className="text-[10px] font-bold text-white" style={{ fontFamily: 'Pretendard, sans-serif' }}>홈 화면에 추가</span>
+                      <span className="text-[10px] font-bold text-white" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('홈 화면에 추가')}</span>
                     </div>
                   </div>
                 </div>
@@ -121,7 +123,7 @@ export default function PWAInstallBanner() {
               <div className="flex justify-center mt-3">
                 <div className="flex flex-col items-center gap-0.5">
                   <div className="w-4 h-4 text-[#FF3D77] font-black text-[18px] leading-none">↓</div>
-                  <span className="text-[10px] text-[#0A0A0A]/40 font-medium" style={{ fontFamily: 'Pretendard, sans-serif' }}>화면 하단 공유 버튼</span>
+                  <span className="text-[10px] text-[#0A0A0A]/40 font-medium" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('화면 하단 공유 버튼')}</span>
                 </div>
               </div>
             </div>
@@ -142,13 +144,13 @@ export default function PWAInstallBanner() {
                   className="text-[13px] font-bold text-[#0A0A0A] leading-tight"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  홈 화면에 추가하기 🎸
+                  {t('홈 화면에 추가하기 🎸')}
                 </p>
                 <p
                   className="text-[11px] text-[#0A0A0A]/50 font-bold mt-0.5"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  앱처럼 빠르게 연습실을 찾아요
+                  {t('앱처럼 빠르게 연습실을 찾아요')}
                 </p>
               </div>
               <motion.button
@@ -157,7 +159,7 @@ export default function PWAInstallBanner() {
                 className="flex-shrink-0 px-3 py-2 bg-[#FF3D77] rounded-[10px] border-[2px] border-[#0A0A0A] text-white font-bold text-[12px]"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
-                추가
+                {t('추가')}
               </motion.button>
               <motion.button
                 onClick={handleDismiss}

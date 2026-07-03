@@ -13,5 +13,7 @@ export interface Post {
   tags: string[];
   likes_count?: number;
   comments_count?: number;
+  country?: string | null;
+  language?: string | null;
 }
 

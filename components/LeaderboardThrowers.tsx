@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 // leaderboard_throwers(p_since_days, p_limit) RPC 반환 행
 interface LeaderboardEntry {
@@ -16,6 +17,7 @@ interface LeaderboardEntry {
 const RANK_BADGE = ['🥇', '🥈', '🥉'];
 
 export default function LeaderboardThrowers() {
+  const t = useT();
   const [rows, setRows] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,22 +52,22 @@ export default function LeaderboardThrowers() {
       style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
     >
       <p className="text-[16px] text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
-        이번 주 많이 던진 사람 🔥
+        {t('이번 주 많이 던진 사람 🔥')}
       </p>
 
       {isEmpty ? (
         <div className="mt-3">
           <p className="text-[13px] font-bold text-[#0A0A0A]/60 leading-relaxed" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            아직 이번 주 주자가 적어요.
+            {t('아직 이번 주 주자가 적어요.')}
             <br />
-            지금 던지면 바로 1위에 오를 수 있어요.
+            {t('지금 던지면 바로 1위에 오를 수 있어요.')}
           </p>
           <Link
             href="/stems"
             className="inline-block mt-3 px-4 py-2 bg-[#FF3D77] text-white rounded-[12px] border-[3px] border-[#0A0A0A] text-[13px] font-bold"
             style={{ fontFamily: 'Bungee, sans-serif', boxShadow: '3px 3px 0 #0A0A0A' }}
           >
-            지금 던지고 1위 →
+            {t('지금 던지고 1위 →')}
           </Link>
         </div>
       ) : (
@@ -102,7 +104,7 @@ export default function LeaderboardThrowers() {
                 className="flex-1 min-w-0 truncate text-[13px] font-bold text-[#0A0A0A] group-hover:text-[#FF3D77] transition-colors"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                {r.display_name?.trim() || '익명 뮤지션'}
+                {r.display_name?.trim() || t('익명 뮤지션')}
               </p>
 
               {/* 던진 수 */}
@@ -113,7 +115,7 @@ export default function LeaderboardThrowers() {
                 {r.thrown}
               </span>
               <span className="text-[11px] font-bold text-[#0A0A0A]/40 shrink-0" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                던짐
+                {t('던짐')}
               </span>
             </Link>
           ))}

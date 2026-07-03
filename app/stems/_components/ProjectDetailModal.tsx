@@ -11,6 +11,7 @@ import { buildShareUrl } from '@/lib/share-utm';
 import { trackEvent } from '@/lib/analytics';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 import { createAudioContext, resumeContext, loadTracksAligned, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
+import { useT } from '@/lib/i18n';
 
 interface StemTrack {
   id: string;
@@ -36,6 +37,7 @@ interface Props {
 }
 
 export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete }: Props) {
+  const t = useT();
   const router = useRouter();
   const [tracks, setTracks] = useState<StemTrack[]>([]);
   const [localIsOpen, setLocalIsOpen] = useState(project.is_open);
@@ -168,13 +170,13 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
         window.Kakao.Share.sendDefault({
           objectType: 'feed',
           content: {
-            title: `${project.title} — 8마디 챌린지`,
-            description: `${project.creator_name} 님이 시작한 릴레이. 8마디를 이어보세요!`,
+            title: t('{title} — 8마디 챌린지', { title: project.title }),
+            description: t('{name} 님이 시작한 릴레이. 8마디를 이어보세요!', { name: project.creator_name }),
             imageUrl: ogImage,
             link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
           },
           buttons: [
-            { title: '이어서 만들기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } },
+            { title: t('이어서 만들기'), link: { mobileWebUrl: shareUrl, webUrl: shareUrl } },
           ],
         });
         return;
@@ -204,7 +206,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   }
 
   async function handleDeleteTrack(id: string) {
-    if (!confirm('이 트랙을 삭제할까요?')) return;
+    if (!confirm(t('이 트랙을 삭제할까요?'))) return;
     await supabase.from('stem_tracks').delete().eq('id', id);
     fetchTracks();
     onUpdate();
@@ -268,7 +270,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   ].join(' ')}
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  {localIsOpen ? '🎵 참여중' : '🔒 마감'}
+                  {localIsOpen ? t('🎵 참여중') : t('🔒 마감')}
                 </span>
                 <h2
                   className="text-[20px] font-bold text-[#0A0A0A] leading-tight"
@@ -287,12 +289,12 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 <button
                   onClick={handleShare}
                   className="p-1.5 flex items-center gap-1 text-[12px] font-bold text-[#FF3D77]"
-                  aria-label="프로젝트 공유"
+                  aria-label={t('프로젝트 공유')}
                 >
                   <Share2 className="w-4 h-4" />
-                  {shareCopied ? '복사됨!' : '공유'}
+                  {shareCopied ? t('복사됨!') : t('공유')}
                 </button>
-                <button onClick={onClose} className="p-1" aria-label="닫기">
+                <button onClick={onClose} className="p-1" aria-label={t('닫기')}>
                   <X className="w-5 h-5 text-[#0A0A0A]/60" />
                 </button>
               </div>
@@ -318,9 +320,9 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   className="text-[11px] font-bold text-[#0A0A0A]/60"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  총 <span className="text-[#FF3D77]">{liveTrackCount}마디</span> 이어짐
-                  {participantCount > 0 && <> · 참여자 {participantCount}명</>}
-                  {shareCount > 0 && <> · 🔥 공유 {shareCount}</>}
+                  {t('총')} <span className="text-[#FF3D77]">{t('{count}마디', { count: liveTrackCount })}</span> {t('이어짐')}
+                  {participantCount > 0 && <> · {t('참여자 {count}명', { count: participantCount })}</>}
+                  {shareCount > 0 && <> · 🔥 {t('공유 {count}', { count: shareCount })}</>}
                 </p>
               </div>
             )}
@@ -366,7 +368,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   ].join(' ')}
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  {localIsOpen ? '🔒 마감하기' : '🎵 다시 열기'}
+                  {localIsOpen ? t('🔒 마감하기') : t('🎵 다시 열기')}
                 </button>
                 {onEdit && (
                   <button
@@ -374,20 +376,20 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold bg-white hover:bg-[#FFF8F0] transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    <Pencil className="w-3 h-3" /> 수정
+                    <Pencil className="w-3 h-3" /> {t('수정')}
                   </button>
                 )}
                 {onDelete && (
                   <button
                     onClick={() => {
-                      if (confirm('프로젝트를 삭제할까요? 모든 트랙도 함께 삭제됩니다.')) {
+                      if (confirm(t('프로젝트를 삭제할까요? 모든 트랙도 함께 삭제됩니다.'))) {
                         onDelete(project.id);
                       }
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold bg-white text-[#FF3D77] hover:bg-[#FF3D77]/10 transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    <Trash2 className="w-3 h-3" /> 삭제
+                    <Trash2 className="w-3 h-3" /> {t('삭제')}
                   </button>
                 )}
               </div>
@@ -416,9 +418,9 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                     className="text-[13px] text-[#0A0A0A]/40 font-bold text-center"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    아직 트랙이 없어요
+                    {t('아직 트랙이 없어요')}
                     <br />
-                    첫 번째 8마디를 올려보세요!
+                    {t('첫 번째 8마디를 올려보세요!')}
                   </p>
                 </div>
               ) : (
@@ -482,7 +484,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                                 className="text-[10px] text-[#0A0A0A]/30 font-bold"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
-                                {track.track_order}번째 주자
+                                {t('{order}번째 주자', { order: track.track_order })}
                               </span>
 
                               <a
@@ -513,7 +515,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                               className="text-[10px] font-bold text-[#FF3D77]"
                               style={{ fontFamily: 'Pretendard, sans-serif' }}
                             >
-                              YouTube 백킹 트랙
+                              {t('YouTube 백킹 트랙')}
                             </span>
                           </div>
                         </motion.div>
@@ -601,7 +603,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                             className="text-[10px] text-[#0A0A0A]/30 font-bold flex-shrink-0"
                             style={{ fontFamily: 'Pretendard, sans-serif' }}
                           >
-                            {track.track_order}번째 주자
+                            {t('{order}번째 주자', { order: track.track_order })}
                           </span>
 
                           <a
@@ -640,11 +642,11 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                 >
                   {ensembleState === 'loading' ? (
-                    <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
+                    <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> {t('불러오는 중')}</>
                   ) : ensembleState === 'playing' ? (
-                    <><Pause className="w-4 h-4" /> 정지</>
+                    <><Pause className="w-4 h-4" /> {t('정지')}</>
                   ) : (
-                    <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 전체 곡 듣기 (처음부터)</>
+                    <><Play className="w-4 h-4 fill-[#0A0A0A]" /> {t('🎧 전체 곡 듣기 (처음부터)')}</>
                   )}
                 </motion.button>
               )}
@@ -662,9 +664,9 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   className="text-[14px] font-bold text-[#0A0A0A] text-center"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  🎉 내 8마디 추가 완료!
+                  {t('🎉 내 8마디 추가 완료!')}
                   <br />
-                  <span className="text-[12px] text-[#0A0A0A]/60">친구에게 자랑하고 다음 주자를 불러보세요</span>
+                  <span className="text-[12px] text-[#0A0A0A]/60">{t('친구에게 자랑하고 다음 주자를 불러보세요')}</span>
                 </p>
                 <button
                   onClick={handleShare}
@@ -672,7 +674,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                 >
                   <Share2 className="w-4 h-4" />
-                  {shareCopied ? '복사됨!' : '내 마디 자랑하기 🔥'}
+                  {shareCopied ? t('복사됨!') : t('내 마디 자랑하기 🔥')}
                 </button>
               </motion.div>
             )}
@@ -684,7 +686,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   className="text-[15px] font-bold text-[#0A0A0A] mb-3"
                   style={{ fontFamily: 'Bungee, sans-serif' }}
                 >
-                  내 8마디 올리기 ➕
+                  {t('내 8마디 올리기 ➕')}
                 </h3>
                 <TrackUploadPanel
                   user={user}
@@ -712,9 +714,9 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   className="text-[14px] font-bold text-[#0A0A0A] text-center leading-relaxed"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  이 릴레이에 8마디를 이어볼래요? 🎸
+                  {t('이 릴레이에 8마디를 이어볼래요? 🎸')}
                   <br />
-                  <span className="text-[12px] text-[#0A0A0A]/50">로그인하면 바로 이 프로젝트로 돌아와요</span>
+                  <span className="text-[12px] text-[#0A0A0A]/50">{t('로그인하면 바로 이 프로젝트로 돌아와요')}</span>
                 </p>
                 <motion.button
                   whileHover={{ y: 2, boxShadow: '2px 2px 0 #0A0A0A' }}
@@ -725,7 +727,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   className="w-full py-3.5 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[14px] font-bold"
                   style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                 >
-                  이어서 8마디 만들기 →
+                  {t('이어서 8마디 만들기 →')}
                 </motion.button>
               </div>
             )}

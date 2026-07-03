@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
+import { useT } from '@/lib/i18n';
 
 interface Props {
   studioId?: string;
@@ -17,6 +18,7 @@ const TYPES = [
 ];
 
 export default function ReportModal({ studioId, defaultType, onClose }: Props) {
+  const t = useT();
   const [reportType, setReportType] = useState(defaultType ?? 'correction');
   const [content, setContent] = useState('');
   const [contact, setContact] = useState('');
@@ -52,7 +54,7 @@ export default function ReportModal({ studioId, defaultType, onClose }: Props) {
       setSubmitted(true);
       setTimeout(onClose, 1500);
     } else {
-      alert('제출에 실패했습니다. 다시 시도해주세요.');
+      alert(t('제출에 실패했습니다. 다시 시도해주세요.'));
     }
   }
 
@@ -70,12 +72,12 @@ export default function ReportModal({ studioId, defaultType, onClose }: Props) {
           <div className="text-center py-8">
             <p className="text-4xl mb-3">🎸</p>
             <p className="font-bungee text-xl text-comic-pink mb-1">THANKS!</p>
-            <p className="text-sm font-bold">확인 후 반영하겠습니다</p>
+            <p className="text-sm font-bold">{t('확인 후 반영하겠습니다')}</p>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-comic-black">📢 정보 제보</h2>
+              <h2 className="text-lg font-bold text-comic-black">{t('📢 정보 제보')}</h2>
               <button
                 onClick={onClose}
                 className="w-8 h-8 bg-comic-black text-white flex items-center justify-center text-lg font-bold leading-none"
@@ -87,18 +89,18 @@ export default function ReportModal({ studioId, defaultType, onClose }: Props) {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Type */}
               <div className="flex gap-2">
-                {TYPES.map((t) => (
+                {TYPES.map((ty) => (
                   <button
-                    key={t.value}
+                    key={ty.value}
                     type="button"
-                    onClick={() => setReportType(t.value)}
+                    onClick={() => setReportType(ty.value)}
                     className={`flex-1 py-2 text-xs font-bold border-[2px] border-comic-black transition-colors ${
-                      reportType === t.value
+                      reportType === ty.value
                         ? 'bg-comic-pink text-white'
                         : 'bg-white text-comic-black hover:bg-comic-yellow'
                     }`}
                   >
-                    {t.label}
+                    {t(ty.label)}
                   </button>
                 ))}
               </div>
@@ -109,8 +111,8 @@ export default function ReportModal({ studioId, defaultType, onClose }: Props) {
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={
                   reportType === 'new_studio'
-                    ? '연습실 이름, 위치, 특징 등을 알려주세요'
-                    : '어떤 정보가 틀린지 알려주세요'
+                    ? t('연습실 이름, 위치, 특징 등을 알려주세요')
+                    : t('어떤 정보가 틀린지 알려주세요')
                 }
                 rows={4}
                 required
@@ -122,7 +124,7 @@ export default function ReportModal({ studioId, defaultType, onClose }: Props) {
                 type="text"
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
-                placeholder="답변 받으실 연락처 (선택)"
+                placeholder={t('답변 받으실 연락처 (선택)')}
                 className="w-full px-3 py-2.5 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/40 focus:outline-none focus:border-comic-pink"
               />
 
@@ -132,7 +134,7 @@ export default function ReportModal({ studioId, defaultType, onClose }: Props) {
                 className="w-full py-3 bg-comic-pink border-[2px] border-comic-black text-white font-bold disabled:opacity-50 transition-transform active:translate-x-[2px] active:translate-y-[2px]"
                 style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
               >
-                {submitting ? '제출 중...' : '제출하기'}
+                {submitting ? t('제출 중...') : t('제출하기')}
               </button>
             </form>
           </>

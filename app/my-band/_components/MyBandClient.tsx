@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 const GENRES = ['록', '인디', '재즈', '팝', '메탈', 'R&B', '블루스', '힙합', '기타'];
 
@@ -26,6 +27,7 @@ function toggle(arr: string[], item: string) {
 }
 
 function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreated: (band: Band) => void }) {
+  const t = useT();
   const { user } = useAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -35,7 +37,7 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
   async function handleCreate() {
     if (!user) return;
-    if (!name.trim()) { setError('밴드 이름을 입력해 주세요.'); return; }
+    if (!name.trim()) { setError(t('밴드 이름을 입력해 주세요.')); return; }
     setSaving(true);
     setError('');
 
@@ -47,7 +49,7 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
     if (bandErr || !bandData) {
       console.error('[CreateBand] bands insert error:', bandErr);
-      setError(`밴드 생성에 실패했어요: ${bandErr?.message ?? '알 수 없는 오류'}`);
+      setError(t('밴드 생성에 실패했어요: {message}', { message: bandErr?.message ?? t('알 수 없는 오류') }));
       setSaving(false);
       return;
     }
@@ -61,7 +63,7 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
     });
     if (memberErr) {
       console.error('[CreateBand] band_members insert error:', memberErr);
-      setError(`멤버 등록에 실패했어요: ${memberErr.message}`);
+      setError(t('멤버 등록에 실패했어요: {message}', { message: memberErr.message }));
       setSaving(false);
       return;
     }
@@ -86,7 +88,7 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
               CREATE BAND 🎸
             </h2>
             <p className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              새 밴드를 만들어요
+              {t('새 밴드를 만들어요')}
             </p>
           </div>
           <button
@@ -100,12 +102,12 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
         <div className="px-5 py-5 flex flex-col gap-5">
           <section>
             <p className="text-[13px] font-bold text-[#0A0A0A] mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              🎵 밴드 이름 <span className="text-[#FF3D77]">*</span>
+              🎵 {t('밴드 이름')} <span className="text-[#FF3D77]">*</span>
             </p>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="예) 스파크라이트"
+              placeholder={t('예) 스파크라이트')}
               maxLength={30}
               className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[14px] font-bold text-[#0A0A0A] focus:outline-none focus:border-[#FF3D77]"
               style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
@@ -114,12 +116,12 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
           <section>
             <p className="text-[13px] font-bold text-[#0A0A0A] mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              💬 밴드 소개 <span className="text-[#0A0A0A]/40">(선택)</span>
+              💬 {t('밴드 소개')} <span className="text-[#0A0A0A]/40">{t('(선택)')}</span>
             </p>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="어떤 밴드인지 소개해 주세요"
+              placeholder={t('어떤 밴드인지 소개해 주세요')}
               maxLength={200}
               rows={3}
               className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[13px] font-bold text-[#0A0A0A] resize-none focus:outline-none focus:border-[#FF3D77]"
@@ -129,7 +131,7 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
           <section>
             <p className="text-[13px] font-bold text-[#0A0A0A] mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              🎸 장르 <span className="text-[#0A0A0A]/40">(복수 선택)</span>
+              🎸 {t('장르')} <span className="text-[#0A0A0A]/40">{t('(복수 선택)')}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {GENRES.map((g) => {
@@ -145,7 +147,7 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {g}
+                    {t(g)}
                   </motion.button>
                 );
               })}
@@ -168,9 +170,9 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
             {saving ? (
               <>
                 <span className="w-4 h-4 rounded-full border-[2px] border-white border-t-transparent animate-spin" />
-                만드는 중...
+                {t('만드는 중...')}
               </>
-            ) : '밴드 만들기 💥'}
+            ) : t('밴드 만들기 💥')}
           </motion.button>
           <div className="h-2" />
         </div>
@@ -180,6 +182,7 @@ function CreateBandModal({ onClose, onCreated }: { onClose: () => void; onCreate
 }
 
 export default function MyBandClient() {
+  const t = useT();
   const { user, loading } = useAuth();
   const router = useRouter();
   const [bands, setBands] = useState<Band[]>([]);
@@ -249,7 +252,7 @@ export default function MyBandClient() {
             MY BAND 🎸
           </h1>
           <p className="text-[13px] text-[#0A0A0A]/60 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            내 밴드 일정과 멤버를 관리해요
+            {t('내 밴드 일정과 멤버를 관리해요')}
           </p>
         </motion.div>
       </div>
@@ -271,7 +274,7 @@ export default function MyBandClient() {
               className="px-8 py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] font-bold text-[14px]"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              로그인하기
+              {t('로그인하기')}
             </motion.button>
           </motion.div>
         ) : fetching ? (
@@ -286,10 +289,10 @@ export default function MyBandClient() {
           >
             <span className="text-[56px]">🥁</span>
             <p className="text-[16px] font-bold text-[#0A0A0A]/40 text-center" style={{ fontFamily: 'Bungee, sans-serif' }}>
-              아직 밴드가 없어요
+              {t('아직 밴드가 없어요')}
             </p>
             <p className="text-[13px] text-[#0A0A0A]/40 text-center" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              아래 버튼을 눌러 첫 밴드를 만들어 보세요!
+              {t('아래 버튼을 눌러 첫 밴드를 만들어 보세요!')}
             </p>
           </motion.div>
         ) : (
@@ -322,7 +325,7 @@ export default function MyBandClient() {
                           className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] rounded-[8px] text-[10px] font-bold flex-shrink-0"
                           style={{ fontFamily: 'Pretendard, sans-serif' }}
                         >
-                          리더
+                          {t('리더')}
                         </span>
                       )}
                     </div>
@@ -333,7 +336,7 @@ export default function MyBandClient() {
                     )}
                     <div className="flex items-center gap-3 mt-1.5">
                       <span className="text-[12px] font-bold text-[#0A0A0A]/40" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                        👥 {band.member_count}명
+                        👥 {t('{count}명', { count: band.member_count ?? 0 })}
                       </span>
                       {band.genre?.length > 0 && (
                         <span className="text-[12px] font-bold text-[#0A0A0A]/40 truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>
@@ -359,7 +362,7 @@ export default function MyBandClient() {
               className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px]"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              🎸 새 밴드 만들기
+              {t('🎸 새 밴드 만들기')}
             </motion.button>
           </div>
         </div>

@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 export default function FeedbackPage() {
+  const t = useT();
   const router = useRouter();
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
@@ -28,7 +30,7 @@ export default function FeedbackPage() {
     if (!error) {
       setSubmitted(true);
     } else {
-      alert('제출에 실패했습니다. 다시 시도해주세요.');
+      alert(t('제출에 실패했습니다. 다시 시도해주세요.'));
     }
   }
 
@@ -42,7 +44,7 @@ export default function FeedbackPage() {
           <p className="text-5xl mb-3">🎸</p>
           <p className="font-bungee text-2xl text-comic-black mb-1">THANKS!</p>
           <p className="text-sm font-bold text-comic-black/70">
-            더 나은 Music Spot을 만드는 데 큰 힘이 됩니다
+            {t('더 나은 Music Spot을 만드는 데 큰 힘이 됩니다')}
           </p>
         </div>
         <button
@@ -50,7 +52,7 @@ export default function FeedbackPage() {
           className="px-6 py-3 bg-comic-pink border-[2px] border-comic-black text-white text-sm font-bold transition-transform active:translate-x-[2px] active:translate-y-[2px]"
           style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
         >
-          홈으로 돌아가기
+          {t('홈으로 돌아가기')}
         </button>
       </div>
     );
@@ -69,7 +71,7 @@ export default function FeedbackPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-base font-bold">💬 Music Spot에 한마디</h1>
+        <h1 className="text-base font-bold">{t('💬 Music Spot에 한마디')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="px-4 mt-6 space-y-5 max-w-lg mx-auto">
@@ -78,7 +80,7 @@ export default function FeedbackPage() {
           className="bg-white border-[2px] border-comic-black p-4"
           style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
         >
-          <label className="text-xs font-bold text-comic-black/50 block mb-3">⭐ 별점 (선택사항)</label>
+          <label className="text-xs font-bold text-comic-black/50 block mb-3">{t('⭐ 별점 (선택사항)')}</label>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -95,23 +97,23 @@ export default function FeedbackPage() {
 
         {/* Name */}
         <div>
-          <label className="text-xs font-bold text-comic-black/50 block mb-1.5">이름 (선택사항)</label>
+          <label className="text-xs font-bold text-comic-black/50 block mb-1.5">{t('이름 (선택사항)')}</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="익명"
+            placeholder={t('익명')}
             className="w-full px-3 py-2.5 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/30 focus:outline-none focus:border-comic-pink"
           />
         </div>
 
         {/* Content */}
         <div>
-          <label className="text-xs font-bold text-comic-black/50 block mb-1.5">내용 *</label>
+          <label className="text-xs font-bold text-comic-black/50 block mb-1.5">{t('내용 *')}</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="서비스 이용 후 느낀 점을 자유롭게 적어주세요"
+            placeholder={t('서비스 이용 후 느낀 점을 자유롭게 적어주세요')}
             rows={5}
             required
             className="w-full px-3 py-2.5 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/30 focus:outline-none focus:border-comic-pink resize-none"
@@ -124,7 +126,7 @@ export default function FeedbackPage() {
           className="w-full py-3 bg-comic-pink border-[2px] border-comic-black text-white font-bold disabled:opacity-50 transition-transform active:translate-x-[2px] active:translate-y-[2px]"
           style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
         >
-          {submitting ? '제출 중...' : '제출하기'}
+          {submitting ? t('제출 중...') : t('제출하기')}
         </button>
       </form>
     </div>

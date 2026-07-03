@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 const features = [
   {
     id: 1,
+    jaHidden: true, // 일본 모드에서 연습실 카드 숨김
     name: '연습실 찾기',
     description: '내 동네 연습실을 3초만에 찾고 예약!',
     image: '/ms_character/doll.png',
@@ -18,6 +20,7 @@ const features = [
   },
   {
     id: 2,
+    jaHidden: false,
     name: '밴드 찾기',
     description: '실력·장르로 합주 파트너 찾기',
     image: '/ms_character/mika.png',
@@ -30,6 +33,7 @@ const features = [
   },
   {
     id: 3,
+    jaHidden: false,
     name: '8마디 챌린지',
     description: '8마디 던지면 답마디가 온다. 거기서 밴드가 만들어진다.',
     image: '/ms_character/lucky.png',
@@ -44,6 +48,9 @@ const features = [
 
 export default function PowerFeatures() {
   const router = useRouter();
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
+  const visibleFeatures = features.filter((f) => !(isJapanMode && f.jaHidden));
 
   function handleClick(action: string) {
     if (action === 'scroll-search') {
@@ -70,7 +77,7 @@ export default function PowerFeatures() {
               color: '#0A0A0A',
             }}
           >
-            우리의{' '}
+            {t('우리의')}{' '}
             <span
               className="italic"
               style={{
@@ -83,12 +90,12 @@ export default function PowerFeatures() {
             >
               POWER
             </span>{' '}
-            3종 세트 💥
+            {t('3종 세트 💥')}
           </motion.h2>
 
           {/* Feature Cards — full-bleed image style */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
+            {visibleFeatures.map((feature, index) => (
               <motion.div
                 key={feature.id}
                 initial={{ y: 50, opacity: 0, rotate: 0 }}
@@ -107,7 +114,7 @@ export default function PowerFeatures() {
                 {/* Full-bleed character image */}
                 <img
                   src={feature.image}
-                  alt={feature.name}
+                  alt={t(feature.name)}
                   className="absolute inset-0 w-full h-full object-cover object-top"
                 />
 
@@ -129,7 +136,7 @@ export default function PowerFeatures() {
                       textShadow: '2px 2px 0 rgba(10,10,10,0.6)',
                     }}
                   >
-                    {feature.name}
+                    {t(feature.name)}
                   </h3>
 
                   <p
@@ -141,7 +148,7 @@ export default function PowerFeatures() {
                       textShadow: '1px 1px 0 rgba(10,10,10,0.5)',
                     }}
                   >
-                    {feature.description}
+                    {t(feature.description)}
                   </p>
 
                   {/* CTA pill */}
@@ -152,7 +159,7 @@ export default function PowerFeatures() {
                       boxShadow: '2px 2px 0 #0A0A0A',
                     }}
                   >
-                    {feature.cta}
+                    {t(feature.cta)}
                   </div>
                 </div>
               </motion.div>

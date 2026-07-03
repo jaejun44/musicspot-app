@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 const STORAGE_KEY = 'ms_welcomed';
 
 const CARDS = [
-  { icon: '📍', title: '내 주변 연습실', desc: '위치·가격·드럼으로 비교' },
+  { icon: '📍', title: '내 주변 연습실', desc: '위치·가격·드럼으로 비교', jaHidden: true },
   { icon: '🎵', title: '8마디 챌린지', desc: '릴레이로 음악 완성' },
   { icon: '🎸', title: '밴드 매칭', desc: '함께할 멤버 찾기' },
 ];
@@ -18,8 +19,12 @@ const CARDS = [
  * localStorage 'ms_welcomed' 로 재노출 차단. (기존 OnboardingModal=밴드매칭 폼과 무관)
  */
 export default function WelcomeSheet() {
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  // 일본 모드: 연습실(스タジオ) 관련 카드/버튼 숨김
+  const cards = CARDS.filter((c) => !(isJapanMode && c.jaHidden));
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -71,44 +76,68 @@ export default function WelcomeSheet() {
                   WELCOME <span className="text-comic-pink">🎸</span>
                 </h2>
                 <p className="mt-1.5 text-sm font-bold text-comic-black/70 leading-relaxed">
-                  음악인을 위한 연습실 찾기 +<br />
-                  <span className="text-comic-pink">8마디</span>로 밴드 만들기
+                  {isJapanMode ? (
+                    <>
+                      <span className="text-comic-pink">{t('8마디')}</span>{t('로 밴드 만들기')}
+                    </>
+                  ) : (
+                    <>
+                      {t('음악인을 위한 연습실 찾기 +')}<br />
+                      <span className="text-comic-pink">{t('8마디')}</span>{t('로 밴드 만들기')}
+                    </>
+                  )}
                 </p>
               </div>
-              <button onClick={dismiss} aria-label="닫기" className="p-1 -mr-1 -mt-1">
+              <button onClick={dismiss} aria-label={t('닫기')} className="p-1 -mr-1 -mt-1">
                 <X className="w-5 h-5 text-comic-black/50" />
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5 mb-6">
-              {CARDS.map((c) => (
+            <div
+              className="grid gap-2.5 mb-6"
+              style={{ gridTemplateColumns: `repeat(${cards.length}, minmax(0, 1fr))` }}
+            >
+              {cards.map((c) => (
                 <div
                   key={c.title}
                   className="bg-white border-[2px] border-comic-black rounded-[14px] p-3 flex flex-col items-center text-center"
                   style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
                 >
                   <span className="text-[26px] mb-1.5">{c.icon}</span>
-                  <p className="text-[12px] font-bold text-comic-black leading-tight">{c.title}</p>
-                  <p className="text-[10px] font-bold text-comic-black/45 mt-1 leading-tight">{c.desc}</p>
+                  <p className="text-[12px] font-bold text-comic-black leading-tight">{t(c.title)}</p>
+                  <p className="text-[10px] font-bold text-comic-black/45 mt-1 leading-tight">{t(c.desc)}</p>
                 </div>
               ))}
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <button
-                onClick={() => go('/search')}
-                className="w-full py-3.5 bg-comic-pink text-white border-[3px] border-comic-black rounded-[14px] text-sm font-bold"
-                style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
-              >
-                📍 내 주변 연습실 보기
-              </button>
+              {!isJapanMode && (
+                <button
+                  onClick={() => go('/search')}
+                  className="w-full py-3.5 bg-comic-pink text-white border-[3px] border-comic-black rounded-[14px] text-sm font-bold"
+                  style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  📍 {t('내 주변 연습실 보기')}
+                </button>
+              )}
               <button
                 onClick={() => go('/stems')}
-                className="w-full py-3 bg-white text-comic-black border-[3px] border-comic-black rounded-[14px] text-sm font-bold"
-                style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                className={`w-full py-3.5 border-[3px] border-comic-black rounded-[14px] text-sm font-bold ${
+                  isJapanMode ? 'bg-comic-pink text-white' : 'bg-white text-comic-black'
+                }`}
+                style={{ boxShadow: `${isJapanMode ? '4px 4px' : '3px 3px'} 0 #0A0A0A`, fontFamily: 'Pretendard, sans-serif' }}
               >
-                🎵 8마디 구경하기
+                🎵 {t('8마디 구경하기')}
               </button>
+              {isJapanMode && (
+                <button
+                  onClick={() => go('/band-matching')}
+                  className="w-full py-3 bg-white text-comic-black border-[3px] border-comic-black rounded-[14px] text-sm font-bold"
+                  style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  🎸 {t('밴드찾기')}
+                </button>
+              )}
             </div>
           </motion.div>
         </motion.div>

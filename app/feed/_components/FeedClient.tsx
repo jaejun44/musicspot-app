@@ -7,6 +7,10 @@ import { Play, Pause } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useT, t } from '@/lib/i18n';
+import { countryFlag } from '@/lib/geo';
+import { useTranslatable } from '@/hooks/useTranslatable';
+import TranslateButton from '@/components/TranslateButton';
 
 const POSITION_EMOJIS: Record<string, string> = {
   보컬: '🎤', 기타: '🎸', 베이스: '🎵', 드럼: '🥁', 건반: '🎹', '기타(other)': '🎶',
@@ -19,12 +23,12 @@ const CATEGORY_LABELS: Record<string, string> = {
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '방금';
-  if (mins < 60) return `${mins}분 전`;
+  if (mins < 1) return t('방금');
+  if (mins < 60) return t('{mins}분 전', { mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}시간 전`;
+  if (hours < 24) return t('{hours}시간 전', { hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}일 전`;
+  if (days < 7) return t('{days}일 전', { days });
   return dateStr.slice(0, 10);
 }
 
@@ -40,6 +44,8 @@ interface FeedPost {
   body: string;
   tags: string[];
   created_at: string;
+  country?: string | null;
+  language?: string | null;
 }
 
 interface FeedTrack {
@@ -55,6 +61,8 @@ interface FeedTrack {
   project_bpm: number;
   project_key: string;
   created_at: string;
+  country?: string | null;
+  language?: string | null;
 }
 
 type FeedItem = FeedPost | FeedTrack;
@@ -67,6 +75,7 @@ type ProfileRow = {
 };
 
 export default function FeedClient() {
+  const t = useT();
   const { user, loading } = useAuth();
   const [items, setItems] = useState<FeedItem[]>([]);
   const [feedLoading, setFeedLoading] = useState(true);
@@ -102,7 +111,7 @@ export default function FeedClient() {
     const [postsRes, tracksRes, profilesRes] = await Promise.all([
       supabase
         .from('posts')
-        .select('id, author_id, author_name, author_emoji, author_avatar_url, category, title, body, tags, created_at')
+        .select('id, author_id, author_name, author_emoji, author_avatar_url, category, title, body, tags, created_at, country, language')
         .in('author_id', followingIds)
         .eq('is_published', true)
         .order('created_at', { ascending: false })
@@ -127,7 +136,7 @@ export default function FeedClient() {
       type: 'post' as const,
       id: p.id as string,
       author_id: p.author_id as string,
-      author_name: (p.author_name as string) || '뮤지션',
+      author_name: (p.author_name as string) || t('뮤지션'),
       author_emoji: (p.author_emoji as string) || '🎶',
       author_avatar_url: (p.author_avatar_url as string | null) ?? null,
       category: p.category as string,
@@ -135,25 +144,29 @@ export default function FeedClient() {
       body: p.body as string,
       tags: (p.tags as string[]) ?? [],
       created_at: p.created_at as string,
+      country: (p.country as string) ?? null,
+      language: (p.language as string) ?? null,
     }));
 
-    const trackItems: FeedTrack[] = (tracksRes.data ?? []).map((t: Record<string, unknown>) => {
-      const project = t.stem_projects as Record<string, unknown> | null;
-      const profile = profileMap.get(t.user_id as string);
+    const trackItems: FeedTrack[] = (tracksRes.data ?? []).map((tr: Record<string, unknown>) => {
+      const project = tr.stem_projects as Record<string, unknown> | null;
+      const profile = profileMap.get(tr.user_id as string);
       const firstInstrument = profile?.instruments?.[0] ?? '';
       return {
         type: 'track' as const,
-        id: t.id as string,
-        author_id: t.user_id as string,
-        author_name: profile?.display_name ?? '뮤지션',
+        id: tr.id as string,
+        author_id: tr.user_id as string,
+        author_name: profile?.display_name ?? t('뮤지션'),
         author_emoji: POSITION_EMOJIS[firstInstrument] ?? '🎶',
         author_avatar_url: profile?.avatar_url ?? null,
-        file_url: t.file_url as string,
-        instrument: (t.instrument as string | null) ?? null,
-        project_title: (project?.title as string) ?? '프로젝트',
+        file_url: tr.file_url as string,
+        instrument: (tr.instrument as string | null) ?? null,
+        project_title: (project?.title as string) ?? t('프로젝트'),
         project_bpm: (project?.bpm as number) ?? 120,
         project_key: (project?.key_signature as string) ?? 'C',
-        created_at: t.created_at as string,
+        created_at: tr.created_at as string,
+        country: null,
+        language: null,
       };
     });
 
@@ -213,13 +226,13 @@ export default function FeedClient() {
               className="text-[28px] font-bold text-[#0A0A0A]"
               style={{ fontFamily: 'Bungee, sans-serif' }}
             >
-              피드 📡
+              {t('피드 📡')}
             </h1>
             <p
               className="text-[13px] text-[#0A0A0A]/70 mt-1 font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              팔로우한 뮤지션의 최신 활동
+              {t('팔로우한 뮤지션의 최신 활동')}
             </p>
           </div>
         </motion.div>
@@ -240,20 +253,20 @@ export default function FeedClient() {
                 className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
                 style={{ fontFamily: 'Bungee, sans-serif' }}
               >
-                로그인이 필요해요
+                {t('로그인이 필요해요')}
               </p>
               <p
                 className="text-[13px] text-[#0A0A0A]/60 mb-6 text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                팔로우한 뮤지션의 게시물과<br />8마디 트랙을 모아볼 수 있어요
+                {t('팔로우한 뮤지션의 게시물과')}<br />{t('8마디 트랙을 모아볼 수 있어요')}
               </p>
               <Link
                 href="/login"
                 className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
-                로그인하기 →
+                {t('로그인하기 →')}
               </Link>
             </div>
           </motion.div>
@@ -286,20 +299,20 @@ export default function FeedClient() {
                 className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                아직 팔로우한 뮤지션이 없어요.
+                {t('아직 팔로우한 뮤지션이 없어요.')}
               </p>
               <p
                 className="text-[13px] text-[#0A0A0A]/60 mb-6 text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                밴드 찾기에서 마음에 드는 뮤지션을 팔로우해보세요! 🎸
+                {t('밴드 찾기에서 마음에 드는 뮤지션을 팔로우해보세요! 🎸')}
               </p>
               <Link
                 href="/band-matching"
                 className="px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
-                뮤지션 찾기
+                {t('뮤지션 찾기')}
               </Link>
             </div>
           </motion.div>
@@ -321,20 +334,20 @@ export default function FeedClient() {
                 className="text-[16px] font-bold text-[#0A0A0A] mb-2 text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                팔로우한 뮤지션의 새 활동이 없어요.
+                {t('팔로우한 뮤지션의 새 활동이 없어요.')}
               </p>
               <p
                 className="text-[13px] text-[#0A0A0A]/60 mb-6 text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                8마디 챌린지를 먼저 시작해볼까요? ⚡
+                {t('8마디 챌린지를 먼저 시작해볼까요? ⚡')}
               </p>
               <Link
                 href="/stems"
                 className="px-6 py-3 bg-[#F5FF4F] rounded-[14px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
-                챌린지 시작
+                {t('챌린지 시작')}
               </Link>
             </div>
           </motion.div>
@@ -347,7 +360,7 @@ export default function FeedClient() {
               className="inline-block bg-[#FFF8F0]/90 rounded-[10px] border-[2px] border-[#0A0A0A]/30 px-3 py-1 text-[11px] text-[#0A0A0A] font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              {followingCount}명 팔로우 중 · {items.length}개의 활동
+              {t('{followingCount}명 팔로우 중 · {count}개의 활동', { followingCount, count: items.length })}
             </span>
           </div>
         )}
@@ -403,6 +416,9 @@ function AuthorRow({ item }: { item: FeedItem }) {
       >
         {item.author_name}
       </span>
+      {countryFlag(item.country, item.language) && (
+        <span className="text-[13px] leading-none">{countryFlag(item.country, item.language)}</span>
+      )}
       <span
         className="text-[11px] text-[#0A0A0A]/30 font-bold ml-auto"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -414,6 +430,8 @@ function AuthorRow({ item }: { item: FeedItem }) {
 }
 
 function PostCard({ item }: { item: FeedPost }) {
+  const t = useT();
+  const tr = useTranslatable([item.title, item.body], item.country, item.language);
   return (
     <div
       className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5"
@@ -424,20 +442,21 @@ function PostCard({ item }: { item: FeedPost }) {
         className="inline-block px-2 py-0.5 bg-[#4FC3F7]/20 border-[1.5px] border-[#4FC3F7] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] mb-2.5"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
-        ✍️ {CATEGORY_LABELS[item.category] ?? item.category}
+        ✍️ {t(CATEGORY_LABELS[item.category] ?? item.category)}
       </span>
       <h3
         className="text-[15px] font-bold text-[#0A0A0A] mb-1.5 leading-snug"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
-        {item.title}
+        {tr.text(0)}
       </h3>
       <p
         className="text-[12px] text-[#0A0A0A]/60 font-bold line-clamp-3 leading-relaxed"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
-        {item.body}
+        {tr.text(1)}
       </p>
+      <TranslateButton state={tr} className="mt-1.5 self-start block text-[11px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
       {item.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2.5">
           {item.tags.map((tag) => (
@@ -464,6 +483,7 @@ function TrackCard({
   isPlaying: boolean;
   onTogglePlay: () => void;
 }) {
+  const t = useT();
   return (
     <div
       className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5"
@@ -474,7 +494,7 @@ function TrackCard({
         className="inline-block px-2 py-0.5 bg-[#F5FF4F] border-[1.5px] border-[#0A0A0A] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] mb-3"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
-        🎸 8마디 트랙 업로드
+        {t('🎸 8마디 트랙 업로드')}
       </span>
       <div className="flex items-center gap-3">
         <motion.button

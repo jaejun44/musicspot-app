@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 const INSTRUMENTS = [
   { id: '보컬', label: '보컬', emoji: '🎤' },
@@ -46,6 +47,8 @@ function toggle(arr: string[], item: string): string[] {
 }
 
 export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
@@ -118,7 +121,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
     };
     reader.onerror = () => {
       setConverting(false);
-      setSaveError('이미지를 읽을 수 없습니다.');
+      setSaveError(t('이미지를 읽을 수 없습니다.'));
     };
     reader.readAsDataURL(file);
   }
@@ -145,7 +148,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
     );
     setSaving(false);
     if (error) {
-      setSaveError('저장에 실패했습니다. 다시 시도해주세요.');
+      setSaveError(t('저장에 실패했습니다. 다시 시도해주세요.'));
       return;
     }
     onSaved({
@@ -186,7 +189,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
                 className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                프로필을 수정하세요
+                {t('프로필을 수정하세요')}
               </p>
             </div>
             <button
@@ -232,7 +235,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[12px] font-bold text-[#FF3D77] underline underline-offset-2"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              {converting ? '변환 중...' : '사진 변경'}
+              {converting ? t('변환 중...') : t('사진 변경')}
             </button>
             <input
               ref={fileInputRef}
@@ -249,14 +252,14 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-2"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              👤 닉네임
+              {t('👤 닉네임')}
             </p>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={20}
-              placeholder="닉네임을 입력하세요"
+              placeholder={t('닉네임을 입력하세요')}
               className="w-full px-4 py-3 rounded-[12px] border-[2px] border-[#0A0A0A] bg-white font-bold text-[14px] text-[#0A0A0A] outline-none focus:border-[#FF3D77] placeholder:text-[#0A0A0A]/30"
               style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
             />
@@ -268,14 +271,14 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-2"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              📝 한 줄 소개 <span className="text-[#0A0A0A]/40">(선택)</span>
+              {t('📝 한 줄 소개')} <span className="text-[#0A0A0A]/40">{t('(선택)')}</span>
             </p>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               maxLength={80}
               rows={2}
-              placeholder="나를 소개해보세요"
+              placeholder={t('나를 소개해보세요')}
               className="w-full px-4 py-3 rounded-[12px] border-[2px] border-[#0A0A0A] bg-white font-bold text-[14px] text-[#0A0A0A] outline-none focus:border-[#FF3D77] placeholder:text-[#0A0A0A]/30 resize-none"
               style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
             />
@@ -287,7 +290,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              🎼 주 포지션 <span className="text-[#0A0A0A]/40">(복수 선택)</span>
+              {t('🎼 주 포지션')} <span className="text-[#0A0A0A]/40">{t('(복수 선택)')}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {INSTRUMENTS.map((item) => {
@@ -303,7 +306,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {item.emoji} {item.label}
+                    {item.emoji} {t(item.label)}
                   </motion.button>
                 );
               })}
@@ -316,7 +319,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              🎵 선호 장르 <span className="text-[#0A0A0A]/40">(복수 선택)</span>
+              {t('🎵 선호 장르')} <span className="text-[#0A0A0A]/40">{t('(복수 선택)')}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {GENRES.map((g) => {
@@ -332,7 +335,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {g}
+                    {g === '기타' ? (isJapanMode ? 'その他' : g) : t(g)}
                   </motion.button>
                 );
               })}
@@ -345,7 +348,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              📍 주 활동 지역
+              {t('📍 주 활동 지역')}
             </p>
             <div className="flex flex-wrap gap-2">
               {REGIONS.map((r) => {
@@ -361,7 +364,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {r}
+                    {r === '기타' ? (isJapanMode ? 'その他' : r) : t(r)}
                   </motion.button>
                 );
               })}
@@ -374,7 +377,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              🎯 이용 목적 <span className="text-[#0A0A0A]/40">(복수 선택)</span>
+              {t('🎯 이용 목적')} <span className="text-[#0A0A0A]/40">{t('(복수 선택)')}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {PURPOSES.map((p) => {
@@ -390,7 +393,7 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {p.emoji} {p.label}
+                    {p.emoji} {t(p.label)}
                   </motion.button>
                 );
               })}
@@ -415,10 +418,10 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
             {saving ? (
               <>
                 <span className="w-4 h-4 rounded-full border-[2px] border-white border-t-transparent animate-spin" />
-                저장 중...
+                {t('저장 중...')}
               </>
             ) : (
-              '저장하기 💥'
+              t('저장하기 💥')
             )}
           </motion.button>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 const rooms = [
   {
@@ -11,6 +12,7 @@ const rooms = [
     desc: '쓰고 싶은 말 다 해도 돼',
     href: '/feedback',
     bg: '#4FC3F7',
+    jaHidden: false,
   },
   {
     emoji: '🏢',
@@ -18,6 +20,7 @@ const rooms = [
     desc: '우리 연습실도 올려줘',
     href: '/register',
     bg: '#FF3D77',
+    jaHidden: true, // 연습실 등록 신청 — 일본 모드 숨김
   },
   {
     emoji: '🚨',
@@ -25,11 +28,15 @@ const rooms = [
     desc: '틀린 정보 발견했어',
     href: '/feedback?type=correction',
     bg: '#F5FF4F',
+    jaHidden: false,
   },
 ];
 
 export default function FinalCTA() {
   const [open, setOpen] = useState(false);
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
+  const visibleRooms = rooms.filter((r) => !(isJapanMode && r.jaHidden));
 
   return (
     <section className="relative overflow-hidden" style={{ minHeight: 'clamp(280px, 50vw, 420px)' }}>
@@ -55,7 +62,7 @@ export default function FinalCTA() {
               transform: 'translateY(28px)',
             }}
           >
-            {open ? '문 닫기 🚪' : '솔직히 말해줘'}
+            {open ? t('문 닫기 🚪') : t('솔직히 말해줘')}
           </motion.button>
 
           {/* Expanded Options */}
@@ -69,7 +76,7 @@ export default function FinalCTA() {
                 transition={{ type: 'spring', stiffness: 260, damping: 22 }}
                 className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto"
               >
-                {rooms.map((room, i) => (
+                {visibleRooms.map((room, i) => (
                   <motion.div
                     key={room.title}
                     initial={{ opacity: 0, y: 30, rotate: 0 }}
@@ -86,13 +93,13 @@ export default function FinalCTA() {
                         className="text-[20px] font-bold text-[#0A0A0A] mb-1"
                         style={{ fontFamily: 'Bungee, sans-serif' }}
                       >
-                        {room.title}
+                        {t(room.title)}
                       </h3>
                       <p
                         className="text-[13px] font-bold text-[#0A0A0A]/70"
                         style={{ fontFamily: 'Pretendard, sans-serif' }}
                       >
-                        {room.desc}
+                        {t(room.desc)}
                       </p>
                     </Link>
                   </motion.div>

@@ -7,6 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useT, useLocale } from '@/lib/i18n';
+import { countryFlag, contentLang } from '@/lib/geo';
+import { translateTexts } from '@/lib/translate';
 import Navigation from '@/components/Navigation';
 import CommentSection from '../_components/CommentSection';
 import EditPostModal from '../_components/EditPostModal';
@@ -37,6 +40,8 @@ interface PostDetail {
   tags: string[];
   likes_count: number;
   comments_count: number;
+  country?: string | null;
+  language?: string | null;
 }
 
 interface Props {
@@ -45,12 +50,18 @@ interface Props {
 }
 
 export default function PostDetailClient({ postId, initialPost }: Props) {
+  const t = useT();
+  const locale = useLocale();
   const router = useRouter();
   const { user } = useAuth();
   const [myProfile, setMyProfile] = useState<UserProfile | null>(null);
 
   const [post, setPost] = useState<PostDetail | null>(initialPost ?? null);
   const [loading, setLoading] = useState(!initialPost);
+  const [translated, setTranslated] = useState<{ title: string; body: string } | null>(null);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
@@ -82,7 +93,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
     if (!post) return;
     const { data } = await supabase
       .from('posts')
-      .select('id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, post_likes(post_id), post_comments(id)')
+      .select('id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, country, language, post_likes(post_id), post_comments(id)')
       .eq('id', post.id)
       .eq('is_published', true)
       .single();
@@ -102,7 +113,25 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
       tags: data.tags ?? [],
       likes_count: likesArr.length,
       comments_count: commentsArr.length,
+      country: (data.country as string) ?? null,
+      language: (data.language as string) ?? null,
     });
+  }
+
+  async function handleTranslate() {
+    if (!post) return;
+    if (translated) { setShowOriginal((v) => !v); return; }
+    setTranslating(true);
+    setTranslateError(false);
+    try {
+      const [tt, tb] = await translateTexts([post.title, post.body], locale);
+      setTranslated({ title: tt, body: tb });
+      setShowOriginal(false);
+    } catch {
+      setTranslateError(true);
+    } finally {
+      setTranslating(false);
+    }
   }
 
   useEffect(() => {
@@ -115,7 +144,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
     async function load() {
       const { data, error } = await supabase
         .from('posts')
-        .select('id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, post_likes(post_id), post_comments(id)')
+        .select('id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, country, language, post_likes(post_id), post_comments(id)')
         .eq('id', postId)
         .eq('is_published', true)
         .maybeSingle();
@@ -141,6 +170,8 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
         tags: data.tags ?? [],
         likes_count: likesArr.length,
         comments_count: commentsArr.length,
+        country: (data.country as string) ?? null,
+        language: (data.language as string) ?? null,
       };
 
       setPost(loaded);
@@ -186,7 +217,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
   }
 
   const createdAt = post
-    ? new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })
+    ? new Date(post.created_at).toLocaleDateString(locale === 'ja' ? 'ja-JP' : 'ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })
     : '';
 
   if (loading) {
@@ -217,7 +248,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
         >
           <p className="text-[#FF3D77] text-[32px] mb-2" style={{ fontFamily: 'Bungee, sans-serif' }}>404</p>
           <p className="text-[15px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            게시물을 찾을 수 없어요
+            {t('게시물을 찾을 수 없어요')}
           </p>
         </div>
         <motion.button
@@ -226,7 +257,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
           className="px-6 py-3 bg-[#4FC3F7] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px]"
           style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
         >
-          커뮤니티로
+          {t('커뮤니티로')}
         </motion.button>
       </div>
     );
@@ -250,7 +281,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
           style={{ fontFamily: 'Pretendard, sans-serif', textShadow: '1px 1px 0 #0A0A0A' }}
         >
           <ChevronLeft className="w-5 h-5" />
-          커뮤니티
+          {t('커뮤니티')}
         </motion.button>
       </div>
 
@@ -266,7 +297,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
               className="px-2.5 py-1 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold"
               style={{ backgroundColor: style.bg, color: style.text, fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
             >
-              {post.category}
+              {t(post.category)}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-[12px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
@@ -299,7 +330,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
                               style={{ fontFamily: 'Pretendard, sans-serif' }}
                             >
                               <Pencil className="w-3.5 h-3.5" />
-                              수정
+                              {t('수정')}
                             </button>
                             <button
                               onClick={() => setConfirmDelete(true)}
@@ -307,13 +338,13 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
                               style={{ fontFamily: 'Pretendard, sans-serif' }}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                              삭제
+                              {t('삭제')}
                             </button>
                           </>
                         ) : (
                           <div className="px-4 py-3">
                             <p className="text-[12px] font-bold text-[#0A0A0A] mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                              정말 삭제할까요?
+                              {t('정말 삭제할까요?')}
                             </p>
                             <div className="flex gap-2">
                               <button
@@ -321,14 +352,14 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
                                 className="flex-1 py-1.5 bg-[#FF3D77] text-white text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
-                                삭제
+                                {t('삭제')}
                               </button>
                               <button
                                 onClick={() => setConfirmDelete(false)}
                                 className="flex-1 py-1.5 bg-white text-[#0A0A0A] text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]/30"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
-                                취소
+                                {t('취소')}
                               </button>
                             </div>
                           </div>
@@ -346,16 +377,34 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
             className="text-[20px] font-bold text-[#0A0A0A] leading-tight mb-4"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {post.title}
+            {translated && !showOriginal ? translated.title : post.title}
           </h1>
 
           {/* 본문 */}
           <p
-            className="text-[14px] text-[#0A0A0A]/80 font-bold leading-relaxed whitespace-pre-wrap mb-4"
+            className="text-[14px] text-[#0A0A0A]/80 font-bold leading-relaxed whitespace-pre-wrap mb-2"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {post.body}
+            {translated && !showOriginal ? translated.body : post.body}
           </p>
+
+          {/* 번역 버튼 (뷰어 언어와 다를 때만) */}
+          {contentLang(post.country, post.language) !== locale && (
+            <button
+              onClick={handleTranslate}
+              disabled={translating}
+              className="mb-4 text-[12px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50"
+              style={{ fontFamily: 'Pretendard, sans-serif' }}
+            >
+              {translating
+                ? t('번역 중...')
+                : translateError
+                ? t('번역 실패 · 다시 시도')
+                : translated && !showOriginal
+                ? t('원문 보기')
+                : t('번역 보기')}
+            </button>
+          )}
 
           {/* 태그 */}
           {post.tags.length > 0 && (
@@ -389,15 +438,25 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
                   className="text-[13px] text-[#0A0A0A]/60 font-bold group-hover:text-[#FF3D77] transition-colors"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  {post.author_name ?? '익명'}
+                  {post.author_name ?? t('익명')}
                 </span>
+                {countryFlag(post.country, post.language) && (
+                  <span className="text-[14px] leading-none" title={post.country ?? undefined}>
+                    {countryFlag(post.country, post.language)}
+                  </span>
+                )}
               </Link>
             ) : (
               <div className="flex items-center gap-2">
                 <span className="text-[16px]">{post.author_emoji ?? '🎵'}</span>
                 <span className="text-[13px] text-[#0A0A0A]/60 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                  {post.author_name ?? '익명'}
+                  {post.author_name ?? t('익명')}
                 </span>
+                {countryFlag(post.country, post.language) && (
+                  <span className="text-[14px] leading-none" title={post.country ?? undefined}>
+                    {countryFlag(post.country, post.language)}
+                  </span>
+                )}
               </div>
             )}
 
@@ -432,7 +491,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
             className="text-[15px] font-bold text-[#0A0A0A] mb-4"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            💬 댓글 {commentCount > 0 ? `(${commentCount})` : ''}
+            💬 {t('댓글')} {commentCount > 0 ? `(${commentCount})` : ''}
           </h2>
           <CommentSection
             postId={postId}

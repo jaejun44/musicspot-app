@@ -11,6 +11,7 @@ import { Mic, Square } from 'lucide-react';
 import { createAudioContext, resumeContext, loadTracks, playEnsemble, type EnsembleHandle } from '@/lib/ensemble-audio';
 import { scheduleCountIn, eightBarsDuration, type CountInHandle } from '@/lib/metronome';
 import { acquireMic } from '@/lib/mic';
+import { useT } from '@/lib/i18n';
 
 type Phase = 'idle' | 'preparing' | 'countin' | 'recording' | 'done' | 'error';
 
@@ -31,6 +32,7 @@ const BEATS_PER_BAR = 4;
 const COUNT_IN_BEATS = 4;
 
 export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevious, onRecorded }: Props) {
+  const t = useT();
   const [phase, setPhase] = useState<Phase>('idle');
   const [countNumber, setCountNumber] = useState(0);
   const [currentBar, setCurrentBar] = useState(0);
@@ -211,7 +213,7 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
                 ].join(' ')}
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                {m === 'extend' ? '➡️ 이어붙이기 (8마디 확장)' : '🔼 쌓기 (합주로 두껍게)'}
+                {m === 'extend' ? t('➡️ 이어붙이기 (8마디 확장)') : t('🔼 쌓기 (합주로 두껍게)')}
               </button>
             ))}
           </div>
@@ -221,27 +223,27 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
           >
             {isFirstRunner ? (
               <>
-                첫 8마디예요! 카운트인 4박 뒤 바로 녹음돼요 🥁
+                {t('첫 8마디예요! 카운트인 4박 뒤 바로 녹음돼요 🥁')}
                 <br />
-                <span className="text-[11px] text-[#0A0A0A]/40">다음 주자가 이어붙이거나(확장) 쌓을 수(합주) 있어요</span>
+                <span className="text-[11px] text-[#0A0A0A]/40">{t('다음 주자가 이어붙이거나(확장) 쌓을 수(합주) 있어요')}</span>
               </>
             ) : mode === 'extend' ? (
               <>
-                새 8마디를 곡 <b>뒤에 이어 붙여요</b>. 카운트인 후
+                {t('새 8마디를 곡')} <b>{t('뒤에 이어 붙여요')}</b>{t('. 카운트인 후')}
                 <br />
-                내 연주만 녹음 → 곡이 길어집니다 ➡️
+                {t('내 연주만 녹음 → 곡이 길어집니다 ➡️')}
               </>
             ) : (
               <>
-                최근 8마디 <b>위에 겹쳐 쌓아요</b>. 이전 트랙이 깔리고
+                {t('최근 8마디')} <b>{t('위에 겹쳐 쌓아요')}</b>{t('. 이전 트랙이 깔리고')}
                 <br />
-                동시에 녹음 → 합주로 두꺼워져요 🔼
+                {t('동시에 녹음 → 합주로 두꺼워져요 🔼')}
               </>
             )}
           </p>
           {phase === 'done' && (
             <p className="text-[12px] font-bold text-[#41C66B]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              ✅ 녹음 완료! 아래에서 등록하거나 다시 녹음하세요
+              {t('✅ 녹음 완료! 아래에서 등록하거나 다시 녹음하세요')}
             </p>
           )}
           {phase === 'error' && error && (
@@ -255,15 +257,15 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
             className="px-6 py-3 bg-[#FFB627] rounded-[12px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[13px] flex items-center gap-2"
             style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
-            <Mic className="w-4 h-4" /> {phase === 'done' ? '다시 함께 연주' : '함께 연주 시작'} 🎙️
+            <Mic className="w-4 h-4" /> {phase === 'done' ? t('다시 함께 연주') : t('함께 연주 시작')} 🎙️
           </motion.button>
           <p className="text-[10px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            ♩ {bpm} BPM · {BARS}마디 (약 {Math.round(totalSec)}초) · 헤드폰 권장 🎧
+            {t('♩ {bpm} BPM · {bars}마디 (약 {sec}초) · 헤드폰 권장 🎧', { bpm, bars: BARS, sec: Math.round(totalSec) })}
           </p>
         </>
       ) : phase === 'preparing' ? (
         <p className="text-[14px] font-bold text-[#0A0A0A]/60 py-6" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-          준비 중... 🎚️
+          {t('준비 중... 🎚️')}
         </p>
       ) : phase === 'countin' ? (
         <div className="flex flex-col items-center gap-3 py-4">
@@ -277,7 +279,7 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
             {countNumber || COUNT_IN_BEATS}
           </motion.div>
           <p className="text-[12px] font-bold text-[#0A0A0A]/50" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            카운트인... 준비하세요!
+            {t('카운트인... 준비하세요!')}
           </p>
         </div>
       ) : (
@@ -294,7 +296,7 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
             </div>
           </div>
           <p className="text-[15px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Bungee, sans-serif' }}>
-            REC · {currentBar} / {BARS}마디
+            {t('REC · {currentBar} / {bars}마디', { currentBar, bars: BARS })}
           </p>
           {/* 마디 진행바 */}
           <div className="flex gap-1 w-full">
@@ -312,7 +314,7 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
             className="px-5 py-2.5 bg-[#0A0A0A] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[12px] flex items-center gap-2"
             style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
-            <Square className="w-4 h-4 fill-white" /> 중단
+            <Square className="w-4 h-4 fill-white" /> {t('중단')}
           </motion.button>
         </div>
       )}

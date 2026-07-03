@@ -10,9 +10,10 @@ import WritePostModal from './WritePostModal';
 import { Post, Category } from '../_data/posts';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 import EditPostModal from './EditPostModal';
 
-const SELECT_FIELDS = 'id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, post_likes(post_id), post_comments(id)';
+const SELECT_FIELDS = 'id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, country, language, post_likes(post_id), post_comments(id)';
 
 function mapPost(p: Record<string, unknown>): Post {
   return {
@@ -28,12 +29,15 @@ function mapPost(p: Record<string, unknown>): Post {
     tags: (p.tags as string[]) ?? [],
     likes_count: Array.isArray(p.post_likes) ? (p.post_likes as unknown[]).length : 0,
     comments_count: Array.isArray(p.post_comments) ? (p.post_comments as unknown[]).length : 0,
+    country: (p.country as string) ?? null,
+    language: (p.language as string) ?? null,
   };
 }
 
 const VALID_TABS: FeedTab[] = ['all', '팔로잉', '후기', '구인', '자유', '질문'];
 
 export default function CommunityClient() {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
@@ -181,7 +185,7 @@ export default function CommunityClient() {
             className="text-[13px] text-[#0A0A0A]/60 mt-1 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            뮤지션들의 이야기가 모이는 곳
+            {t('뮤지션들의 이야기가 모이는 곳')}
           </p>
         </motion.div>
       </div>
@@ -213,7 +217,7 @@ export default function CommunityClient() {
           className="inline-block text-[12px] text-[#0A0A0A]/70 font-bold bg-white/70 backdrop-blur-sm rounded-[8px] px-3 py-1 border border-[#0A0A0A]/20"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          {activeTab === '팔로잉' ? `팔로잉 피드 ${filtered.length}개` : `게시물 ${filtered.length}개`}
+          {activeTab === '팔로잉' ? t('팔로잉 피드 {count}개', { count: filtered.length }) : t('게시물 {count}개', { count: filtered.length })}
         </motion.p>
       </div>
 
@@ -252,13 +256,13 @@ export default function CommunityClient() {
                   className="text-[16px] font-bold text-[#0A0A0A]/70 text-center"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  아직 게시물이 없어요.
+                  {t('아직 게시물이 없어요.')}
                 </p>
                 <p
                   className="text-[13px] text-[#0A0A0A]/40 text-center font-bold"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  첫 번째 이야기를 남겨보세요! 🎵
+                  {t('첫 번째 이야기를 남겨보세요! 🎵')}
                 </p>
                 <motion.button
                   onClick={() => {
@@ -270,7 +274,7 @@ export default function CommunityClient() {
                   className="mt-2 px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[2px] border-[#0A0A0A] text-white font-bold text-[14px]"
                   style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  ✏️ 글쓰기
+                  {t('✏️ 글쓰기')}
                 </motion.button>
               </div>
             )}

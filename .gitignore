@@ -40,3 +40,7 @@ scripts/__pycache__/
 *.tsbuildinfo
 next-env.d.ts
 ms_character/
+
+# Claude Code (local tool config)
+.claude/
+.env*

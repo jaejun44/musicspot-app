@@ -9,6 +9,10 @@ import Navigation from '@/components/Navigation';
 import ActivityGrass, { type ActivityDay } from '@/components/ActivityGrass';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useT, useIsJapanMode } from '@/lib/i18n';
+import { countryFlag } from '@/lib/geo';
+import { useTranslatable } from '@/hooks/useTranslatable';
+import TranslateButton from '@/components/TranslateButton';
 
 interface UserProfile {
   user_id: string;
@@ -44,6 +48,8 @@ interface Post {
   body: string;
   tags: string[];
   created_at: string;
+  country?: string | null;
+  language?: string | null;
 }
 
 interface HonorTitle {
@@ -87,6 +93,8 @@ function formatTitleLabel(ht: HonorTitle): string {
 type Tab = 'tracks' | 'posts';
 
 export default function UserProfileClient({ userId }: { userId: string }) {
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -123,7 +131,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
           .limit(20),
         supabase
           .from('posts')
-          .select('id, category, title, body, tags, created_at')
+          .select('id, category, title, body, tags, created_at, country, language')
           .eq('author_id', userId)
           .eq('is_published', true)
           .order('created_at', { ascending: false })
@@ -242,14 +250,14 @@ export default function UserProfileClient({ userId }: { userId: string }) {
         <div className="flex flex-col items-center justify-center py-32 px-4">
           <span className="text-[48px] mb-4">🔍</span>
           <p className="text-[18px] font-bold text-[#0A0A0A]/50" style={{ fontFamily: 'Bungee, sans-serif' }}>
-            프로필을 찾을 수 없어요
+            {t('프로필을 찾을 수 없어요')}
           </p>
           <button
             onClick={() => router.back()}
             className="mt-6 px-6 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[14px]"
             style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
           >
-            ← 돌아가기
+            {t('← 돌아가기')}
           </button>
         </div>
       </div>
@@ -281,7 +289,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           <ChevronLeft className="w-4 h-4" />
-          뒤로
+          {t('뒤로')}
         </motion.button>
 
         {/* 프로필 카드 */}
@@ -297,7 +305,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
-                alt={profile.display_name ?? '뮤지션'}
+                alt={profile.display_name ?? t('뮤지션')}
                 className="w-20 h-20 rounded-full border-[3px] border-[#0A0A0A] flex-shrink-0 object-cover"
                 style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
               />
@@ -314,7 +322,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 className="text-[22px] font-bold text-[#0A0A0A] leading-tight"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                {profile.display_name ?? '이름 없음'}
+                {profile.display_name ?? t('이름 없음')}
               </h1>
               {profile.region && (
                 <p className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
@@ -328,7 +336,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                     {followerCount}
                   </p>
                   <p className="text-[10px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                    팔로워
+                    {t('팔로워')}
                   </p>
                 </div>
                 <div className="text-center">
@@ -336,7 +344,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                     {followingCount}
                   </p>
                   <p className="text-[10px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                    팔로잉
+                    {t('팔로잉')}
                   </p>
                 </div>
               </div>
@@ -365,7 +373,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                         {s.value}
                       </p>
                       <p className="text-[10px] text-[#0A0A0A]/50 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                        {s.label}
+                        {t(s.label)}
                       </p>
                     </div>
                   ))}
@@ -393,7 +401,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                     className="flex items-center justify-center gap-1 mt-3 py-2.5 bg-[#F5FF4F] rounded-[12px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold"
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    🎸 오늘도 한 마디 던지기 →
+                    {t('🎸 오늘도 한 마디 던지기 →')}
                   </Link>
                 )}
               </>
@@ -405,12 +413,12 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
               >
                 <p className="text-[14px] font-bold text-white leading-snug" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                  아직 던진 마디가 없어요
+                  {t('아직 던진 마디가 없어요')}
                 </p>
                 <p className="text-[12px] font-bold text-white/90 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                   {isSelf
-                    ? '첫 8마디를 던지고 명성을 쌓아보세요 →'
-                    : '8마디 챌린지에서 명성이 쌓이는 씬을 구경해보세요 →'}
+                    ? t('첫 8마디를 던지고 명성을 쌓아보세요 →')
+                    : t('8마디 챌린지에서 명성이 쌓이는 씬을 구경해보세요 →')}
                 </p>
               </Link>
             )}
@@ -429,7 +437,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 className="px-2.5 py-1 bg-[#0A0A0A] text-white text-[11px] font-bold rounded-[8px]"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                {POSITION_EMOJIS[inst] ?? '🎶'} {inst}
+                {POSITION_EMOJIS[inst] ?? '🎶'} {t(inst)}
               </span>
             ))}
             {profile.genres.map((g) => (
@@ -438,7 +446,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 className="px-2.5 py-1 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[11px] font-bold rounded-[8px]"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                {g}
+                {g === '기타' ? (isJapanMode ? 'その他' : g) : t(g)}
               </span>
             ))}
           </div>
@@ -475,25 +483,26 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 ].join(' ')}
                 style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
-                {!canFollow ? '로그인 필요' : isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
+                {!canFollow ? t('로그인 필요') : isFollowing ? t('✓ 팔로잉') : t('+ 팔로우')}
               </motion.button>
               <Link
                 href={`/band-matching`}
                 className="flex-1 py-3 bg-[#FF3D77] rounded-[14px] border-[3px] border-[#0A0A0A] text-white font-bold text-[13px] text-center"
                 style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
-                연락하기 💥
+                {t('연락하기 💥')}
               </Link>
             </div>
           )}
 
-          {isSelf && (
+          {/* 일본 모드: 예약 페이지(/my-bookings) 진입 링크 숨김 */}
+          {isSelf && !isJapanMode && (
             <Link
               href="/my-bookings"
               className="block w-full py-3 bg-[#4FC3F7] rounded-[14px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[13px] text-center"
               style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              ✏️ 프로필 수정
+              {t('✏️ 프로필 수정')}
             </Link>
           )}
         </motion.div>
@@ -503,17 +512,17 @@ export default function UserProfileClient({ userId }: { userId: string }) {
           {([
             { key: 'tracks', label: '🎧 8마디 트랙', count: tracks.length },
             { key: 'posts', label: '✍️ 게시물', count: posts.length },
-          ] as { key: Tab; label: string; count: number }[]).map((t) => (
+          ] as { key: Tab; label: string; count: number }[]).map((tb) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tb.key}
+              onClick={() => setTab(tb.key)}
               className={[
                 'flex-1 py-2.5 rounded-[12px] border-[2px] border-[#0A0A0A] font-bold text-[13px] transition-colors',
-                tab === t.key ? 'bg-[#0A0A0A] text-white' : 'bg-white text-[#0A0A0A]',
+                tab === tb.key ? 'bg-[#0A0A0A] text-white' : 'bg-white text-[#0A0A0A]',
               ].join(' ')}
-              style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: tab === t.key ? '3px 3px 0 #FF3D77' : '3px 3px 0 #0A0A0A' }}
+              style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: tab === tb.key ? '3px 3px 0 #FF3D77' : '3px 3px 0 #0A0A0A' }}
             >
-              {t.label} ({t.count})
+              {t(tb.label)} ({tb.count})
             </button>
           ))}
         </div>
@@ -532,7 +541,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 <div className="flex flex-col items-center py-16">
                   <span className="text-[40px] mb-3">🎵</span>
                   <p className="text-[14px] font-bold text-[#0A0A0A]/40" style={{ fontFamily: 'Bungee, sans-serif' }}>
-                    아직 트랙이 없어요
+                    {t('아직 트랙이 없어요')}
                   </p>
                 </div>
               ) : (
@@ -561,12 +570,12 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                     {/* 트랙 정보 */}
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-bold text-[#0A0A0A] truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                        {track.stem_projects?.title ?? '프로젝트'}
+                        {track.stem_projects?.title ?? t('프로젝트')}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {track.instrument && (
                           <span className="text-[10px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                            {track.instrument}
+                            {t(track.instrument)}
                           </span>
                         )}
                         {track.stem_projects && (
@@ -603,50 +612,12 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 <div className="flex flex-col items-center py-16">
                   <span className="text-[40px] mb-3">✍️</span>
                   <p className="text-[14px] font-bold text-[#0A0A0A]/40" style={{ fontFamily: 'Bungee, sans-serif' }}>
-                    아직 게시물이 없어요
+                    {t('아직 게시물이 없어요')}
                   </p>
                 </div>
               ) : (
                 posts.map((post, i) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="bg-white rounded-[16px] border-[2px] border-[#0A0A0A] p-4"
-                    style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className="px-2 py-0.5 bg-[#4FC3F7]/20 border-[2px] border-[#4FC3F7] text-[#0A0A0A] text-[10px] font-bold rounded-[6px]"
-                        style={{ fontFamily: 'Pretendard, sans-serif' }}
-                      >
-                        {CATEGORY_LABELS[post.category] ?? post.category}
-                      </span>
-                      <span className="text-[10px] text-[#0A0A0A]/30 font-bold ml-auto" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                        {post.created_at.slice(0, 10)}
-                      </span>
-                    </div>
-                    <Link
-                      href={`/community/${post.id}`}
-                      className="text-[14px] font-bold text-[#0A0A0A] mb-1 leading-snug hover:text-[#FF3D77] transition-colors block"
-                      style={{ fontFamily: 'Pretendard, sans-serif' }}
-                    >
-                      {post.title}
-                    </Link>
-                    <p className="text-[12px] text-[#0A0A0A]/60 font-bold line-clamp-2 leading-relaxed" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                      {post.body}
-                    </p>
-                    {post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {post.tags.map((tag) => (
-                          <span key={tag} className="text-[10px] text-[#FF3D77] font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
+                  <ProfilePostItem key={post.id} post={post} index={i} />
                 ))
               )}
             </motion.div>
@@ -654,5 +625,54 @@ export default function UserProfileClient({ userId }: { userId: string }) {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+/** 프로필 게시물 카드: 국기 + 제목/본문 번역 토글 */
+function ProfilePostItem({ post, index }: { post: Post; index: number }) {
+  const t = useT();
+  const tr = useTranslatable([post.title, post.body], post.country, post.language);
+  const flag = countryFlag(post.country, post.language);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="bg-white rounded-[16px] border-[2px] border-[#0A0A0A] p-4"
+      style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span
+          className="px-2 py-0.5 bg-[#4FC3F7]/20 border-[2px] border-[#4FC3F7] text-[#0A0A0A] text-[10px] font-bold rounded-[6px]"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          {t(CATEGORY_LABELS[post.category] ?? post.category)}
+        </span>
+        {flag && <span className="text-[12px] leading-none">{flag}</span>}
+        <span className="text-[10px] text-[#0A0A0A]/30 font-bold ml-auto" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+          {post.created_at.slice(0, 10)}
+        </span>
+      </div>
+      <Link
+        href={`/community/${post.id}`}
+        className="text-[14px] font-bold text-[#0A0A0A] mb-1 leading-snug hover:text-[#FF3D77] transition-colors block"
+        style={{ fontFamily: 'Pretendard, sans-serif' }}
+      >
+        {tr.text(0)}
+      </Link>
+      <p className="text-[12px] text-[#0A0A0A]/60 font-bold line-clamp-2 leading-relaxed" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+        {tr.text(1)}
+      </p>
+      <TranslateButton state={tr} className="mt-1.5 self-start block text-[11px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
+      {post.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {post.tags.map((tag) => (
+            <span key={tag} className="text-[10px] text-[#FF3D77] font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 }

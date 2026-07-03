@@ -11,6 +11,7 @@ import OnboardingModal from '@/components/OnboardingModal';
 import { Musician, Position } from '../_data/musicians';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { useT, t as tGlobal } from '@/lib/i18n';
 
 const POSITION_EMOJIS: Record<string, string> = {
   '보컬': '🎤', '기타': '🎸', '베이스': '🎵', '드럼': '🥁', '건반': '🎹', '기타(other)': '🎶',
@@ -32,13 +33,13 @@ function profileToMusician(p: {
   const pos = (p.instruments[0] ?? '기타(other)') as Position;
   return {
     id: p.user_id,
-    name: p.display_name ?? '뮤지션',
+    name: p.display_name ?? tGlobal('뮤지션'),
     position: pos,
     genre: p.genres,
-    location: p.region ?? '미정',
+    location: p.region ?? tGlobal('미정'),
     level: '중급',
-    bio: p.bio ?? (p.purposes.join(', ') || '밴드 멤버를 찾고 있어요 🎶'),
-    lookingFor: p.looking_for || p.purposes.join(', ') || '함께 연주할 분 구해요',
+    bio: p.bio ?? (p.purposes.join(', ') || tGlobal('밴드 멤버를 찾고 있어요 🎶')),
+    lookingFor: p.looking_for || p.purposes.join(', ') || tGlobal('함께 연주할 분 구해요'),
     emoji: POSITION_EMOJIS[pos] ?? '🎶',
     color: CARD_COLORS[idx % CARD_COLORS.length],
     avatar_url: p.avatar_url ?? undefined,
@@ -46,6 +47,7 @@ function profileToMusician(p: {
 }
 
 export default function BandMatchingClient() {
+  const t = useT();
   const router = useRouter();
   const { user, loading } = useAuth();
   const [activePosition, setActivePosition] = useState<Position | 'all'>('all');
@@ -109,7 +111,7 @@ export default function BandMatchingClient() {
 
   async function handleCancelProfile() {
     if (!user) return;
-    if (!confirm('밴드찾기 프로필을 숨길까요?\n언제든지 다시 등록할 수 있어요.')) return;
+    if (!confirm(t('밴드찾기 프로필을 숨길까요?\n언제든지 다시 등록할 수 있어요.'))) return;
     await supabase.from('user_profiles').update({ is_public: false }).eq('user_id', user.id);
     setMyProfile({ is_public: false });
     setMusicians((prev) => prev.filter((m) => m.id !== user.id));
@@ -161,7 +163,7 @@ export default function BandMatchingClient() {
             className="text-[13px] text-[#0A0A0A]/60 mt-1 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            함께 연주할 뮤지션을 찾아보세요
+            {t('함께 연주할 뮤지션을 찾아보세요')}
           </p>
         </motion.div>
       </div>
@@ -186,7 +188,7 @@ export default function BandMatchingClient() {
           className="inline-block text-[12px] text-[#0A0A0A]/70 font-bold bg-white/70 backdrop-blur-sm rounded-[8px] px-3 py-1 border border-[#0A0A0A]/20"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          {filtered.length}명의 뮤지션
+          {t('{count}명의 뮤지션', { count: filtered.length })}
         </motion.p>
       </div>
 
@@ -203,13 +205,13 @@ export default function BandMatchingClient() {
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[16px]">🔥</span>
               <h2 className="text-[14px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
-                함께 자주 호흡 맞춘 뮤지션
+                {t('함께 자주 호흡 맞춘 뮤지션')}
               </h2>
               <span
                 className="px-2 py-0.5 bg-[#FF3D77] text-white text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
                 style={{ boxShadow: '1px 1px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
-                8마디 케미
+                {t('8마디 케미')}
               </span>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -253,7 +255,7 @@ export default function BandMatchingClient() {
               className="text-[15px] font-bold text-[#0A0A0A]/60 text-center"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              아직 등록된 뮤지션이 없어요.<br />첫 번째 뮤지션이 되어보세요! 🎸
+              {t('아직 등록된 뮤지션이 없어요.')}<br />{t('첫 번째 뮤지션이 되어보세요! 🎸')}
             </p>
             <motion.button
               whileHover={{ y: 3, boxShadow: '3px 3px 0 #0A0A0A' }}
@@ -262,7 +264,7 @@ export default function BandMatchingClient() {
               className="px-6 py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[15px] font-bold"
               style={{ fontFamily: 'Bungee, sans-serif', boxShadow: '5px 5px 0 #0A0A0A' }}
             >
-              내 프로필 등록하기 🎤
+              {t('내 프로필 등록하기 🎤')}
             </motion.button>
           </motion.div>
         )}
@@ -279,7 +281,7 @@ export default function BandMatchingClient() {
                 className="flex-1 py-4 bg-[#4FC3F7] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
-                ✏️ 프로필 수정
+                {t('✏️ 프로필 수정')}
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.96, y: 2 }}
@@ -287,7 +289,7 @@ export default function BandMatchingClient() {
                 className="flex-1 py-4 bg-white rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A]/60 font-bold text-[14px]"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
-                ❌ 밴드찾기 취소
+                {t('❌ 밴드찾기 취소')}
               </motion.button>
             </div>
           ) : (
@@ -297,7 +299,7 @@ export default function BandMatchingClient() {
               className="w-full py-4 bg-[#242447] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px]"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              🎵 내 프로필 등록하기
+              {t('🎵 내 프로필 등록하기')}
             </motion.button>
           )}
         </div>
@@ -338,6 +340,7 @@ function ChemistryCard({ musician, index, responseCount, onContact }: {
   responseCount: number;
   onContact: (m: Musician) => void;
 }) {
+  const t = useT();
   const colors = ['#FF3D77', '#4FC3F7', '#F5FF4F', '#41C66B'];
   const bg = colors[index % colors.length];
   return (
@@ -364,7 +367,7 @@ function ChemistryCard({ musician, index, responseCount, onContact }: {
             className="absolute -top-1 -right-1 px-1 py-0 bg-[#FF3D77] text-white text-[9px] font-bold rounded-[5px] border-[1px] border-[#0A0A0A]"
             style={{ fontFamily: 'Bungee, sans-serif', lineHeight: '14px' }}
           >
-            {responseCount}회
+            {t('{count}회', { count: responseCount })}
           </span>
         )}
       </div>
@@ -372,7 +375,7 @@ function ChemistryCard({ musician, index, responseCount, onContact }: {
         {musician.name}
       </p>
       <p className="text-[10px] text-[#0A0A0A]/50 font-bold mb-2 truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-        {musician.position}
+        {t(musician.position)}
       </p>
       <motion.button
         onClick={() => onContact(musician)}
@@ -380,7 +383,7 @@ function ChemistryCard({ musician, index, responseCount, onContact }: {
         className="w-full py-1.5 bg-[#FF3D77] rounded-[8px] border-[1.5px] border-[#0A0A0A] text-white text-[10px] font-bold"
         style={{ boxShadow: '1px 1px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
       >
-        연락하기
+        {t('연락하기')}
       </motion.button>
     </motion.div>
   );

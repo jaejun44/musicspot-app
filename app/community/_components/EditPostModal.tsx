@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 import { Category, Post } from '../_data/posts';
 
 const CATEGORIES: { value: Category; emoji: string; color: string }[] = [
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function EditPostModal({ user, post, onClose, onSuccess }: Props) {
+  const t = useT();
   const [category, setCategory] = useState<Category>(post.category);
   const [title, setTitle] = useState(post.title);
   const [body, setBody] = useState(post.body);
@@ -29,8 +31,8 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
   const [error, setError] = useState('');
 
   async function handleSubmit() {
-    if (!title.trim()) { setError('제목을 입력해주세요'); return; }
-    if (!body.trim()) { setError('내용을 입력해주세요'); return; }
+    if (!title.trim()) { setError(t('제목을 입력해주세요')); return; }
+    if (!body.trim()) { setError(t('내용을 입력해주세요')); return; }
     setError('');
     setSubmitting(true);
 
@@ -46,7 +48,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
       .eq('author_id', user!.id);
 
     setSubmitting(false);
-    if (dbErr) { setError('저장 중 오류가 발생했어요. 다시 시도해주세요.'); return; }
+    if (dbErr) { setError(t('저장 중 오류가 발생했어요. 다시 시도해주세요.')); return; }
     onSuccess();
   }
 
@@ -93,7 +95,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
             {/* 카테고리 */}
             <div>
               <p className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                카테고리
+                {t('카테고리')}
               </p>
               <div className="flex gap-2 flex-wrap">
                 {CATEGORIES.map((cat) => (
@@ -110,7 +112,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
                       fontFamily: 'Pretendard, sans-serif',
                     }}
                   >
-                    {cat.emoji} {cat.value}
+                    {cat.emoji} {t(cat.value)}
                   </motion.button>
                 ))}
               </div>
@@ -119,7 +121,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
             {/* 제목 */}
             <div>
               <p className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                제목
+                {t('제목')}
               </p>
               <input
                 type="text"
@@ -134,7 +136,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
             {/* 본문 */}
             <div>
               <p className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                내용
+                {t('내용')}
               </p>
               <textarea
                 value={body}
@@ -152,7 +154,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
             {/* 태그 */}
             <div>
               <p className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                태그 <span className="text-[#0A0A0A]/30">(선택, 공백 또는 쉼표로 구분)</span>
+                {t('태그')} <span className="text-[#0A0A0A]/30">{t('(선택, 공백 또는 쉼표로 구분)')}</span>
               </p>
               <input
                 type="text"
@@ -176,7 +178,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
               className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[16px] disabled:opacity-60"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              {submitting ? '저장 중...' : '수정 완료 💥'}
+              {submitting ? t('저장 중...') : t('수정 완료 💥')}
             </motion.button>
           </div>
         </motion.div>

@@ -6,10 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/lib/supabase';
 import { safeInternalPath } from '@/lib/safe-redirect';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 type Step = 'select' | 'email-input' | 'email-sent';
 
 export default function LoginClient() {
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('select');
@@ -38,7 +41,7 @@ export default function LoginClient() {
       options: { redirectTo },
     });
     if (error) {
-      setError('로그인 중 오류가 발생했어요. 다시 시도해 주세요.');
+      setError(t('로그인 중 오류가 발생했어요. 다시 시도해 주세요.'));
       setLoading(null);
     }
   }
@@ -53,7 +56,7 @@ export default function LoginClient() {
     });
     setLoading(null);
     if (error) {
-      setError('이메일 전송에 실패했어요. 이메일 주소를 확인해 주세요.');
+      setError(t('이메일 전송에 실패했어요. 이메일 주소를 확인해 주세요.'));
     } else {
       setStep('email-sent');
     }
@@ -95,7 +98,7 @@ export default function LoginClient() {
           className="text-[14px] text-[#0A0A0A]/50 font-bold mb-10 text-center"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          뮤지션을 위한 합주/연습실 플랫폼
+          {t('뮤지션을 위한 합주/연습실 플랫폼')}
         </motion.p>
 
         <AnimatePresence mode="wait">
@@ -132,7 +135,7 @@ export default function LoginClient() {
                     <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.87 5.32 4.68 6.73l-.96 3.57c-.09.32.25.59.54.42l4.26-2.69c.47.07.96.11 1.48.11 5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
                   </svg>
                 )}
-                카카오로 시작하기
+                {t('카카오로 시작하기')}
               </motion.button>
 
               {/* 구글 — 공식 버튼 스펙: 흰 배경, 구글 G 로고 */}
@@ -161,7 +164,7 @@ export default function LoginClient() {
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
                 )}
-                Google로 시작하기
+                {t('Google로 시작하기')}
               </motion.button>
 
               {/* 이메일 */}
@@ -179,7 +182,7 @@ export default function LoginClient() {
                 }}
               >
                 <span className="text-[20px]">✉️</span>
-                이메일로 시작하기
+                {t('이메일로 시작하기')}
               </motion.button>
 
               {error && (
@@ -206,14 +209,14 @@ export default function LoginClient() {
                 className="text-[14px] font-bold text-[#0A0A0A]/60 text-center mb-1"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                이메일로 로그인 링크를 보내드릴게요
+                {t('이메일로 로그인 링크를 보내드릴게요')}
               </p>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleEmailSend()}
-                placeholder="이메일 주소 입력"
+                placeholder={t('이메일 주소 입력')}
                 className="w-full px-4 py-4 rounded-[16px] border-[3px] border-[#0A0A0A] bg-white font-bold text-[15px] text-[#0A0A0A] outline-none focus:border-[#FF3D77] placeholder:text-[#0A0A0A]/30"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                 autoFocus
@@ -228,7 +231,7 @@ export default function LoginClient() {
                 {loading === 'email' ? (
                   <span className="w-5 h-5 rounded-full border-[2px] border-white border-t-transparent animate-spin" />
                 ) : (
-                  '링크 받기 ✉️'
+                  t('링크 받기 ✉️')
                 )}
               </motion.button>
               <button
@@ -236,7 +239,7 @@ export default function LoginClient() {
                 className="text-center text-[13px] font-bold text-[#0A0A0A]/40 mt-1"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                ← 뒤로
+                {t('← 뒤로')}
               </button>
               {error && (
                 <p
@@ -273,15 +276,15 @@ export default function LoginClient() {
                 className="text-[14px] font-bold text-[#0A0A0A]/50 text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                <span className="text-[#FF3D77]">{email}</span>로<br />
-                로그인 링크를 보냈어요. 메일을 확인해 주세요!
+                <span className="text-[#FF3D77]">{email}</span>{t('로')}<br />
+                {t('로그인 링크를 보냈어요. 메일을 확인해 주세요!')}
               </p>
               <button
                 onClick={() => { setStep('select'); setEmail(''); }}
                 className="text-center text-[13px] font-bold text-[#0A0A0A]/40 mt-2"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                다른 방법으로 로그인 →
+                {t('다른 방법으로 로그인 →')}
               </button>
             </motion.div>
           )}
@@ -301,17 +304,17 @@ export default function LoginClient() {
                 className="text-[12px] text-[#0A0A0A]/30 font-bold"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                또는
+                {t('또는')}
               </span>
               <div className="flex-1 h-[2px] bg-[#0A0A0A]/10 rounded-full" />
             </div>
             <motion.button
-              onClick={() => router.push('/search')}
+              onClick={() => router.push(isJapanMode ? '/' : '/search')}
               whileTap={{ scale: 0.97 }}
               className="w-full py-3.5 bg-white rounded-[16px] border-[3px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]/60"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
             >
-              비회원으로 둘러보기 →
+              {t('비회원으로 둘러보기 →')}
             </motion.button>
           </motion.div>
         )}
@@ -323,7 +326,7 @@ export default function LoginClient() {
           className="text-[11px] text-[#0A0A0A]/30 font-bold mt-6 text-center"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          로그인 시 이용약관 및 개인정보 처리방침에 동의하게 됩니다.
+          {t('로그인 시 이용약관 및 개인정보 처리방침에 동의하게 됩니다.')}
         </motion.p>
       </div>
     </div>

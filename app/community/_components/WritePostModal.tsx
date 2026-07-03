@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useT, getClientLocale } from '@/lib/i18n';
+import { getClientCountry } from '@/lib/geo';
 import { Category } from '../_data/posts';
 
 const CATEGORIES: { value: Category; emoji: string; color: string }[] = [
@@ -25,6 +27,7 @@ interface Props {
 }
 
 export default function WritePostModal({ user, initialCategory = '자유', onClose, onSuccess }: Props) {
+  const t = useT();
   const [category, setCategory] = useState<Category>(initialCategory);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -44,8 +47,8 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
     null;
 
   async function handleSubmit() {
-    if (!title.trim()) { setError('제목을 입력해주세요'); return; }
-    if (!body.trim()) { setError('내용을 입력해주세요'); return; }
+    if (!title.trim()) { setError(t('제목을 입력해주세요')); return; }
+    if (!body.trim()) { setError(t('내용을 입력해주세요')); return; }
     setError('');
     setSubmitting(true);
 
@@ -53,6 +56,10 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
       .split(/[,\s]+/)
       .map((t) => t.replace(/^#/, '').trim())
       .filter(Boolean);
+
+    // 국가/언어 기록: IP 국가(ms_country 쿠키) 우선, 없으면 UI 로케일로 폴백.
+    const language = getClientLocale(); // 'ko' | 'ja'
+    const country = getClientCountry() ?? (language === 'ja' ? 'JP' : 'KR');
 
     const { error: dbErr } = await supabase.from('posts').insert({
       category,
@@ -64,10 +71,12 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
       author_avatar_url: authorAvatar,
       tags,
       is_published: true,
+      country,
+      language,
     });
 
     setSubmitting(false);
-    if (dbErr) { setError('저장 중 오류가 발생했어요. 다시 시도해주세요.'); return; }
+    if (dbErr) { setError(t('저장 중 오류가 발생했어요. 다시 시도해주세요.')); return; }
     onSuccess();
   }
 
@@ -119,7 +128,7 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
                 className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                카테고리
+                {t('카테고리')}
               </p>
               <div className="flex gap-2 flex-wrap">
                 {CATEGORIES.map((cat) => (
@@ -136,7 +145,7 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
                       fontFamily: 'Pretendard, sans-serif',
                     }}
                   >
-                    {cat.emoji} {cat.value}
+                    {cat.emoji} {t(cat.value)}
                   </motion.button>
                 ))}
               </div>
@@ -148,11 +157,11 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
                 className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                제목
+                {t('제목')}
               </p>
               <input
                 type="text"
-                placeholder="제목을 입력해주세요"
+                placeholder={t('제목을 입력해주세요')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={60}
@@ -167,10 +176,10 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
                 className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                내용
+                {t('내용')}
               </p>
               <textarea
-                placeholder="내용을 입력해주세요"
+                placeholder={t('내용을 입력해주세요')}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 maxLength={1000}
@@ -192,11 +201,11 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
                 className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                태그 <span className="text-[#0A0A0A]/30">(선택, 공백 또는 쉼표로 구분)</span>
+                {t('태그')} <span className="text-[#0A0A0A]/30">{t('(선택, 공백 또는 쉼표로 구분)')}</span>
               </p>
               <input
                 type="text"
-                placeholder="홍대 드럼 합주실"
+                placeholder={t('홍대 드럼 합주실')}
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[14px] font-bold text-[#0A0A0A] outline-none placeholder:text-[#0A0A0A]/30 focus:border-[#FF3D77]"
@@ -222,7 +231,7 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
               className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[16px] disabled:opacity-60"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              {submitting ? '게시 중...' : '게시하기 💥'}
+              {submitting ? t('게시 중...') : t('게시하기 💥')}
             </motion.button>
           </div>
         </motion.div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 const INSTRUMENTS = [
   { id: '보컬', label: '보컬', emoji: '🎤' },
@@ -39,6 +40,7 @@ function toggle(arr: string[], item: string): string[] {
 }
 
 export default function OnboardingModal({ user, onComplete, onClose }: Props) {
+  const t = useT();
   const [instruments, setInstruments] = useState<string[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
   const [region, setRegion] = useState('');
@@ -78,7 +80,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
     const ok = await upsertProfile({ isPublic: instruments.length > 0 });
     setSaving(false);
     if (!ok) {
-      setSaveError('저장에 실패했어요. 잠시 후 다시 시도해주세요.');
+      setSaveError(t('저장에 실패했어요. 잠시 후 다시 시도해주세요.'));
       return;
     }
     onComplete();
@@ -112,7 +114,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                 className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                연습실 필터 · 밴드 매칭에 활용돼요
+                {t('연습실 필터 · 밴드 매칭에 활용돼요')}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -121,7 +123,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                 className="text-[12px] font-bold text-[#0A0A0A]/40 px-3 py-1.5 rounded-[8px] border-[2px] border-[#0A0A0A]/20"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                건너뛰기
+                {t('건너뛰기')}
               </button>
               {onClose && (
                 <button
@@ -142,7 +144,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              🎼 주 포지션 <span className="text-[#0A0A0A]/40">(복수 선택)</span>
+              🎼 {t('주 포지션')} <span className="text-[#0A0A0A]/40">{t('(복수 선택)')}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {INSTRUMENTS.map((item) => {
@@ -161,7 +163,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                       fontFamily: 'Pretendard, sans-serif',
                     }}
                   >
-                    {item.emoji} {item.label}
+                    {item.emoji} {t(item.label)}
                   </motion.button>
                 );
               })}
@@ -174,7 +176,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              🎵 선호 장르 <span className="text-[#0A0A0A]/40">(복수 선택)</span>
+              🎵 {t('선호 장르')} <span className="text-[#0A0A0A]/40">{t('(복수 선택)')}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {GENRES.map((g) => {
@@ -190,7 +192,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {g}
+                    {t(g === '기타' ? '그 외' : g)}
                   </motion.button>
                 );
               })}
@@ -203,7 +205,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              📍 주 활동 지역
+              📍 {t('주 활동 지역')}
             </p>
             <div className="flex flex-wrap gap-2">
               {REGIONS.map((r) => {
@@ -219,7 +221,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {r}
+                    {t(r === '기타' ? '그 외' : r)}
                   </motion.button>
                 );
               })}
@@ -232,7 +234,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              🎯 이용 목적 <span className="text-[#0A0A0A]/40">(복수 선택)</span>
+              🎯 {t('이용 목적')} <span className="text-[#0A0A0A]/40">{t('(복수 선택)')}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {PURPOSES.map((p) => {
@@ -248,7 +250,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
                     ].join(' ')}
                     style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
-                    {p.emoji} {p.label}
+                    {p.emoji} {t(p.label)}
                   </motion.button>
                 );
               })}
@@ -261,10 +263,10 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
               className="text-[13px] font-bold text-[#0A0A0A] mb-3"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              💬 구하는 멤버 <span className="text-[#0A0A0A]/40">(선택 · 최대 150자)</span>
+              💬 {t('구하는 멤버')} <span className="text-[#0A0A0A]/40">{t('(선택 · 최대 150자)')}</span>
             </p>
             <textarea
-              placeholder="예) 록/인디 좋아하는 드러머 구해요. 주 1회 합주 가능한 분!"
+              placeholder={t('예) 록/인디 좋아하는 드러머 구해요. 주 1회 합주 가능한 분!')}
               value={lookingFor}
               onChange={(e) => setLookingFor(e.target.value)}
               maxLength={150}
@@ -301,10 +303,10 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
             {saving ? (
               <>
                 <span className="w-4 h-4 rounded-full border-[2px] border-white border-t-transparent animate-spin" />
-                저장 중...
+                {t('저장 중...')}
               </>
             ) : (
-              '프로필 저장하기 💥'
+              t('프로필 저장하기 💥')
             )}
           </motion.button>
 

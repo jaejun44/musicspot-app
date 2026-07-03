@@ -9,6 +9,8 @@ import { trackComingSoonClick } from '@/lib/analytics';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationDropdown from '@/components/NotificationDropdown';
+import LocaleToggle from '@/components/LocaleToggle';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 export default function Navigation() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -18,21 +20,27 @@ export default function Navigation() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
   const { unreadCount } = useNotifications();
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
 
   async function handleSignOut() {
     await signOut();
     router.push('/');
   }
 
-  const menuItems: { label: string; path: string; trackAs?: 'band_matching' | 'community' }[] = [
-    { label: '연습실', path: '/search' },
-    { label: '밴드찾기', path: '/band-matching', trackAs: 'band_matching' },
-    { label: '내 밴드', path: '/my-band' },
-    { label: '8마디', path: '/stems' },
-    { label: '피드', path: '/feed' },
-    { label: '커뮤니티', path: '/community', trackAs: 'community' },
-    { label: '마이', path: '/my-bookings' },
-  ];
+  // 일본 모드에서는 연습실 관련 메뉴(연습실 찾기, 예약 기반 '마이') 숨김
+  const menuItems: { label: string; path: string; jaHidden?: boolean; trackAs?: 'band_matching' | 'community' }[] = [
+    { label: t('연습실'), path: '/search', jaHidden: true },
+    { label: t('밴드찾기'), path: '/band-matching', trackAs: 'band_matching' as const },
+    { label: t('내 밴드'), path: '/my-band' },
+    { label: t('8마디'), path: '/stems' },
+    { label: t('피드'), path: '/feed' },
+    { label: t('커뮤니티'), path: '/community', trackAs: 'community' as const },
+    { label: t('마이'), path: '/my-bookings', jaHidden: true },
+  ].filter((item) => !(isJapanMode && item.jaHidden));
+
+  // 일본 모드에서는 /my-bookings가 차단되므로 프로필 링크를 공개 프로필로 대체
+  const profileHref = isJapanMode && user ? `/u/${user.id}` : '/my-bookings';
 
   return (
     <nav className="sticky top-0 z-50 bg-[#FFF8F0] border-b-[3px] border-[#0A0A0A] h-20">
@@ -98,7 +106,7 @@ export default function Navigation() {
                     onClick={() => setNotifOpen((v) => !v)}
                     className="relative w-9 h-9 flex items-center justify-center rounded-full border-[2px] border-[#0A0A0A] bg-white"
                     style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
-                    aria-label="알림"
+                    aria-label={t('알림')}
                   >
                     <Bell className="w-4 h-4 text-[#0A0A0A]" />
                     {unreadCount > 0 && (
@@ -113,11 +121,11 @@ export default function Navigation() {
                   <NotificationDropdown open={notifOpen} onClose={() => setNotifOpen(false)} />
                 </div>
 
-                <Link href="/my-bookings" className="flex items-center gap-2 group">
+                <Link href={profileHref} className="flex items-center gap-2 group">
                   {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
                     <img
                       src={user.user_metadata.avatar_url || user.user_metadata.picture}
-                      alt="프로필"
+                      alt={t('프로필')}
                       className="w-9 h-9 rounded-full border-[2px] border-[#0A0A0A] object-cover"
                       style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
                     />
@@ -135,25 +143,29 @@ export default function Navigation() {
                     className="text-[13px] text-[#0A0A0A]/70 max-w-[100px] truncate group-hover:text-[#FF3D77] transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
                   >
-                    {user.user_metadata?.full_name || user.email?.split('@')[0] || '회원'}
+                    {user.user_metadata?.full_name || user.email?.split('@')[0] || t('회원')}
                   </span>
                 </Link>
+                <LocaleToggle />
                 <button
                   onClick={handleSignOut}
                   className="px-3 py-2 text-[12px] border-[2px] border-[#0A0A0A] rounded-[10px] text-[#0A0A0A]/60 hover:bg-[#0A0A0A] hover:text-white transition-colors"
                   style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, boxShadow: '2px 2px 0 #0A0A0A' }}
                 >
-                  로그아웃
+                  {t('로그아웃')}
                 </button>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="hidden md:block px-4 py-2 text-[14px] font-bold text-[#0A0A0A]/70 hover:text-[#FF3D77] transition-colors"
-                style={{ fontFamily: 'Pretendard, sans-serif' }}
-              >
-                로그인
-              </Link>
+              <div className="hidden md:flex items-center gap-3">
+                <LocaleToggle />
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-[14px] font-bold text-[#0A0A0A]/70 hover:text-[#FF3D77] transition-colors"
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  {t('로그인')}
+                </Link>
+              </div>
             )
           )}
 
@@ -191,7 +203,7 @@ export default function Navigation() {
           {user ? (
             <>
               <Link
-                href="/my-bookings"
+                href={profileHref}
                 className="flex items-center gap-3 px-8 py-4 border-b border-[#0A0A0A]"
                 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
                 onClick={() => setMenuOpen(false)}
@@ -199,7 +211,7 @@ export default function Navigation() {
                 {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
                   <img
                     src={user.user_metadata.avatar_url || user.user_metadata.picture}
-                    alt="프로필"
+                    alt={t('프로필')}
                     className="w-7 h-7 rounded-full border-[2px] border-[#0A0A0A] object-cover"
                   />
                 ) : (
@@ -209,14 +221,14 @@ export default function Navigation() {
                     </span>
                   </div>
                 )}
-                {user.user_metadata?.full_name || user.email?.split('@')[0] || '내 프로필'}
+                {user.user_metadata?.full_name || user.email?.split('@')[0] || t('내 프로필')}
               </Link>
               <button
                 className="block w-full text-left px-8 py-4 text-[#0A0A0A]/50"
                 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
                 onClick={() => { setMenuOpen(false); handleSignOut(); }}
               >
-                로그아웃
+                {t('로그아웃')}
               </button>
             </>
           ) : (
@@ -226,9 +238,12 @@ export default function Navigation() {
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
               onClick={() => setMenuOpen(false)}
             >
-              로그인
+              {t('로그인')}
             </Link>
           )}
+          <div className="px-8 py-4 flex justify-end">
+            <LocaleToggle />
+          </div>
         </motion.div>
       )}
     </nav>

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { StudioFilters } from '@/types/studio';
 import { trackFilterApply } from '@/lib/analytics';
+import { useT } from '@/lib/i18n';
 
 interface FilterChipsProps {
   filters: StudioFilters;
@@ -65,6 +66,7 @@ function toggle(chip: ChipKey, current: StudioFilters): StudioFilters {
 }
 
 export default function FilterChips({ filters, onChange }: FilterChipsProps) {
+  const t = useT();
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
       {CHIPS.map((chip) => {
@@ -86,7 +88,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
             ].join(' ')}
             style={{ boxShadow: active ? '3px 3px 0 #0A0A0A' : '2px 2px 0 #0A0A0A' }}
           >
-            {chip.label}
+            {t(chip.label)}
           </motion.button>
         );
       })}

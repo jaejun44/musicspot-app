@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useT } from '@/lib/i18n';
 import { Category } from '../_data/posts';
 
 export type FeedTab = Category | 'all' | '팔로잉';
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function CategoryFilter({ active, onChange }: Props) {
+  const t = useT();
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
       {CATEGORIES.map((cat) => {
@@ -40,7 +42,7 @@ export default function CategoryFilter({ active, onChange }: Props) {
             }}
           >
             <span className="text-[14px]">{cat.emoji}</span>
-            {cat.label}
+            {t(cat.label)}
           </motion.button>
         );
       })}

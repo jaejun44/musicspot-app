@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { StemProject } from '@/types/stem';
 import TrackUploadPanel from './TrackUploadPanel';
+import { useT } from '@/lib/i18n';
 
 const KEY_OPTIONS = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function CreateProjectModal({ user, editProject, onClose, onSuccess }: Props) {
+  const t = useT();
   const isEdit = !!editProject;
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -112,14 +114,14 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                 className="text-[18px] font-bold text-[#0A0A0A]"
                 style={{ fontFamily: 'Bungee, sans-serif' }}
               >
-                {isEdit ? '프로젝트 수정 ✏️' : step === 1 ? '새 프로젝트 🎵' : '첫 8마디 올리기 🎶'}
+                {isEdit ? t('프로젝트 수정 ✏️') : step === 1 ? t('새 프로젝트 🎵') : t('첫 8마디 올리기 🎶')}
               </h2>
               {!isEdit && (
                 <p
                   className="text-[11px] font-bold text-[#0A0A0A]/40 mt-0.5"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  {step === 1 ? 'STEP 1 / 2 — 프로젝트 정보' : 'STEP 2 / 2 — 첫 트랙'}
+                  {step === 1 ? t('STEP 1 / 2 — 프로젝트 정보') : t('STEP 2 / 2 — 첫 트랙')}
                 </p>
               )}
             </div>
@@ -136,12 +138,12 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                   className="text-[12px] font-bold text-[#0A0A0A]/60 mb-1.5 block"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  프로젝트 이름 *
+                  {t('프로젝트 이름 *')}
                 </label>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="예: 여름밤 발라드 릴레이"
+                  placeholder={t('예: 여름밤 발라드 릴레이')}
                   className="w-full px-4 py-3 bg-white rounded-[12px] border-[2px] border-[#0A0A0A] text-[14px] font-bold outline-none focus:border-[#FF3D77]"
                   style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '3px 3px 0 #0A0A0A' }}
                 />
@@ -182,7 +184,7 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                   className="text-[12px] font-bold text-[#0A0A0A]/60 mb-1.5 block"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  조성 (Key)
+                  {t('조성 (Key)')}
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {KEY_OPTIONS.map((k) => (
@@ -207,7 +209,7 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                   className="text-[12px] font-bold text-[#0A0A0A]/60 mb-1.5 block"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  장르 (선택)
+                  {t('장르 (선택)')}
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {GENRE_PRESETS.map((g) => (
@@ -220,14 +222,14 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                       ].join(' ')}
                       style={{ fontFamily: 'Pretendard, sans-serif' }}
                     >
-                      {g}
+                      {t(g)}
                     </button>
                   ))}
                 </div>
                 <input
                   value={genre}
                   onChange={(e) => setGenre(e.target.value)}
-                  placeholder="직접 입력..."
+                  placeholder={t('직접 입력...')}
                   className="w-full px-4 py-2.5 bg-white rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold outline-none focus:border-[#4FC3F7]"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 />
@@ -239,12 +241,12 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                   className="text-[12px] font-bold text-[#0A0A0A]/60 mb-1.5 block"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  설명 (선택)
+                  {t('설명 (선택)')}
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="어떤 분위기인지, 어떤 악기가 필요한지 알려주세요"
+                  placeholder={t('어떤 분위기인지, 어떤 악기가 필요한지 알려주세요')}
                   rows={3}
                   className="w-full px-4 py-3 bg-white rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold outline-none focus:border-[#4FC3F7] resize-none"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -259,8 +261,8 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
                 {loading
-                  ? isEdit ? '수정 중...' : '생성 중...'
-                  : isEdit ? '✅ 수정 완료' : '다음 단계 →'}
+                  ? isEdit ? t('수정 중...') : t('생성 중...')
+                  : isEdit ? t('✅ 수정 완료') : t('다음 단계 →')}
               </motion.button>
             </div>
           ) : (
@@ -269,7 +271,7 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                 className="text-[13px] font-bold text-[#0A0A0A]/60 -mt-2"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                프로젝트가 생성됐어요! 첫 트랙을 바로 올려보세요 🎵
+                {t('프로젝트가 생성됐어요! 첫 트랙을 바로 올려보세요 🎵')}
               </p>
               <TrackUploadPanel
                 user={user}
@@ -282,7 +284,7 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                 className="text-center text-[12px] font-bold text-[#0A0A0A]/40 underline"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                나중에 올리기 (건너뛰기)
+                {t('나중에 올리기 (건너뛰기)')}
               </button>
             </div>
           )}

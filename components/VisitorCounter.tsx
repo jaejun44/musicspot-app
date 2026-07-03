@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 export default function VisitorCounter() {
+  const t = useT();
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function VisitorCounter() {
       style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
     >
       <span className="text-base">🎸</span>
-      <span className="text-[13px] font-bold text-[#0A0A0A]/60">지금까지</span>
+      <span className="text-[13px] font-bold text-[#0A0A0A]/60">{t('지금까지')}</span>
       <motion.span
         key={count}
         initial={{ scale: 1.3, color: '#FF3D77' }}
@@ -42,7 +44,7 @@ export default function VisitorCounter() {
       >
         {count.toLocaleString()}
       </motion.span>
-      <span className="text-[13px] font-bold text-[#0A0A0A]/60">명 방문</span>
+      <span className="text-[13px] font-bold text-[#0A0A0A]/60">{t('명 방문')}</span>
     </motion.div>
   );
 }

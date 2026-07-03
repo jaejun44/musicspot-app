@@ -3,10 +3,13 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import VisitorCounter from '@/components/VisitorCounter';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 const trioImage = '/ms_character/starbeat.png';
 
 export default function HeroSection() {
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
   return (
     <section className="relative min-h-[500px] md:min-h-[720px] overflow-hidden">
       {/* Halftone Pattern Background */}
@@ -55,12 +58,12 @@ export default function HeroSection() {
                 textShadow: '8px 8px 0 #F5FF4F',
               }}
             >
-              8마디로<br />
+              {t('8마디로')}<br />
               <span className="relative inline-block">
-                밴드를
+                {t('밴드를')}
                 <span className="absolute inset-0 bg-[#FF3D77] -z-10 -left-2 -right-2 top-1 bottom-1" />
               </span>
-              <br />만든다
+              <br />{t('만든다')}
             </h1>
             <p
               className="text-xl"
@@ -69,9 +72,9 @@ export default function HeroSection() {
                 fontWeight: 700,
               }}
             >
-              한국 락/메탈 뮤지션의 첫 번째 놀이터
+              {t('한국 락/메탈 뮤지션의 첫 번째 놀이터')}
               <br />
-              8마디 던지면 밴드가 생긴다
+              {t('8마디 던지면 밴드가 생긴다')}
             </p>
           </motion.div>
 
@@ -95,12 +98,13 @@ export default function HeroSection() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                ⚡ 8마디 챌린지 시작하기
+                ⚡ {t('8마디 챌린지 시작하기')}
               </motion.button>
             </Link>
 
-            {/* 2순위: 연습실 찾기 + 밴드 찾기 */}
+            {/* 2순위: 연습실 찾기(일본 모드 숨김) + 밴드 찾기 */}
             <div className="flex flex-col sm:flex-row gap-4">
+              {!isJapanMode && (
               <Link href="/search" className="w-full sm:w-auto">
                 <motion.button
                   whileHover={{ y: 5, boxShadow: '3px 3px 0 #0A0A0A' }}
@@ -114,9 +118,10 @@ export default function HeroSection() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  🔥 연습실 찾기
+                  🔥 {t('연습실 찾기')}
                 </motion.button>
               </Link>
+              )}
               <Link href="/band-matching" className="w-full sm:w-auto">
                 <motion.button
                   whileHover={{ y: 5, boxShadow: '3px 3px 0 #0A0A0A' }}
@@ -130,7 +135,7 @@ export default function HeroSection() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  🎤 밴드 찾기
+                  🎤 {t('밴드 찾기')}
                 </motion.button>
               </Link>
             </div>

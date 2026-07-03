@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostDetailPage({ params }: Props) {
   const { data } = await supabaseServer
     .from('posts')
-    .select('id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, post_likes(post_id), post_comments(id)')
+    .select('id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, country, language, post_likes(post_id), post_comments(id)')
     .eq('id', params.id)
     .eq('is_published', true)
     .maybeSingle();
@@ -77,6 +77,8 @@ export default async function PostDetailPage({ params }: Props) {
         tags: (data.tags as string[]) ?? [],
         likes_count: ((data.post_likes as { post_id: string }[]) ?? []).length,
         comments_count: ((data.post_comments as { id: string }[]) ?? []).length,
+        country: (data.country as string) ?? null,
+        language: (data.language as string) ?? null,
       }
     : null;
 

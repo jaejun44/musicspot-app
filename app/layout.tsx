@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { headers } from 'next/headers';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
+import { LocaleProvider } from '@/lib/i18n';
+import { DEFAULT_LOCALE, isLocale } from '@/lib/i18n/locale';
 import './globals.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
@@ -43,8 +46,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // middleware가 주입한 로케일 (쿠키 > IP 국가 > Accept-Language)
+  const headerLocale = headers().get('x-locale');
+  const locale = isLocale(headerLocale) ? headerLocale : DEFAULT_LOCALE;
+
   return (
-    <html lang="ko">
+    <html lang={locale}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -55,8 +62,10 @@ export default function RootLayout({
         <meta name="theme-color" content="#FF3D77" />
       </head>
       <body className="min-h-screen bg-comic-cream text-comic-black font-pretendard">
-        {children}
-        <PWAInstallBanner />
+        <LocaleProvider locale={locale}>
+          {children}
+          <PWAInstallBanner />
+        </LocaleProvider>
 
         <Script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"

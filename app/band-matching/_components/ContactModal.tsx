@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Musician } from '../_data/musicians';
 import { trackBandContact } from '@/lib/analytics';
+import { useT } from '@/lib/i18n';
 
 interface Props {
   musician: Musician | null;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function ContactModal({ musician, onClose }: Props) {
+  const t = useT();
   return (
     <AnimatePresence>
       {musician && (
@@ -53,7 +55,7 @@ export default function ContactModal({ musician, onClose }: Props) {
                       className="text-[12px] text-[#0A0A0A]/50 font-bold"
                       style={{ fontFamily: 'Pretendard, sans-serif' }}
                     >
-                      {musician.position} · {musician.location}
+                      {t(musician.position)} · {musician.location}
                     </p>
                   </div>
                 </div>
@@ -76,11 +78,11 @@ export default function ContactModal({ musician, onClose }: Props) {
               <div className="flex flex-col gap-2">
                 <motion.button
                   whileTap={{ scale: 0.96, y: 2 }}
-                  onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert('카카오 채널 연동 준비 중이에요! 🎸'); }}
+                  onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
                   className="w-full py-3.5 bg-[#F5FF4F] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]"
                   style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  💛 카카오로 연락하기
+                  {t('💛 카카오로 연락하기')}
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.96, y: 2 }}
@@ -88,7 +90,7 @@ export default function ContactModal({ musician, onClose }: Props) {
                   className="w-full py-3.5 bg-white rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]/50"
                   style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  닫기
+                  {t('닫기')}
                 </motion.button>
               </div>
             </div>

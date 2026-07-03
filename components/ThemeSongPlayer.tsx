@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import WaxMixerBase from '@/app/stems/_components/WaxMixer';
+import { useT } from '@/lib/i18n';
 
 const WaxMixer = memo(WaxMixerBase);
 
@@ -15,6 +16,7 @@ const TRACKS = [
 ];
 
 export default function ThemeSongPlayer() {
+  const t = useT();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -69,7 +71,7 @@ export default function ThemeSongPlayer() {
         onClick={toggle}
         role="button"
         tabIndex={0}
-        aria-label={playing ? '일시정지' : '재생'}
+        aria-label={playing ? t('일시정지') : t('재생')}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggle(); }}
         style={{ WebkitTapHighlightColor: 'transparent' }}
       >

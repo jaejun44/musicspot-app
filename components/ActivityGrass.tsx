@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 // user_activity_calendar(p_user_id, p_days) RPC 반환 행
 export interface ActivityDay {
@@ -30,6 +31,7 @@ function cellColor(cnt: number): string {
 }
 
 export default function ActivityGrass({ data, days = 119, isSelf = false }: ActivityGrassProps) {
+  const t = useT();
   // 날짜 → cnt 맵
   const cntByDay = new Map<string, number>();
   let total = 0;
@@ -61,7 +63,7 @@ export default function ActivityGrass({ data, days = 119, isSelf = false }: Acti
       {/* 안내 문구 */}
       <div className="flex items-center justify-between gap-2 mb-2">
         <p className="text-[12px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-          {isEmpty ? '여기에 매일 던진 마디가 잔디처럼 쌓여요' : `🌱 최근 던지기 ${total}`}
+          {isEmpty ? t('여기에 매일 던진 마디가 잔디처럼 쌓여요') : t('🌱 최근 던지기 {total}', { total })}
         </p>
         {isEmpty && isSelf && (
           <Link
@@ -69,7 +71,7 @@ export default function ActivityGrass({ data, days = 119, isSelf = false }: Acti
             className="text-[11px] font-bold text-[#FF3D77] shrink-0"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            오늘 첫 칸을 채워보세요 →
+            {t('오늘 첫 칸을 채워보세요 →')}
           </Link>
         )}
       </div>
@@ -86,7 +88,7 @@ export default function ActivityGrass({ data, days = 119, isSelf = false }: Acti
             ) : (
               <div
                 key={cell.key}
-                title={`${cell.key} · ${cell.cnt}회`}
+                title={t('{day} · {cnt}회', { day: cell.key, cnt: cell.cnt })}
                 className="w-[11px] h-[11px] rounded-[3px] border border-[#0A0A0A]/10"
                 style={{ backgroundColor: cellColor(cell.cnt) }}
               />

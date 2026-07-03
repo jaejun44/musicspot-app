@@ -2,12 +2,14 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useT } from '@/lib/i18n';
 
 // 테마송 URL — 나중에 여기만 교체
 const THEME_SONG_URL =
   'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
 
 export default function ThemeSongPlayer() {
+  const t = useT();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -57,7 +59,7 @@ export default function ThemeSongPlayer() {
         {/* 레코드 */}
         <button
           onClick={toggle}
-          aria-label={playing ? '일시정지' : '재생'}
+          aria-label={playing ? t('일시정지') : t('재생')}
           className="relative flex-shrink-0 w-[96px] h-[96px] rounded-full focus:outline-none"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >

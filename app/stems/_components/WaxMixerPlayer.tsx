@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import WaxMixerBase from './WaxMixer';
+import { useT } from '@/lib/i18n';
 
 const WaxMixer = memo(WaxMixerBase);
 
@@ -10,6 +11,7 @@ const THEME_SONG_URL =
   'https://mwllqreadynmaoorymkn.supabase.co/storage/v1/object/public/stems/theme/musicspot_theme.mp3';
 
 export default function WaxMixerPlayer() {
+  const t = useT();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -93,7 +95,7 @@ export default function WaxMixerPlayer() {
         {/* 투명 클릭 레이어 */}
         <button
           onClick={toggle}
-          aria-label={playing ? '일시정지' : '재생'}
+          aria-label={playing ? t('일시정지') : t('재생')}
           className="absolute inset-0 focus:outline-none"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         />

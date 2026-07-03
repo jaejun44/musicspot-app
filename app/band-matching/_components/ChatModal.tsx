@@ -7,6 +7,7 @@ import { Musician } from '../_data/musicians';
 import { trackBandContact } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { useT } from '@/lib/i18n';
 
 interface Message {
   id: string;
@@ -27,6 +28,7 @@ function isUUID(str: string) {
 }
 
 export default function ChatModal({ musician, user, onClose }: Props) {
+  const t = useT();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -156,7 +158,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                       {musician.name}
                     </p>
                     <p className="text-[11px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                      {musician.position} · {musician.location}
+                      {t(musician.position)} · {musician.location}
                     </p>
                   </div>
                 </div>
@@ -172,10 +174,10 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                   <div className="bg-[#FFF8F0] rounded-[16px] border-[2px] border-[#0A0A0A]/20 p-4 text-center">
                     <p className="text-[24px] mb-2">🪞</p>
                     <p className="text-[13px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                      내 프로필이에요!
+                      {t('내 프로필이에요!')}
                     </p>
                     <p className="text-[11px] text-[#0A0A0A]/40 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                      다른 뮤지션에게 메시지를 보내보세요
+                      {t('다른 뮤지션에게 메시지를 보내보세요')}
                     </p>
                   </div>
                   <CloseButton onClose={onClose} />
@@ -195,7 +197,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                   <div className="bg-[#FFF8F0] rounded-[16px] border-[2px] border-[#0A0A0A]/20 p-4 text-center">
                     <p className="text-[24px] mb-2">🔐</p>
                     <p className="text-[13px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                      로그인하면 채팅을 보낼 수 있어요
+                      {t('로그인하면 채팅을 보낼 수 있어요')}
                     </p>
                   </div>
                   <motion.button
@@ -204,7 +206,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                     className="w-full py-3.5 bg-[#FF3D77] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-white"
                     style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                   >
-                    로그인하기 💥
+                    {t('로그인하기 💥')}
                   </motion.button>
                   <KakaoButton musician={musician} />
                   <CloseButton onClose={onClose} />
@@ -217,7 +219,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                       <div className="flex-1 flex flex-col items-center justify-center py-8 text-center">
                         <p className="text-[28px] mb-2">💬</p>
                         <p className="text-[12px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                          첫 메시지를 보내보세요!
+                          {t('첫 메시지를 보내보세요!')}
                         </p>
                       </div>
                     ) : (
@@ -251,7 +253,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                        placeholder="메시지 입력..."
+                        placeholder={t('메시지 입력...')}
                         className="flex-1 px-3 py-2.5 rounded-[12px] border-[2px] border-[#0A0A0A]/20 bg-[#FFF8F0] text-[13px] font-bold text-[#0A0A0A] outline-none focus:border-[#FF3D77]"
                         style={{ fontFamily: 'Pretendard, sans-serif' }}
                       />
@@ -269,11 +271,11 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                     {/* 카카오 보조 버튼 */}
                     <motion.button
                       whileTap={{ scale: 0.97 }}
-                      onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert('카카오 채널 연동 준비 중이에요! 🎸'); }}
+                      onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
                       className="w-full mt-2 py-2 bg-[#F5FF4F]/30 rounded-[10px] border-[1px] border-[#0A0A0A]/10 text-[12px] font-bold text-[#0A0A0A]/60"
                       style={{ fontFamily: 'Pretendard, sans-serif' }}
                     >
-                      💛 카카오로 연락하기
+                      {t('💛 카카오로 연락하기')}
                     </motion.button>
                   </div>
                 </>
@@ -287,19 +289,21 @@ export default function ChatModal({ musician, user, onClose }: Props) {
 }
 
 function KakaoButton({ musician }: { musician: Musician }) {
+  const t = useT();
   return (
     <motion.button
       whileTap={{ scale: 0.96, y: 2 }}
-      onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert('카카오 채널 연동 준비 중이에요! 🎸'); }}
+      onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
       className="w-full py-3.5 bg-[#F5FF4F] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]"
       style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
     >
-      💛 카카오로 연락하기
+      {t('💛 카카오로 연락하기')}
     </motion.button>
   );
 }
 
 function CloseButton({ onClose }: { onClose: () => void }) {
+  const t = useT();
   return (
     <motion.button
       whileTap={{ scale: 0.96, y: 2 }}
@@ -307,7 +311,7 @@ function CloseButton({ onClose }: { onClose: () => void }) {
       className="w-full py-3.5 bg-white rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]/50"
       style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
     >
-      닫기
+      {t('닫기')}
     </motion.button>
   );
 }

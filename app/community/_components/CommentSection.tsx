@@ -3,6 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+import { useT, getClientLocale } from '@/lib/i18n';
+import { getClientCountry, countryFlag } from '@/lib/geo';
+import { useTranslatable } from '@/hooks/useTranslatable';
+import TranslateButton from '@/components/TranslateButton';
 
 interface Comment {
   id: string;
@@ -12,6 +16,8 @@ interface Comment {
   user_avatar_url?: string | null;
   body: string;
   created_at: string;
+  country?: string | null;
+  language?: string | null;
 }
 
 interface Props {
@@ -26,6 +32,7 @@ interface Props {
 export default function CommentSection({
   postId, currentUserId, currentUserName, currentUserEmoji, currentUserAvatarUrl, onCommentAdded,
 }: Props) {
+  const t = useT();
   const [comments, setComments] = useState<Comment[]>([]);
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +41,7 @@ export default function CommentSection({
   useEffect(() => {
     supabase
       .from('post_comments')
-      .select('id, user_id, user_name, user_emoji, user_avatar_url, body, created_at')
+      .select('id, user_id, user_name, user_emoji, user_avatar_url, body, created_at, country, language')
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
       .then(({ data }) => setComments((data ?? []) as Comment[]));
@@ -43,6 +50,8 @@ export default function CommentSection({
   async function submitComment() {
     if (!currentUserId || !body.trim()) return;
     setSubmitting(true);
+    const language = getClientLocale();
+    const country = getClientCountry() ?? (language === 'ja' ? 'JP' : 'KR');
     const { data, error } = await supabase
       .from('post_comments')
       .insert({
@@ -52,6 +61,8 @@ export default function CommentSection({
         user_emoji: currentUserEmoji ?? '🎵',
         user_avatar_url: currentUserAvatarUrl ?? null,
         body: body.trim(),
+        country,
+        language,
       })
       .select()
       .single();
@@ -78,46 +89,12 @@ export default function CommentSection({
           className="text-[12px] text-[#0A0A0A]/30 font-bold text-center py-2"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          아직 댓글이 없어요. 첫 댓글을 남겨보세요!
+          {t('아직 댓글이 없어요. 첫 댓글을 남겨보세요!')}
         </p>
       ) : (
         <div className="flex flex-col gap-2">
           {comments.map((c) => (
-            <div key={c.id} className="flex gap-2">
-              <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center">
-                {c.user_avatar_url ? (
-                  <img
-                    src={c.user_avatar_url}
-                    alt={c.user_name}
-                    className="w-7 h-7 rounded-full border border-[#0A0A0A]/20 object-cover"
-                  />
-                ) : (
-                  <span className="text-[16px]">{c.user_emoji}</span>
-                )}
-              </div>
-              <div className="flex-1 bg-[#FFF8F0] rounded-[12px] px-3 py-2">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span
-                    className="text-[11px] font-bold text-[#0A0A0A]/70"
-                    style={{ fontFamily: 'Pretendard, sans-serif' }}
-                  >
-                    {c.user_name}
-                  </span>
-                  <span
-                    className="text-[10px] text-[#0A0A0A]/30 font-bold"
-                    style={{ fontFamily: 'Pretendard, sans-serif' }}
-                  >
-                    {c.created_at.slice(0, 10)}
-                  </span>
-                </div>
-                <p
-                  className="text-[12px] text-[#0A0A0A]/70 font-bold leading-relaxed"
-                  style={{ fontFamily: 'Pretendard, sans-serif' }}
-                >
-                  {c.body}
-                </p>
-              </div>
-            </div>
+            <CommentItem key={c.id} c={c} />
           ))}
         </div>
       )}
@@ -129,7 +106,7 @@ export default function CommentSection({
             {currentUserAvatarUrl ? (
               <img
                 src={currentUserAvatarUrl}
-                alt="나"
+                alt={t('나')}
                 className="w-7 h-7 rounded-full border border-[#0A0A0A]/20 object-cover"
               />
             ) : (
@@ -142,7 +119,7 @@ export default function CommentSection({
               value={body}
               onChange={(e) => setBody(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="댓글을 입력하세요... (Enter로 전송)"
+              placeholder={t('댓글을 입력하세요... (Enter로 전송)')}
               rows={1}
               className="flex-1 px-3 py-2 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 rounded-[12px] text-[12px] font-bold text-[#0A0A0A] placeholder-[#0A0A0A]/30 resize-none focus:outline-none focus:border-[#0A0A0A]/50"
               style={{ fontFamily: 'Pretendard, sans-serif', minHeight: '36px' }}
@@ -154,7 +131,7 @@ export default function CommentSection({
               className="px-3 py-2 bg-[#FF3D77] text-white text-[12px] font-bold rounded-[12px] border-[2px] border-[#0A0A0A] disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
               style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
-              전송
+              {t('전송')}
             </motion.button>
           </div>
         </div>
@@ -163,9 +140,54 @@ export default function CommentSection({
           className="text-[12px] text-[#0A0A0A]/30 font-bold text-center py-1"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          댓글을 달려면 로그인하세요
+          {t('댓글을 달려면 로그인하세요')}
         </p>
       )}
+    </div>
+  );
+}
+
+/** 개별 댓글: 국기 + 본문 번역 토글 */
+function CommentItem({ c }: { c: Comment }) {
+  const tr = useTranslatable([c.body], c.country, c.language);
+  const flag = countryFlag(c.country, c.language);
+  return (
+    <div className="flex gap-2">
+      <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center">
+        {c.user_avatar_url ? (
+          <img
+            src={c.user_avatar_url}
+            alt={c.user_name}
+            className="w-7 h-7 rounded-full border border-[#0A0A0A]/20 object-cover"
+          />
+        ) : (
+          <span className="text-[16px]">{c.user_emoji}</span>
+        )}
+      </div>
+      <div className="flex-1 bg-[#FFF8F0] rounded-[12px] px-3 py-2">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span
+            className="text-[11px] font-bold text-[#0A0A0A]/70"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            {c.user_name}
+          </span>
+          {flag && <span className="text-[11px] leading-none">{flag}</span>}
+          <span
+            className="text-[10px] text-[#0A0A0A]/30 font-bold"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            {c.created_at.slice(0, 10)}
+          </span>
+        </div>
+        <p
+          className="text-[12px] text-[#0A0A0A]/70 font-bold leading-relaxed"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          {tr.text(0)}
+        </p>
+        <TranslateButton state={tr} className="mt-1 self-start text-[10px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
+      </div>
     </div>
   );
 }

@@ -11,9 +11,12 @@ import FinalCTA from '@/components/FinalCTA';
 import SiteFooter from '@/components/SiteFooter';
 import ThemeSongPlayer from '@/components/ThemeSongPlayer';
 import WelcomeSheet from '@/components/WelcomeSheet';
+import { useIsJapanMode } from '@/lib/i18n';
 
 export default function HomeClient() {
   const [scrollY, setScrollY] = useState(0);
+  // 일본 모드: 연습실 검색/HOT 연습실 섹션 숨김
+  const isJapanMode = useIsJapanMode();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -35,8 +38,12 @@ export default function HomeClient() {
       <HeroSection />
       <ThemeSongPlayer />
       <PowerFeatures />
-      <SearchBar />
-      <HotRooms />
+      {!isJapanMode && (
+        <>
+          <SearchBar />
+          <HotRooms />
+        </>
+      )}
       <FinalCTA />
       <SiteFooter />
       <WelcomeSheet />

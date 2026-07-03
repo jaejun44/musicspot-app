@@ -2,6 +2,7 @@
 
 import { trackEvent } from '@/lib/analytics';
 import { buildShareUrl, type ShareCampaign } from '@/lib/share-utm';
+import { useT } from '@/lib/i18n';
 
 interface Props {
   studioName: string;
@@ -18,6 +19,8 @@ export default function KakaoShareButton({
   imageUrl,
   campaign = 'studio',
 }: Props) {
+  const t = useT();
+
   async function handleShare() {
     const kakaoUrl = buildShareUrl(`/room/${studioId}`, 'kakao', campaign, studioId);
     const linkUrl = buildShareUrl(`/room/${studioId}`, 'link', campaign, studioId);
@@ -29,13 +32,13 @@ export default function KakaoShareButton({
           objectType: 'feed',
           content: {
             title: studioName,
-            description: studioAddress || '연습실 정보 보기',
+            description: studioAddress || t('연습실 정보 보기'),
             imageUrl: imageUrl || `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com'}/hero-bg.png`,
             link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl },
           },
           buttons: [
             {
-              title: '연습실 보기',
+              title: t('연습실 보기'),
               link: { mobileWebUrl: kakaoUrl, webUrl: kakaoUrl },
             },
           ],
@@ -73,7 +76,7 @@ export default function KakaoShareButton({
     // 3순위: 클립보드 복사
     try {
       await navigator.clipboard.writeText(linkUrl);
-      alert('링크가 복사되었습니다!');
+      alert(t('링크가 복사되었습니다!'));
       trackEvent('share_click', {
         studio_id: studioId,
         studio_name: studioName,
@@ -93,7 +96,7 @@ export default function KakaoShareButton({
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M12 3C6.48 3 2 6.58 2 11c0 2.83 1.87 5.32 4.68 6.73l-.96 3.57c-.09.32.25.59.54.42l4.26-2.69c.47.07.96.11 1.48.11 5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
       </svg>
-      카카오톡 공유
+      {t('카카오톡 공유')}
     </button>
   );
 }

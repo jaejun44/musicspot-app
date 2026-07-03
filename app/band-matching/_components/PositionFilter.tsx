@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Position } from '../_data/musicians';
+import { useT } from '@/lib/i18n';
 
 const POSITIONS: { label: string; value: Position | 'all'; emoji: string; color: string }[] = [
   { label: '전체', value: 'all', emoji: '🎵', color: '#FF3D77' },
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function PositionFilter({ active, onChange }: Props) {
+  const t = useT();
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
       {POSITIONS.map((pos) => {
@@ -38,7 +40,7 @@ export default function PositionFilter({ active, onChange }: Props) {
             }}
           >
             <span className="text-[14px]">{pos.emoji}</span>
-            {pos.label}
+            {t(pos.label)}
           </motion.button>
         );
       })}

@@ -8,6 +8,7 @@ import type { User } from '@supabase/supabase-js';
 import JamRecorder, { type JamMode } from './JamRecorder';
 import { acquireMic } from '@/lib/mic';
 import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playEnsemble, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
+import { useT } from '@/lib/i18n';
 
 const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
 const MAX_FILE_BYTES = 30 * 1024 * 1024;
@@ -46,6 +47,7 @@ export default function TrackUploadPanel({
   layerBackingUrls = [],
   orderedSectionUrls = [],
 }: Props) {
+  const t = useT();
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const [file, setFile] = useState<File | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
@@ -198,7 +200,7 @@ export default function TrackUploadPanel({
       }, 1000);
     } catch {
       mic.stream.getTracks().forEach((t) => t.stop());
-      setUploadError('녹음을 시작할 수 없어요. 브라우저가 이 형식의 녹음을 지원하는지 확인해주세요.');
+      setUploadError(t('녹음을 시작할 수 없어요. 브라우저가 이 형식의 녹음을 지원하는지 확인해주세요.'));
     }
   }
 
@@ -248,7 +250,7 @@ export default function TrackUploadPanel({
       });
 
       if (error) {
-        setUploadError('트랙 저장 실패: ' + error.message);
+        setUploadError(t('트랙 저장 실패: {message}', { message: error.message }));
         setUploading(false);
         return;
       }
@@ -263,7 +265,7 @@ export default function TrackUploadPanel({
     const source: File | Blob = uploadMode === 'file' ? file! : recordedBlob!;
 
     if (source.size > MAX_FILE_BYTES) {
-      setUploadError('파일 크기는 30MB 이하여야 합니다.');
+      setUploadError(t('파일 크기는 30MB 이하여야 합니다.'));
       setUploading(false);
       return;
     }
@@ -277,7 +279,7 @@ export default function TrackUploadPanel({
       .upload(path, source, { contentType });
 
     if (uploadErr) {
-      setUploadError('업로드 실패: ' + uploadErr.message);
+      setUploadError(t('업로드 실패: {message}', { message: uploadErr.message }));
       setUploading(false);
       return;
     }
@@ -297,7 +299,7 @@ export default function TrackUploadPanel({
     });
 
     if (insertErr) {
-      setUploadError('트랙 저장 실패: ' + insertErr.message);
+      setUploadError(t('트랙 저장 실패: {message}', { message: insertErr.message }));
       setUploading(false);
       return;
     }
@@ -330,13 +332,13 @@ export default function TrackUploadPanel({
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {mode === 'jam' ? (
-              <><Guitar className="w-3 h-3" /> 함께</>
+              <><Guitar className="w-3 h-3" /> {t('함께')}</>
             ) : mode === 'file' ? (
-              <><Upload className="w-3 h-3" /> 파일</>
+              <><Upload className="w-3 h-3" /> {t('파일')}</>
             ) : mode === 'record' ? (
-              <><Mic className="w-3 h-3" /> 녹음</>
+              <><Mic className="w-3 h-3" /> {t('녹음')}</>
             ) : (
-              <><Video className="w-3 h-3" /> 유튜브</>
+              <><Video className="w-3 h-3" /> {t('유튜브')}</>
             )}
           </button>
         ))}
@@ -350,7 +352,7 @@ export default function TrackUploadPanel({
               <span className="text-[22px]">✅</span>
             </div>
             <p className="text-[12px] font-bold text-[#41C66B]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              합주 녹음 완료!
+              {t('합주 녹음 완료!')}
             </p>
 
             {/* 결과 미리듣기 — 쌓기: 반주+내 연주 동시 / 이어붙이기: 전곡 다음에 내 연주 */}
@@ -365,13 +367,13 @@ export default function TrackUploadPanel({
                 style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
                 {jamPreviewState === 'loading' ? (
-                  <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> 불러오는 중</>
+                  <><div className="w-4 h-4 border-[2px] border-white border-t-transparent rounded-full animate-spin" /> {t('불러오는 중')}</>
                 ) : jamPreviewState === 'playing' ? (
-                  <><Pause className="w-4 h-4" /> 정지</>
+                  <><Pause className="w-4 h-4" /> {t('정지')}</>
                 ) : jamMode === 'layer' ? (
-                  <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 합주로 들어보기 (반주 + 내 연주)</>
+                  <><Play className="w-4 h-4 fill-[#0A0A0A]" /> {t('🎧 합주로 들어보기 (반주 + 내 연주)')}</>
                 ) : (
-                  <><Play className="w-4 h-4 fill-[#0A0A0A]" /> 🎧 이어서 들어보기 (전곡 → 내 연주)</>
+                  <><Play className="w-4 h-4 fill-[#0A0A0A]" /> {t('🎧 이어서 들어보기 (전곡 → 내 연주)')}</>
                 )}
               </motion.button>
             )}
@@ -379,7 +381,7 @@ export default function TrackUploadPanel({
             {/* 단독 미리듣기 (내 마이크 소리만 담김) */}
             <div className="w-full">
               <p className="text-[10px] font-bold text-[#0A0A0A]/40 mb-1 text-center" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                내 트랙 단독
+                {t('내 트랙 단독')}
               </p>
               {previewUrl && <audio src={previewUrl} controls className="w-full rounded-[10px]" />}
             </div>
@@ -389,7 +391,7 @@ export default function TrackUploadPanel({
               className="text-[11px] font-bold text-[#0A0A0A]/40 underline"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              다시 녹음하기
+              {t('다시 녹음하기')}
             </button>
           </div>
         ) : (
@@ -423,7 +425,7 @@ export default function TrackUploadPanel({
             className={`text-[12px] font-bold text-center whitespace-pre-line ${file ? 'text-[#41C66B]' : 'text-[#0A0A0A]/50'}`}
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {file ? `✅ ${file.name}` : '오디오 파일 선택\nMP3, WAV, OGG, M4A, FLAC (30MB 이하)'}
+            {file ? `✅ ${file.name}` : t('오디오 파일 선택\nMP3, WAV, OGG, M4A, FLAC (30MB 이하)')}
           </p>
           <input
             type="file"
@@ -449,7 +451,7 @@ export default function TrackUploadPanel({
                 className="text-[12px] text-[#0A0A0A]/50 font-bold text-center"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                버튼을 눌러 녹음을 시작하세요
+                {t('버튼을 눌러 녹음을 시작하세요')}
               </p>
               <motion.button
                 whileTap={{ scale: 0.95 }}
@@ -457,7 +459,7 @@ export default function TrackUploadPanel({
                 className="px-5 py-2.5 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[12px] flex items-center gap-2"
                 style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
-                <Mic className="w-4 h-4" /> 녹음 시작 🎙️
+                <Mic className="w-4 h-4" /> {t('녹음 시작 🎙️')}
               </motion.button>
             </>
           )}
@@ -488,7 +490,7 @@ export default function TrackUploadPanel({
                 className="px-5 py-2.5 bg-[#0A0A0A] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[12px] flex items-center gap-2"
                 style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
               >
-                <Square className="w-4 h-4 fill-white" /> 중지 ⏹
+                <Square className="w-4 h-4 fill-white" /> {t('중지 ⏹')}
               </motion.button>
             </>
           )}
@@ -499,7 +501,7 @@ export default function TrackUploadPanel({
                 <span className="text-[22px]">✅</span>
               </div>
               <p className="text-[12px] font-bold text-[#41C66B]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-                녹음 완료!
+                {t('녹음 완료!')}
               </p>
               {previewUrl && <audio src={previewUrl} controls className="w-full rounded-[10px]" />}
               <button
@@ -507,7 +509,7 @@ export default function TrackUploadPanel({
                 className="text-[11px] font-bold text-[#0A0A0A]/40 underline"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
-                다시 녹음하기
+                {t('다시 녹음하기')}
               </button>
             </>
           )}
@@ -520,11 +522,11 @@ export default function TrackUploadPanel({
           <div className="flex items-center gap-2 mb-1">
             <Video className="w-5 h-5 text-[#FF3D77]" />
             <p className="text-[13px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              유튜브 영상 링크 붙여넣기
+              {t('유튜브 영상 링크 붙여넣기')}
             </p>
           </div>
           <p className="text-[11px] text-[#0A0A0A]/50 font-bold -mt-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            백킹 트랙을 틀어놓고 연주한 영상을 유튜브에 올린 뒤 링크를 공유하세요
+            {t('백킹 트랙을 틀어놓고 연주한 영상을 유튜브에 올린 뒤 링크를 공유하세요')}
           </p>
           <input
             type="url"
@@ -548,7 +550,7 @@ export default function TrackUploadPanel({
 
           {youtubeUrl && !youtubeId && (
             <p className="text-[11px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              ⚠️ 유효한 유튜브 URL을 입력해주세요
+              {t('⚠️ 유효한 유튜브 URL을 입력해주세요')}
             </p>
           )}
         </div>
@@ -557,7 +559,7 @@ export default function TrackUploadPanel({
       {/* Instrument chips */}
       <div>
         <p className="text-[11px] font-bold text-[#0A0A0A]/50 mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-          파트 (선택)
+          {t('파트 (선택)')}
         </p>
         <div className="flex flex-wrap gap-1.5">
           {INSTRUMENTS.map((inst) => (
@@ -570,7 +572,7 @@ export default function TrackUploadPanel({
               ].join(' ')}
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
-              {inst}
+              {t(inst)}
             </button>
           ))}
         </div>
@@ -590,12 +592,12 @@ export default function TrackUploadPanel({
         style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
       >
         {uploading
-          ? '업로드 중...'
+          ? t('업로드 중...')
           : uploadMode === 'youtube'
-          ? '🎬 유튜브 트랙 등록!'
+          ? t('🎬 유튜브 트랙 등록!')
           : uploadMode === 'jam'
-          ? '🎸 합주 트랙 추가!'
-          : '🎵 트랙 추가!'}
+          ? t('🎸 합주 트랙 추가!')
+          : t('🎵 트랙 추가!')}
       </motion.button>
     </div>
   );

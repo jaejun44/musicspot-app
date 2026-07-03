@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useT, useIsJapanMode, t as tGlobal } from '@/lib/i18n';
 
 // ─── 타입 ───────────────────────────────────────────────────────────────────
 type InstrumentKey = 'guitar' | 'bass' | 'drums' | 'vocal' | 'keyboard';
@@ -208,18 +209,25 @@ function shareKakao(result: Result) {
     (window as any).Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: `나의 악기 유형은 "${result.instrument}" — ${result.title}!`,
-        description: `${result.emoji} 락·메탈 밴드 악기 유형 테스트 | Music Spot`,
+        title: tGlobal('나의 악기 유형은 "{instrument}" — {title}!', {
+          instrument: tGlobal(result.instrument),
+          title: tGlobal(result.title),
+        }),
+        description: `${result.emoji} ${tGlobal('락·메탈 밴드 악기 유형 테스트 | Music Spot')}`,
         imageUrl: `${BASE_URL}/opengraph-image`,
         link: { mobileWebUrl: url, webUrl: url },
       },
-      buttons: [{ title: '나도 테스트하기 🎸', link: { mobileWebUrl: url, webUrl: url } }],
+      buttons: [{ title: tGlobal('나도 테스트하기 🎸'), link: { mobileWebUrl: url, webUrl: url } }],
     });
   }
 }
 
 async function copyLink(result: Result) {
-  const text = `나의 락밴드 악기 유형은 "${result.instrument}" (${result.title})! 🎸\n너는? → ${BASE_URL}/quiz`;
+  const text = tGlobal('나의 락밴드 악기 유형은 "{instrument}" ({title})! 🎸\n너는? → {url}', {
+    instrument: tGlobal(result.instrument),
+    title: tGlobal(result.title),
+    url: `${BASE_URL}/quiz`,
+  });
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -229,6 +237,7 @@ async function copyLink(result: Result) {
 
 // ─── 미니사이트 헤더 ──────────────────────────────────────────────────────────
 function QuizHeader() {
+  const t = useT();
   return (
     <header className="w-full flex items-center justify-between px-5 py-3 border-b-[2px] border-[#0A0A0A]/10">
       <Link href="/" className="flex items-center gap-2 group">
@@ -247,7 +256,7 @@ function QuizHeader() {
         </span>
       </Link>
       <span className="bg-[#F5FF4F] font-bold text-[10px] text-[#0A0A0A] px-2.5 py-0.5 rounded-full border-[2px] border-[#0A0A0A]">
-        악기 테스트
+        {t('악기 테스트')}
       </span>
     </header>
   );
@@ -257,6 +266,8 @@ function QuizHeader() {
 type Phase = 'intro' | 'quiz' | 'result';
 
 export default function QuizClient() {
+  const t = useT();
+  const isJapanMode = useIsJapanMode();
   const [phase, setPhase] = useState<Phase>('intro');
   const [current, setCurrent] = useState(0);
   const [scores, setScores] = useState<Partial<Record<InstrumentKey, number>>>({});
@@ -342,14 +353,14 @@ export default function QuizClient() {
               />
             </motion.div>
             <h1 className="font-bungee text-3xl md:text-4xl text-[#0A0A0A] leading-tight mb-3">
-              나에게 어울리는<br />
-              <span className="text-[#FF3D77]">악기</span>는?
+              {t('나에게 어울리는')}<br />
+              <span className="text-[#FF3D77]">{t('악기')}</span>{t('는?')}
             </h1>
             <p className="text-[#0A0A0A]/70 text-base mb-1">
-              락·메탈 밴드 악기 유형 테스트
+              {t('락·메탈 밴드 악기 유형 테스트')}
             </p>
             <p className="text-[#0A0A0A]/50 text-sm">
-              7가지 질문으로 알아보는 나의 악기 DNA 🎵
+              {t('7가지 질문으로 알아보는 나의 악기 DNA 🎵')}
             </p>
           </div>
 
@@ -384,7 +395,7 @@ export default function QuizClient() {
                 className="text-xs font-bold px-3 py-1 rounded-full border-[2px] border-[#0A0A0A]"
                 style={{ background: r.bg, color: r.accent }}
               >
-                {r.emoji} {r.instrument}
+                {r.emoji} {t(r.instrument)}
               </span>
             ))}
           </div>
@@ -396,10 +407,10 @@ export default function QuizClient() {
             onClick={() => setPhase('quiz')}
             className="w-full bg-[#FF3D77] text-white font-bungee text-xl py-4 rounded-[16px] border-[3px] border-[#0A0A0A] shadow-[6px_6px_0_#0A0A0A]"
           >
-            테스트 시작하기 💥
+            {t('테스트 시작하기 💥')}
           </motion.button>
 
-          <p className="text-center text-[#0A0A0A]/40 text-xs mt-4">약 1분 소요</p>
+          <p className="text-center text-[#0A0A0A]/40 text-xs mt-4">{t('약 1분 소요')}</p>
         </motion.div>
         </div>
       </div>
@@ -423,7 +434,7 @@ export default function QuizClient() {
                 {current + 1} / {QUESTIONS.length}
               </span>
               <span className="text-xs text-[#0A0A0A]/40">
-                {Math.round(progress)}% 완료
+                {t('{percent}% 완료', { percent: Math.round(progress) })}
               </span>
             </div>
             <div className="h-3 bg-white border-[2px] border-[#0A0A0A] rounded-full overflow-hidden">
@@ -464,7 +475,7 @@ export default function QuizClient() {
                 <div className="absolute -left-[14px] bottom-4 w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-r-[12px] border-r-[#0A0A0A]" />
                 <div className="absolute -left-[11px] bottom-[18px] w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[10px] border-r-white" />
                 <p className="text-[#FF3D77] font-bold text-xs mb-0.5">Q{current + 1}</p>
-                <p className="text-[#0A0A0A] font-bold text-sm leading-snug">{q.text}</p>
+                <p className="text-[#0A0A0A] font-bold text-sm leading-snug">{t(q.text)}</p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -499,7 +510,7 @@ export default function QuizClient() {
                     className="w-full text-left bg-white border-[3px] border-[#0A0A0A] rounded-[16px] shadow-[4px_4px_0_#0A0A0A] px-5 py-4 font-bold text-sm text-[#0A0A0A] transition-colors"
                     style={{ cursor: selectedIdx !== null ? 'default' : 'pointer' }}
                   >
-                    <span className={isSelected ? 'text-white' : ''}>{opt.text}</span>
+                    <span className={isSelected ? 'text-white' : ''}>{t(opt.text)}</span>
                   </motion.button>
                 );
               })}
@@ -514,7 +525,12 @@ export default function QuizClient() {
   // ── 결과 ──────────────────────────────────────────────────────────────────
   if (phase === 'result' && result) {
     const shareUrl = `${BASE_URL}/quiz`;
-    const shareText = `나의 락밴드 악기 유형은 "${result.instrument}" (${result.title})! ${result.emoji}\n너는? → ${shareUrl}`;
+    const shareText = t('나의 락밴드 악기 유형은 "{instrument}" ({title})! {emoji}\n너는? → {url}', {
+      instrument: t(result.instrument),
+      title: t(result.title),
+      emoji: result.emoji,
+      url: shareUrl,
+    });
     const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
 
     return (
@@ -565,17 +581,17 @@ export default function QuizClient() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border-[2px] border-[#0A0A0A] mb-2"
                   style={{ background: result.bg, color: result.accent }}
                 >
-                  {result.emoji} {result.instrument}
+                  {result.emoji} {t(result.instrument)}
                 </div>
                 <h2 className="font-bungee text-xl text-[#0A0A0A] leading-tight">
-                  {result.title}
+                  {t(result.title)}
                 </h2>
               </div>
             </div>
 
             {/* 설명 */}
             <p className="text-[#0A0A0A]/80 text-sm leading-relaxed mb-5 border-t-[2px] border-[#0A0A0A]/10 pt-4">
-              {result.description}
+              {t(result.description)}
             </p>
 
             {/* 추천 뮤지션 */}
@@ -584,7 +600,7 @@ export default function QuizClient() {
               style={{ background: result.bg + '33' }}
             >
               <p className="font-bold text-xs text-[#0A0A0A]/60 mb-2 uppercase tracking-wider">
-                🎙️ 닮은 뮤지션
+                {t('🎙️ 닮은 뮤지션')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {result.musicians.map((m) => (
@@ -592,7 +608,7 @@ export default function QuizClient() {
                     key={m}
                     className="text-xs font-bold px-3 py-1.5 bg-white border-[2px] border-[#0A0A0A] rounded-full shadow-[2px_2px_0_#0A0A0A]"
                   >
-                    {m}
+                    {t(m)}
                   </span>
                 ))}
               </div>
@@ -602,7 +618,7 @@ export default function QuizClient() {
           {/* 공유 섹션 */}
           <div className="bg-white border-[3px] border-[#0A0A0A] rounded-[20px] shadow-[6px_6px_0_#0A0A0A] p-5 mb-5">
             <p className="font-bold text-sm text-[#0A0A0A] mb-3 text-center">
-              🔥 친구에게 공유하기
+              {t('🔥 친구에게 공유하기')}
             </p>
             <div className="flex gap-3">
               {/* 카카오 */}
@@ -615,7 +631,7 @@ export default function QuizClient() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M12 3C6.477 3 2 6.582 2 11.05c0 2.838 1.69 5.345 4.264 6.886l-.98 3.624a.375.375 0 0 0 .557.41l4.088-2.69A12.1 12.1 0 0 0 12 19.1c5.523 0 10-3.582 10-8.05S17.523 3 12 3z" fill="#0A0A0A"/>
                 </svg>
-                카카오톡
+                {t('카카오톡')}
               </motion.button>
 
               {/* X(트위터) */}
@@ -630,7 +646,7 @@ export default function QuizClient() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
-                X (트위터)
+                {t('X (트위터)')}
               </motion.a>
 
               {/* 링크 복사 */}
@@ -644,20 +660,21 @@ export default function QuizClient() {
                   color: '#0A0A0A',
                 }}
               >
-                {copied ? '✅ 복사됨!' : '🔗 링크복사'}
+                {copied ? t('✅ 복사됨!') : t('🔗 링크복사')}
               </motion.button>
             </div>
           </div>
 
           {/* 하단 CTA */}
           <div className="flex flex-col gap-3">
-            <Link href="/search">
+            {/* 일본 모드: 연습실 대신 8小節 챌린지 CTA */}
+            <Link href={isJapanMode ? '/stems' : '/search'}>
               <motion.div
                 whileHover={{ y: -3, boxShadow: '7px 7px 0 #0A0A0A' }}
                 whileTap={{ scale: 0.96, x: 2, y: 2 }}
                 className="w-full text-center bg-[#FF3D77] text-white font-bungee text-base py-3.5 rounded-[16px] border-[3px] border-[#0A0A0A] shadow-[5px_5px_0_#0A0A0A]"
               >
-                🎸 연습실 찾으러 가기
+                {isJapanMode ? '🎸 8小節チャレンジに参加する' : t('🎸 연습실 찾으러 가기')}
               </motion.div>
             </Link>
             <motion.button
@@ -666,12 +683,12 @@ export default function QuizClient() {
               onClick={restart}
               className="w-full text-center bg-white text-[#0A0A0A] font-bold text-sm py-3 rounded-[14px] border-[3px] border-[#0A0A0A] shadow-[4px_4px_0_#0A0A0A]"
             >
-              🔄 다시 테스트하기
+              {t('🔄 다시 테스트하기')}
             </motion.button>
           </div>
 
           <p className="text-center text-[#0A0A0A]/40 text-xs mt-5">
-            Music Spot — 뮤지션을 위한 연습실 플랫폼
+            {t('Music Spot — 뮤지션을 위한 연습실 플랫폼')}
           </p>
         </motion.div>
         </div>
