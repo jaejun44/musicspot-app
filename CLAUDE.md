@@ -23,9 +23,11 @@
 - ❌ `challenge_score`/`mutual_responses`/`pass_chain` 필드 삭제 금지
 - ❌ 8마디 응답 5단계 중 '패스' 옵션 제거 금지
 - ❌ 디자인 토큰 임의 변경 금지 (색상·그림자·라운드 → `docs/DESIGN.md` 절대 준수)
-- ❌ 일본 진출 기능 / B2B SaaS·M→T 자동화 (현 단계 범위 밖)
+- ❌ B2B SaaS 대시보드 / 17개 사업자 필드 폼 / M→T 자동화 (Y2 이후)
 - ✅ 모든 유저 활동에 `user_id + country + created_at(UTC)` 기록
 - ✅ 신규 테이블에 `country` / `language` / `created_at` 포함
+- ✅ 일본 **웹 기능**(i18n·JA 로케일·X/LINE 공유 등)은 범위 내 — 2026-10까지 웹개발 집중.
+  일본 **비즈니스 진출**(공식 투자·현지 운영·JASRAC 계약·결제)은 2026-10 이후.
 
 > UI 작업 → `docs/DESIGN.md` Read / 제품·전략 제약 전체 → `docs/RULES.md` Read
 

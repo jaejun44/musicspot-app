@@ -135,7 +135,7 @@
 - ~~검색 거리정렬 서버화(Postgres RPC)~~ → ✅ Phase 14에서 완료
 - 중복 RLS 정책 정리 (posts/bookings 등)
 - notifications insert 정책 강화(현재 로그인 누구나 → DB 트리거로)
-- 일본어 페이지 + ja hreflang 활성화 (일본 진출 시점)
+- 일본어 페이지 + ja hreflang 활성화 (웹 기능이므로 선행 가능 — 2026-10 이전)
 
 ## ✅ Phase 14 — 검색·지도 경험 복구·개선 (2026-06-12)
 
