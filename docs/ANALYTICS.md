@@ -20,6 +20,9 @@
 | `booking_start` | `/booking` 로드 (연습실 확정) | `app/booking/_components/BookingClient.tsx` |
 | `payment_select` | 결제 수단 선택 | `app/payment/_components/PaymentClient.tsx` |
 | `booking_complete` | 결제 → Supabase insert 완료 | `app/payment/_components/PaymentClient.tsx` |
+| `share_challenge` | 8마디 프로젝트 공유 (모든 경로 공통) | `app/stems/_components/ProjectDetailModal.tsx` |
+| `share_challenge_x` | 일본 모드 X(트위터) 인텐트 | `app/stems/_components/ProjectDetailModal.tsx` |
+| `share_challenge_line` | 일본 모드 LINE 공유 | `app/stems/_components/ProjectDetailModal.tsx` |
 
 ---
 

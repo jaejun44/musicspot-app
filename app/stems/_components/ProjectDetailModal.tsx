@@ -8,10 +8,11 @@ import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { StemProject } from '@/types/stem';
 import { buildShareUrl } from '@/lib/share-utm';
+import { buildTweetIntent, buildLineIntent } from '@/lib/share-challenge';
 import { trackEvent } from '@/lib/analytics';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 import { createAudioContext, resumeContext, loadTracksAligned, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
-import { useT } from '@/lib/i18n';
+import { useT, useIsJapanMode } from '@/lib/i18n';
 
 interface StemTrack {
   id: string;
@@ -38,6 +39,7 @@ interface Props {
 
 export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete }: Props) {
   const t = useT();
+  const isJapanMode = useIsJapanMode();
   const router = useRouter();
   const [tracks, setTracks] = useState<StemTrack[]>([]);
   const [localIsOpen, setLocalIsOpen] = useState(project.is_open);
@@ -155,7 +157,8 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
 
   const [shareCopied, setShareCopied] = useState(false);
 
-  async function handleShare() {
+  /** justAdded: '내 마디 자랑하기'처럼 방금 이어붙인 직후 호출이면 true (문구가 자랑 톤이 됨) */
+  async function handleShare({ justAdded = false }: { justAdded?: boolean } = {}) {
     const shareUrl = buildShareUrl(`/stems/${project.id}`, 'kakao', 'challenge', project.id);
     const linkUrl = buildShareUrl(`/stems/${project.id}`, 'link', 'challenge', project.id);
     const ogImage = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com'}/stems/${project.id}/opengraph-image`;
@@ -163,6 +166,22 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     trackEvent('share_challenge', { project_id: project.id });
     // share_count 원자적 증가 (fire-and-forget — 공유 UX를 막지 않음)
     void supabase.rpc('increment_share_count', { p_project_id: project.id });
+
+    // 일본 모드: 연주자는 X(트위터) 중심. 카카오 건너뛰고 프리필+해시태그로 릴레이 확산.
+    if (isJapanMode) {
+      const intent = buildTweetIntent({
+        projectId: project.id,
+        title: project.title,
+        creatorName: project.creator_name,
+        locale: 'ja',
+        justAdded,
+      });
+      trackEvent('share_challenge_x', { project_id: project.id, method: 'twitter' });
+      if (typeof window !== 'undefined') {
+        window.open(intent, '_blank', 'noopener,noreferrer');
+      }
+      return;
+    }
 
     // 1순위: 카카오 공유
     if (window.Kakao?.isInitialized()) {
@@ -202,6 +221,15 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
       setTimeout(() => setShareCopied(false), 2000);
     } catch {
       // 무시
+    }
+  }
+
+  /** LINE 공유(일본 전용). X는 확산용, LINE은 지인 공유용으로 역할을 나눈다. */
+  function handleLineShare() {
+    trackEvent('share_challenge_line', { project_id: project.id, method: 'line' });
+    void supabase.rpc('increment_share_count', { p_project_id: project.id });
+    if (typeof window !== 'undefined') {
+      window.open(buildLineIntent(project.id), '_blank', 'noopener,noreferrer');
     }
   }
 
@@ -287,13 +315,23 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
-                  onClick={handleShare}
+                  onClick={() => handleShare()}
                   className="p-1.5 flex items-center gap-1 text-[12px] font-bold text-[#FF3D77]"
                   aria-label={t('프로젝트 공유')}
                 >
                   <Share2 className="w-4 h-4" />
                   {shareCopied ? t('복사됨!') : t('공유')}
                 </button>
+                {isJapanMode && (
+                  <button
+                    onClick={handleLineShare}
+                    className="p-1.5 flex items-center gap-1 text-[12px] font-bold text-[#06C755]"
+                    aria-label={t('LINE으로 공유')}
+                  >
+                    <Share2 className="w-4 h-4" />
+                    LINE
+                  </button>
+                )}
                 <button onClick={onClose} className="p-1" aria-label={t('닫기')}>
                   <X className="w-5 h-5 text-[#0A0A0A]/60" />
                 </button>
@@ -669,13 +707,23 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   <span className="text-[12px] text-[#0A0A0A]/60">{t('친구에게 자랑하고 다음 주자를 불러보세요')}</span>
                 </p>
                 <button
-                  onClick={handleShare}
+                  onClick={() => handleShare({ justAdded: true })}
                   className="w-full py-3 bg-[#FF3D77] text-white rounded-[12px] border-[3px] border-[#0A0A0A] text-[14px] font-bold flex items-center justify-center gap-1.5"
                   style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                 >
                   <Share2 className="w-4 h-4" />
                   {shareCopied ? t('복사됨!') : t('내 마디 자랑하기 🔥')}
                 </button>
+                {isJapanMode && (
+                  <button
+                    onClick={handleLineShare}
+                    className="w-full py-3 bg-[#06C755] text-white rounded-[12px] border-[3px] border-[#0A0A0A] text-[14px] font-bold flex items-center justify-center gap-1.5"
+                    style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+                  >
+                    <Share2 className="w-4 h-4" />
+                    {t('LINE으로 보내기')}
+                  </button>
+                )}
               </motion.div>
             )}
 

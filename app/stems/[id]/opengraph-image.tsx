@@ -27,7 +27,7 @@ export default async function OGImage({ params }: Props) {
     (data?.stem_tracks as { count: number }[] | null)?.[0]?.count ?? 0;
 
   const stats = [
-    { label: '참여', value: `${trackCount}명` },
+    { label: '참여 / 参加', value: `${trackCount}` },
     ...(bpm ? [{ label: 'BPM', value: String(bpm) }] : []),
     ...(keySig ? [{ label: 'KEY', value: keySig }] : []),
   ];
@@ -91,7 +91,7 @@ export default async function OGImage({ params }: Props) {
             boxShadow: '4px 4px 0 #0A0A0A',
           }}
         >
-          🎵 8마디 챌린지{genre ? ` · ${genre}` : ''}
+          🎵 8마디 챌린지 · 8小節チャレンジ{genre ? ` · ${genre}` : ''}
         </div>
 
         {/* 프로젝트 제목 */}

@@ -9,18 +9,23 @@
 Pink:       #FF3D77   주요 CTA, 강조
 LimeYellow: #F5FF4F   뱃지, 필터칩, 데코 (Music Spot 고유, 카카오 #FFD600 대체)
 Blue:       #4FC3F7   CTA 보조, 정보 태그
-Green:      #41C66B   완료, 긍정 (네이버 #00D26A 절대 사용 금지)
+Green:      #41C66B   완료, 긍정 (일반 그린은 항상 이것. 브랜드 그린을 끌어다 쓰지 말 것)
 Cream:      #FFF8F0   배경 기본
 Navy:       #242447   다크 배경, 강조 텍스트
 Black:      #0A0A0A   텍스트, 테두리, 그림자
 White:      #FFFFFF   카드, 입력창
 ```
 
-**카카오 옐로 `#FFD600` 독점 사용처 4곳만 허용**:
-- `LoginClient.tsx` 카카오 OAuth
-- `PaymentClient.tsx` 카카오페이
-- `RoomBookingWidget.tsx` 카카오 채널
-- `RoomContactBar.tsx` 카카오 채널
+### 브랜드 컬러 원칙
+
+**그 브랜드의 버튼에는 그 브랜드의 공식 색을 쓴다. 대신 그 색을 다른 곳에 남발하지 않는다.**
+브랜드 색이 장식·일반 UI로 번지면 Music Spot 고유 팔레트와 혼재된다. 그린이 필요하면 언제나 `#41C66B`.
+
+| 브랜드 색 | 허용 지점 |
+|-----------|-----------|
+| `#FFD600` 카카오 | `LoginClient.tsx` OAuth · `PaymentClient.tsx` 카카오페이 · `RoomBookingWidget.tsx` 채널 · `RoomContactBar.tsx` 채널 |
+| `#06C755` LINE | `ProjectDetailModal.tsx` LINE 공유 버튼 2곳 (일본 모드) |
+| `#00D26A` 네이버 | 현재 네이버 버튼 없음. 생기면 그때 허용 |
 
 Tailwind 토큰: `comic-pink`, `comic-yellow`, `comic-blue`, `comic-green`, `comic-cream`, `comic-black`
 
