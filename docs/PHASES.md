@@ -246,6 +246,20 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 
 ## 진행 중 / 다음 작업
 
+### 일본어 i18n — 잔여 검증 (구현은 완료)
+2026-07-03 인수인계 문서(`HANDOFF_i18n_일본어_*.txt`, 2026-07-09 정리하며 삭제)의 잔여 작업을 재확인한 결과, t() 적용은 전부 끝났다.
+`lib/ensemble-audio.ts` / `lib/metronome.ts`는 미적용으로 남아 있었으나 **한국어가 전부 주석이고 사용자 노출 문자열이 없어 작업 대상이 아님**을 확인했다.
+
+남은 것은 검증뿐:
+- `npx tsc --noEmit` 타입 에러 0 / `npm run build` 성공
+- 쿠키 `NEXT_LOCALE=ja` 또는 KO/JA 토글로 동작 확인
+  - 네비에 '연습실'·'마이' 미노출, 랜딩에 연습실 검색/HOT 섹션 없음
+  - `/search`, `/room/[id]`, `/my-bookings`, `/register` 직접 접근 → 홈 리다이렉트
+  - 사전 누락 시 한국어 폴백
+- 잔여 한국어 스캔: `grep -rlP "[가-힣]" --include="*.tsx" app components`
+
+⚠️ `app/layout.tsx`가 `headers()`의 `x-locale`을 읽어 전체 동적 렌더링이 됨. ISR/SSG가 필요해지면 경로 기반 `/ja` 방식으로 전환할 것.
+
 ### 1순위: 주간 점수 리셋 Cron
 - `app/api/cron/reset-weekly-scores/route.ts` — Vercel Cron
 - 매주 월요일 00:00 KST `reset_weekly_challenge_scores()` 호출

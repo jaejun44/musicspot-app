@@ -127,9 +127,10 @@ Storage: stems       오디오 (30MB, MP3/WAV/OGG/M4A/FLAC)
 | 전략·깔때기·8마디 OS | `docs/STRATEGY.md` |
 | 화면 정의 | `docs/SCREENS.md` |
 | 이벤트 트래킹 | `docs/ANALYTICS.md` |
+| 유입·리텐션 개선 | `docs/PLAN_user_growth.md` — ROI 순 우선순위, 바이럴 루프 버그 |
 
 전략 원본: `/Users/jaejunlee/Desktop/Music-Spot/music spot/`
-백업: `CLAUDE_PRE_SLIM_2026-06-09.md` (슬림화 이전), `CLAUDE_FULL_2026-06-06.md` (구버전 전체)
+CLAUDE.md 과거 버전: `git log --follow -- CLAUDE.md` → `git show <커밋>:CLAUDE.md`
 
 ---
 
