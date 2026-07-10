@@ -277,6 +277,7 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
                 user={user}
                 projectId={createdProjectId!}
                 trackOrder={1}
+                bpm={bpm}
                 onUploaded={onSuccess}
               />
               <button

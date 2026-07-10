@@ -80,3 +80,43 @@ export function scheduleCountIn(
 export function eightBarsDuration(bpm: number, bars = 8, beatsPerBar = 4): number {
   return (60 / Math.max(bpm, 1)) * beatsPerBar * bars;
 }
+
+/** 한 마디(4/4 가정) 길이(초). */
+export function barDuration(bpm: number, beatsPerBar = 4): number {
+  return (60 / Math.max(bpm, 1)) * beatsPerBar;
+}
+
+/**
+ * startTime 부터 durationSec 동안 박마다 클릭음을 예약(첫 박 액센트).
+ * 트림 구간 미리듣기에 메트로놈을 겹쳐 듣기 위한 용도.
+ * @returns 예약된 클릭을 모두 취소하는 함수.
+ */
+export function scheduleClicks(
+  ctx: AudioContext,
+  bpm: number,
+  startTime: number,
+  durationSec: number,
+  beatsPerBar = 4
+): () => void {
+  const beatInterval = 60 / Math.max(bpm, 1);
+  const beats = Math.ceil(durationSec / beatInterval);
+  const oscs: OscillatorNode[] = [];
+
+  for (let i = 0; i < beats; i++) {
+    const when = startTime + i * beatInterval;
+    if (when >= startTime + durationSec) break;
+    const { osc } = scheduleClick(ctx, when, i % beatsPerBar === 0);
+    oscs.push(osc);
+  }
+
+  return () => {
+    for (const osc of oscs) {
+      try {
+        osc.stop();
+      } catch {
+        /* 이미 종료 */
+      }
+      osc.disconnect();
+    }
+  };
+}

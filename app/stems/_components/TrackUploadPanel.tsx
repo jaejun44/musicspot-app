@@ -1,17 +1,22 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Mic, Square, Video, Guitar, Play, Pause } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import JamRecorder, { type JamMode } from './JamRecorder';
+import AudioTrimmer, { type TrimHandle } from './AudioTrimmer';
 import { acquireMic } from '@/lib/mic';
 import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playEnsemble, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 import { useT } from '@/lib/i18n';
 
 const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
-const MAX_FILE_BYTES = 30 * 1024 * 1024;
+/** Storage에 실제로 올라가는 파일(잘라낸 8마디 또는 녹음물)의 상한. */
+const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
+/** 브라우저에서 구간을 잘라내기 위해 받아들이는 원본 파일의 상한. */
+const MAX_SOURCE_BYTES = 100 * 1024 * 1024;
+const ALLOWED_EXTS = ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'];
 
 type UploadMode = 'file' | 'record' | 'youtube' | 'jam';
 
@@ -55,6 +60,45 @@ export default function TrackUploadPanel({
   const [instrument, setInstrument] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  /** 브라우저가 이 파일을 디코드하지 못하면 트리밍을 포기하고 원본을 그대로 올린다. */
+  const [trimUnavailable, setTrimUnavailable] = useState(false);
+  const trimRef = useRef<TrimHandle>(null);
+
+  const handleDecodeFailed = useCallback(
+    (message: string) => {
+      setTrimUnavailable(true);
+      // 편집도 못 하고 원본이 업로드 상한도 넘으면, 업로드 버튼을 누르기 전에 알려준다.
+      setUploadError(
+        file && file.size > MAX_UPLOAD_BYTES
+          ? t('이 파일은 브라우저에서 편집할 수 없고 30MB가 넘어요. 8마디로 잘라서 올려주세요.')
+          : message
+      );
+    },
+    [file, t]
+  );
+
+  /** 파일 선택·드롭 공통 진입점. 확장자·용량을 즉시 검증한다. */
+  const selectFile = (picked: File | null | undefined) => {
+    if (!picked) return;
+
+    const ext = picked.name.split('.').pop()?.toLowerCase() ?? '';
+    if (!picked.type.startsWith('audio/') && !ALLOWED_EXTS.includes(ext)) {
+      setFile(null);
+      setUploadError(t('오디오 파일만 올릴 수 있습니다.'));
+      return;
+    }
+
+    if (picked.size > MAX_SOURCE_BYTES) {
+      setFile(null);
+      setUploadError(t('파일 크기는 100MB 이하여야 합니다.'));
+      return;
+    }
+
+    setTrimUnavailable(false);
+    setFile(picked);
+    setUploadError('');
+  };
 
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -262,17 +306,31 @@ export default function TrackUploadPanel({
       return;
     }
 
-    const source: File | Blob = uploadMode === 'file' ? file! : recordedBlob!;
+    // 파일 모드에서는 선택한 8마디 구간만 WAV로 잘라 올린다.
+    // 디코드 실패(브라우저가 못 여는 코덱)면 트리머가 뜨지 않으므로 원본을 그대로 보낸다.
+    const trimmed = uploadMode === 'file' ? trimRef.current?.exportTrimmed() ?? null : null;
 
-    if (source.size > MAX_FILE_BYTES) {
+    let source: File | Blob;
+    let ext: string;
+    let contentType: string;
+
+    if (uploadMode === 'file') {
+      source = trimmed ?? file!;
+      ext = trimmed ? 'wav' : file!.name.split('.').pop() ?? 'mp3';
+      contentType = trimmed ? 'audio/wav' : file!.type;
+    } else {
+      source = recordedBlob!;
+      ext = 'webm';
+      contentType = 'audio/webm';
+    }
+
+    if (source.size > MAX_UPLOAD_BYTES) {
       setUploadError(t('파일 크기는 30MB 이하여야 합니다.'));
       setUploading(false);
       return;
     }
 
-    const ext = uploadMode === 'file' ? ((file as File).name.split('.').pop() ?? 'mp3') : 'webm';
     const path = `${projectId}/${user.id}_${Date.now()}.${ext}`;
-    const contentType = uploadMode === 'file' ? (file as File).type : 'audio/webm';
 
     const { error: uploadErr } = await supabase.storage
       .from('stems')
@@ -305,6 +363,7 @@ export default function TrackUploadPanel({
     }
 
     setFile(null);
+    setTrimUnavailable(false);
     setRecordedBlob(null);
     setPreview(null);
     setInstrument('');
@@ -412,31 +471,67 @@ export default function TrackUploadPanel({
 
       {/* FILE MODE */}
       {uploadMode === 'file' && (
+        <>
         <label
+          onDragOver={(e) => {
+            if (!e.dataTransfer.types.includes('Files')) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+            setDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+            setDragOver(false);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            selectFile(e.dataTransfer.files?.[0]);
+          }}
           className={[
             'flex flex-col items-center justify-center p-6 rounded-[16px] border-[3px] border-dashed cursor-pointer transition-colors',
-            file
-              ? 'border-[#41C66B] bg-[#41C66B]/10'
-              : 'border-[#0A0A0A]/30 bg-white hover:border-[#FF3D77] hover:bg-[#FF3D77]/5',
+            dragOver
+              ? 'border-[#FF3D77] bg-[#FF3D77]/10'
+              : file
+                ? 'border-[#41C66B] bg-[#41C66B]/10'
+                : 'border-[#0A0A0A]/30 bg-white hover:border-[#FF3D77] hover:bg-[#FF3D77]/5',
           ].join(' ')}
         >
-          <Upload className={`w-7 h-7 mb-2 ${file ? 'text-[#41C66B]' : 'text-[#0A0A0A]/30'}`} />
+          <Upload
+            className={`w-7 h-7 mb-2 ${
+              dragOver ? 'text-[#FF3D77]' : file ? 'text-[#41C66B]' : 'text-[#0A0A0A]/30'
+            }`}
+          />
           <p
-            className={`text-[12px] font-bold text-center whitespace-pre-line ${file ? 'text-[#41C66B]' : 'text-[#0A0A0A]/50'}`}
+            className={`text-[12px] font-bold text-center whitespace-pre-line ${
+              dragOver ? 'text-[#FF3D77]' : file ? 'text-[#41C66B]' : 'text-[#0A0A0A]/50'
+            }`}
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {file ? `✅ ${file.name}` : t('오디오 파일 선택\nMP3, WAV, OGG, M4A, FLAC (30MB 이하)')}
+            {dragOver
+              ? t('여기에 놓으세요 🎵')
+              : file
+                ? `✅ ${file.name}`
+                : t('오디오 파일 선택 또는 드래그해서 놓기\nMP3, WAV, OGG, M4A, FLAC (30MB 이하)')}
           </p>
           <input
             type="file"
             accept=".mp3,.wav,.ogg,.m4a,.aac,.flac,audio/*"
             className="hidden"
-            onChange={(e) => {
-              setFile(e.target.files?.[0] ?? null);
-              setUploadError('');
-            }}
+            onChange={(e) => selectFile(e.target.files?.[0])}
           />
         </label>
+
+        {file && !trimUnavailable && (
+          <AudioTrimmer
+            key={file.name + file.size + file.lastModified}
+            ref={trimRef}
+            file={file}
+            bpm={bpm}
+            onDecodeFailed={handleDecodeFailed}
+          />
+        )}
+        </>
       )}
 
       {/* RECORD MODE */}
