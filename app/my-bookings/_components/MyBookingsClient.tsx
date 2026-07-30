@@ -7,17 +7,19 @@ import Navigation from '@/components/Navigation';
 import BookingsTab from './BookingsTab';
 import FavoritesTab from './FavoritesTab';
 import RecentTab from './RecentTab';
+import MyStudiosTab from './MyStudiosTab';
 import { useAuth } from '@/hooks/useAuth';
 import OnboardingModal from '@/components/OnboardingModal';
 import ProfileEditModal from '@/components/ProfileEditModal';
 import { supabase } from '@/lib/supabase';
 
-type Tab = 'bookings' | 'favorites' | 'recent';
+type Tab = 'bookings' | 'favorites' | 'recent' | 'my-studios';
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'bookings', label: '예약현황', emoji: '📋' },
   { id: 'favorites', label: '즐겨찾기', emoji: '❤️' },
   { id: 'recent', label: '최근 본', emoji: '👀' },
+  { id: 'my-studios', label: '내 연습실', emoji: '🏠' },
 ];
 
 interface ProfileData {
@@ -192,6 +194,7 @@ export default function MyBookingsClient() {
             {activeTab === 'bookings' && <BookingsTab />}
             {activeTab === 'favorites' && <FavoritesTab />}
             {activeTab === 'recent' && <RecentTab />}
+            {activeTab === 'my-studios' && <MyStudiosTab />}
           </motion.div>
         </AnimatePresence>
       </div>

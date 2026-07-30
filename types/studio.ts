@@ -26,6 +26,7 @@ export interface Studio {
   review_avg: number | null;
   review_count: number;
   is_published: boolean;
+  owner_id: string | null;
   created_at: string;
   updated_at: string;
 }

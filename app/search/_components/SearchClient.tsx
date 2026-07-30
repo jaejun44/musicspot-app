@@ -61,7 +61,16 @@ export default function SearchClient() {
         >
           {userLat ? '📍 내 위치 기준' : query ? `"${query}" 검색 결과` : '전체 연습실'}
         </p>
-        <ViewToggle view={view} onChange={setView} />
+        <div className="flex items-center gap-2">
+          <Link
+            href="/room/new"
+            className="px-2.5 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] bg-white text-[11px] font-bold text-[#0A0A0A]/70"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            + 내 연습실 등록
+          </Link>
+          <ViewToggle view={view} onChange={setView} />
+        </div>
       </div>
 
       {/* 첫 진입 '내 주변' 유도 배너 */}

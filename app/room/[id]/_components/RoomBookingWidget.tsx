@@ -25,16 +25,12 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
     ? `₩${studio.price_per_hour.toLocaleString()}/h`
     : studio.price_info ?? '가격 문의';
 
-  const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com'];
-  const naverUrl = studio.naver_place_url && NAVER_PLACE_DOMAINS.some((d) => studio.naver_place_url!.includes(d))
-    ? studio.naver_place_url
-    : null;
-
-  // 예약은 우리가 직접 받지 않고 원본 사이트(스페이스클라우드/뮬 등)로 보낸다.
-  // source_url이 1,008개 전 룸에 채워져 있어 사실상 항상 존재하고,
-  // naver_place_url(공식 부킹 도메인)이 있으면 그걸 우선한다.
-  const bookingUrl = naverUrl ?? studio.source_url ?? null;
-  const bookingUrlType: 'naver' | 'source' = naverUrl ? 'naver' : 'source';
+  // 예약은 우리가 직접 받지 않고 원본 사이트로 보낸다.
+  // 크롤링된 룸은 source_url(스페이스클라우드/뮬)이 거의 항상 있어 그걸 우선하고,
+  // 사용자가 직접 등록한 룸처럼 source_url이 없는 경우엔
+  // 등록 시 입력한 예약 링크(naver_place_url, 도메인 무관)를 그대로 쓴다.
+  const bookingUrl = studio.source_url ?? studio.naver_place_url ?? null;
+  const bookingUrlType: 'naver' | 'source' = studio.source_url ? 'source' : 'naver';
 
   const hasPhone = !!studio.phone;
   const hasKakao = !!studio.kakao_channel;
@@ -157,7 +153,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
             className="text-[11px] text-[#0A0A0A]/40 font-bold text-center mt-2"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {bookingUrlType === 'naver' ? '네이버' : '스페이스클라우드/뮬'} 등 외부 사이트에서 예약이 진행돼요
+            {bookingUrlType === 'source' ? '스페이스클라우드/뮬' : '외부 링크'} 등 외부 사이트에서 예약이 진행돼요
           </p>
         )}
       </div>
