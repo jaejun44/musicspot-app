@@ -11,7 +11,18 @@ export default function VisitorCounter() {
 
   useEffect(() => {
     async function recordAndFetch() {
-      await supabase.from('page_views').insert({ path: '/' });
+      // 같은 브라우저에서 24시간 내 재방문이면 카운트 중복 적립 안 함.
+      // (IP 기준 중복 제거는 서버에서 요청 IP를 읽어야 해서 별도 API가 필요함.
+      //  방문자 수는 정확한 지표가 아니라 보여주기용 카운터라 브라우저 기준으로 충분함.)
+      const STORAGE_KEY = 'ms_visit_counted_at';
+      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+      const lastCounted = Number(localStorage.getItem(STORAGE_KEY) ?? 0);
+      const isNewVisit = Date.now() - lastCounted > ONE_DAY_MS;
+
+      if (isNewVisit) {
+        await supabase.from('page_views').insert({ path: '/' });
+        localStorage.setItem(STORAGE_KEY, String(Date.now()));
+      }
 
       const { count: total } = await supabase
         .from('page_views')
