@@ -72,9 +72,9 @@ export function trackStudioView(studioId: string, studioName: string) {
   logEvent({ event_type: 'studio_view', studio_id: studioId, studio_name: studioName });
 }
 
-/** 예약 버튼 클릭 (네이버/카카오/전화) — 가장 중요한 이벤트 */
+/** 예약 버튼 클릭 (스페이스클라우드/뮬 등 원본/네이버/카카오/전화) — 가장 중요한 이벤트 */
 export function trackContactClick(
-  type: 'naver' | 'kakao' | 'phone',
+  type: 'source' | 'naver' | 'kakao' | 'phone',
   studioId: string,
   studioName?: string
 ) {

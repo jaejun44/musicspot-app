@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Studio } from '@/types/studio';
 import { trackBookingAttempt, trackContactClick } from '@/lib/analytics';
@@ -14,35 +13,42 @@ interface RoomBookingWidgetProps {
 type SelectedRoom = 'T' | 'M' | null;
 
 export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
-  const router = useRouter();
-
   const [selectedRoom, setSelectedRoom] = useState<SelectedRoom>(
     studio.room_type === 'T' ? 'T' : studio.room_type === 'M' ? 'M' : null
   );
   const [persons, setPersons] = useState(2);
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  // 외부 예약 링크가 하나도 없는 극히 드문 케이스(직접 등록 룸 등)에만 뜨는 안내
+  const [showNoLinkFallback, setShowNoLinkFallback] = useState(false);
 
   const showRoomSelector = studio.room_type === 'both';
   const priceLabel = studio.price_per_hour
     ? `₩${studio.price_per_hour.toLocaleString()}/h`
     : studio.price_info ?? '가격 문의';
 
-  // 실제 예약 플로우 — B2B 계약 완료 후 이 함수를 CTA에 연결
-  function handleBooking() {
-    const params = new URLSearchParams({ roomId: studio.id });
-    if (selectedRoom) params.set('room_type', selectedRoom);
-    params.set('persons', String(persons));
-    router.push(`/booking?${params.toString()}`);
-  }
-
-  const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com', 'spacecloud.kr'];
+  const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com'];
   const naverUrl = studio.naver_place_url && NAVER_PLACE_DOMAINS.some((d) => studio.naver_place_url!.includes(d))
     ? studio.naver_place_url
     : null;
-  const hasNaverUrl = !!naverUrl;
+
+  // 예약은 우리가 직접 받지 않고 원본 사이트(스페이스클라우드/뮬 등)로 보낸다.
+  // source_url이 1,008개 전 룸에 채워져 있어 사실상 항상 존재하고,
+  // naver_place_url(공식 부킹 도메인)이 있으면 그걸 우선한다.
+  const bookingUrl = naverUrl ?? studio.source_url ?? null;
+  const bookingUrlType: 'naver' | 'source' = naverUrl ? 'naver' : 'source';
+
   const hasPhone = !!studio.phone;
   const hasKakao = !!studio.kakao_channel;
-  const hasAlternatives = hasNaverUrl || hasPhone || hasKakao;
+  const hasAlternatives = hasPhone || hasKakao;
+
+  function handleBookingClick() {
+    trackBookingAttempt(studio.id, studio.name);
+    if (bookingUrl) {
+      trackContactClick(bookingUrlType, studio.id, studio.name);
+      window.open(bookingUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      setShowNoLinkFallback(true);
+    }
+  }
 
   return (
     <>
@@ -139,28 +145,33 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
 
         {/* CTA */}
         <motion.button
-          onClick={() => {
-            trackBookingAttempt(studio.id, studio.name);
-            setShowComingSoon(true);
-          }}
+          onClick={handleBookingClick}
           whileTap={{ scale: 0.96, y: 2 }}
           className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[16px]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
         >
-          🔥 지금 예약하기
+          🔥 예약하러 가기 ↗
         </motion.button>
+        {bookingUrl && (
+          <p
+            className="text-[11px] text-[#0A0A0A]/40 font-bold text-center mt-2"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            {bookingUrlType === 'naver' ? '네이버' : '스페이스클라우드/뮬'} 등 외부 사이트에서 예약이 진행돼요
+          </p>
+        )}
       </div>
 
-      {/* 준비중 모달 */}
+      {/* 외부 예약 링크가 없는 극히 드문 경우의 대체 안내 */}
       <AnimatePresence>
-        {showComingSoon && (
+        {showNoLinkFallback && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0"
             style={{ backgroundColor: 'rgba(10,10,10,0.6)' }}
-            onClick={(e) => { if (e.target === e.currentTarget) setShowComingSoon(false); }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowNoLinkFallback(false); }}
           >
             <motion.div
               initial={{ y: 60, opacity: 0 }}
@@ -173,7 +184,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
               {/* 닫기 */}
               <div className="flex justify-end mb-2">
                 <motion.button
-                  onClick={() => setShowComingSoon(false)}
+                  onClick={() => setShowNoLinkFallback(false)}
                   whileTap={{ scale: 0.9 }}
                   className="w-8 h-8 rounded-[8px] border-[2px] border-[#0A0A0A] bg-white flex items-center justify-center"
                   style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
@@ -184,45 +195,26 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
 
               {/* 아이콘 + 타이틀 */}
               <div className="text-center mb-5">
-                <div className="text-[48px] mb-3">🚧</div>
+                <div className="text-[48px] mb-3">📞</div>
                 <h3
                   className="text-[22px] font-bold text-[#0A0A0A] mb-2"
                   style={{ fontFamily: 'Bungee, sans-serif' }}
                 >
-                  COMING SOON!
+                  직접 문의해서 예약해보세요
                 </h3>
                 <p
                   className="text-[13px] text-[#0A0A0A]/60 font-bold leading-relaxed"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
-                  Music Spot 온라인 예약 기능을 준비 중이에요.{'\n'}
-                  파트너십 계약 완료 후 바로 오픈됩니다! 🎸
+                  이 연습실은 온라인 예약 링크가 아직 없어요.{'\n'}
+                  아래 방법으로 문의해보세요.
                 </p>
               </div>
 
               {/* 대안 안내 */}
               {hasAlternatives && (
                 <div className="mb-4">
-                  <p
-                    className="text-[11px] font-bold text-[#0A0A0A]/40 text-center mb-3"
-                    style={{ fontFamily: 'Pretendard, sans-serif' }}
-                  >
-                    지금은 아래 방법으로 예약해보세요
-                  </p>
                   <div className="flex flex-col gap-2">
-                    {hasNaverUrl && (
-                      <a
-                        href={naverUrl!}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => trackContactClick('naver', studio.id, studio.name)}
-                        className="flex items-center gap-3 px-4 py-3 bg-[#F5FF4E] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[13px]"
-                        style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
-                      >
-                        <span className="text-[16px]">🔗</span>
-                        온라인 예약 바로가기
-                      </a>
-                    )}
                     {hasPhone && (
                       <a
                         href={`tel:${studio.phone}`}
@@ -253,7 +245,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
 
               {/* 닫기 버튼 */}
               <motion.button
-                onClick={() => setShowComingSoon(false)}
+                onClick={() => setShowNoLinkFallback(false)}
                 whileTap={{ scale: 0.96, y: 2 }}
                 className="w-full py-3 bg-[#0A0A0A] rounded-[14px] border-[2px] border-[#0A0A0A] text-white font-bold text-[14px]"
                 style={{ boxShadow: '3px 3px 0 #FF3D77', fontFamily: 'Bungee, sans-serif' }}
