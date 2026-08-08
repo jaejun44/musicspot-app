@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import { headers } from 'next/headers';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
+import AmplitudeProvider from '@/components/AmplitudeProvider';
 import { LocaleProvider } from '@/lib/i18n';
 import { DEFAULT_LOCALE, isLocale } from '@/lib/i18n/locale';
 import './globals.css';
@@ -62,6 +63,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#FF3D77" />
       </head>
       <body className="min-h-screen bg-comic-cream text-comic-black font-pretendard">
+        <AmplitudeProvider />
         <LocaleProvider locale={locale}>
           {children}
           <PWAInstallBanner />

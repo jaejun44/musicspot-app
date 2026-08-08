@@ -1,3 +1,4 @@
+import * as amplitude from '@amplitude/unified';
 import { supabase } from '@/lib/supabase';
 
 declare global {
@@ -29,11 +30,15 @@ function getReferrer(): string {
   return document.referrer || '';
 }
 
-// ─── GA4 이벤트 (기존 유지) ───────────────────────────────────────
-function trackGA(eventName: string, params?: EventParams) {
-  if (typeof window !== 'undefined' && 'gtag' in window) {
+// ─── 클라이언트 이벤트 (GA4 + Amplitude) ──────────────────────────
+function trackClient(eventName: string, params?: EventParams) {
+  if (typeof window === 'undefined') return; // 클라이언트 전용
+
+  if ('gtag' in window) {
     window.gtag('event', eventName, params);
   }
+
+  amplitude.track(eventName, params);
 }
 
 // ─── Supabase 직접 적재 ───────────────────────────────────────────
@@ -62,13 +67,13 @@ async function logEvent(payload: {
 
 /** 범용 이벤트 (KakaoShareButton, ReportModal 등 기존 호출자 호환) */
 export function trackEvent(eventName: string, params?: EventParams) {
-  trackGA(eventName, params);
+  trackClient(eventName, params);
   logEvent({ event_type: eventName });
 }
 
 /** 연습실 상세 페이지 진입 */
 export function trackStudioView(studioId: string, studioName: string) {
-  trackGA('studio_view', { studio_id: studioId, studio_name: studioName });
+  trackClient('studio_view', { studio_id: studioId, studio_name: studioName });
   logEvent({ event_type: 'studio_view', studio_id: studioId, studio_name: studioName });
 }
 
@@ -78,7 +83,7 @@ export function trackContactClick(
   studioId: string,
   studioName?: string
 ) {
-  trackGA('contact_click', { type, studio_id: studioId });
+  trackClient('contact_click', { type, studio_id: studioId });
   logEvent({
     event_type: 'contact_click',
     studio_id: studioId,
@@ -89,7 +94,7 @@ export function trackContactClick(
 
 /** 검색 실행 */
 export function trackSearch(method: 'gps' | 'text', query?: string) {
-  trackGA('search', { method, ...(query ? { query } : {}) });
+  trackClient('search', { method, ...(query ? { query } : {}) });
   logEvent({
     event_type: 'search',
     search_query: query ?? method,
@@ -98,7 +103,7 @@ export function trackSearch(method: 'gps' | 'text', query?: string) {
 
 /** 필터 적용 */
 export function trackFilterApply(filterType: string, value: string) {
-  trackGA('filter_apply', { filter_type: filterType, value });
+  trackClient('filter_apply', { filter_type: filterType, value });
   logEvent({
     event_type: 'filter_apply',
     search_query: `${filterType}:${value}`,
@@ -107,7 +112,7 @@ export function trackFilterApply(filterType: string, value: string) {
 
 /** 커밍순 탭 클릭 (밴드매칭, 커뮤니티 등) */
 export function trackComingSoonClick(tabName: 'band_matching' | 'community') {
-  trackGA('coming_soon_click', { tab_name: tabName });
+  trackClient('coming_soon_click', { tab_name: tabName });
   logEvent({ event_type: 'coming_soon_click', search_query: tabName });
 }
 
@@ -117,7 +122,7 @@ export function trackBandContact(
   musicianName: string,
   position: string
 ) {
-  trackGA('band_contact_click', { type, musician: musicianName, position });
+  trackClient('band_contact_click', { type, musician: musicianName, position });
   logEvent({
     event_type: 'band_contact_click',
     click_type: type,
@@ -127,55 +132,55 @@ export function trackBandContact(
 
 /** 즐겨찾기 토글 */
 export function trackFavoriteToggle(action: 'add' | 'remove', studioId: string) {
-  trackGA('favorite_toggle', { action, studio_id: studioId });
+  trackClient('favorite_toggle', { action, studio_id: studioId });
   logEvent({ event_type: 'favorite_toggle', studio_id: studioId, click_type: action });
 }
 
 /** 목록/지도 뷰 전환 */
 export function trackViewToggle(view: 'list' | 'map') {
-  trackGA('view_toggle', { view });
+  trackClient('view_toggle', { view });
   logEvent({ event_type: 'view_toggle', search_query: view });
 }
 
 /** 더보기 버튼 클릭 */
 export function trackLoadMore(currentCount: number) {
-  trackGA('load_more', { current_count: currentCount });
+  trackClient('load_more', { current_count: currentCount });
   logEvent({ event_type: 'load_more' });
 }
 
 /** 지도 마커 클릭 */
 export function trackMapMarkerClick(studioId: string, studioName: string) {
-  trackGA('map_marker_click', { studio_id: studioId, studio_name: studioName });
+  trackClient('map_marker_click', { studio_id: studioId, studio_name: studioName });
   logEvent({ event_type: 'map_marker_click', studio_id: studioId, studio_name: studioName });
 }
 
 /** 랜딩 HOT 연습실 카드 클릭 */
 export function trackHotRoomClick(studioId: string, studioName: string) {
-  trackGA('hot_room_click', { studio_id: studioId, studio_name: studioName });
+  trackClient('hot_room_click', { studio_id: studioId, studio_name: studioName });
   logEvent({ event_type: 'hot_room_click', studio_id: studioId, studio_name: studioName });
 }
 
 /** 예약 시도 — "지금 예약하기" 버튼 클릭 (B2B 수요 측정 핵심 지표) */
 export function trackBookingAttempt(studioId: string, studioName: string) {
-  trackGA('booking_attempt', { studio_id: studioId, studio_name: studioName });
+  trackClient('booking_attempt', { studio_id: studioId, studio_name: studioName });
   logEvent({ event_type: 'booking_attempt', studio_id: studioId, studio_name: studioName });
 }
 
 /** 예약 폼 진입 — /booking 페이지 로드 시 */
 export function trackBookingStart(studioId: string, studioName: string) {
-  trackGA('booking_start', { studio_id: studioId, studio_name: studioName });
+  trackClient('booking_start', { studio_id: studioId, studio_name: studioName });
   logEvent({ event_type: 'booking_start', studio_id: studioId, studio_name: studioName });
 }
 
 /** 결제 수단 선택 */
 export function trackPaymentSelect(method: 'card' | 'bank' | 'kakao', studioId: string) {
-  trackGA('payment_select', { method, studio_id: studioId });
+  trackClient('payment_select', { method, studio_id: studioId });
   logEvent({ event_type: 'payment_select', studio_id: studioId, click_type: method });
 }
 
 /** 결제 완료 — 실제 예약 확정 */
 export function trackBookingComplete(studioId: string, studioName: string, totalPrice: number | null) {
-  trackGA('booking_complete', {
+  trackClient('booking_complete', {
     studio_id: studioId,
     studio_name: studioName,
     ...(totalPrice != null && { value: totalPrice }),
