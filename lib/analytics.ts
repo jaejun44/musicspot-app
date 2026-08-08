@@ -1,4 +1,5 @@
 import * as amplitude from '@amplitude/unified';
+import { AMPLITUDE_ENABLED } from '@/lib/amplitude';
 import { supabase } from '@/lib/supabase';
 
 declare global {
@@ -38,7 +39,10 @@ function trackClient(eventName: string, params?: EventParams) {
     window.gtag('event', eventName, params);
   }
 
-  amplitude.track(eventName, params);
+  // 키 미설정 시 init이 안 되고, 그 상태로 track하면 이벤트가 내부 큐에 계속 쌓인다.
+  if (AMPLITUDE_ENABLED) {
+    amplitude.track(eventName, params);
+  }
 }
 
 // ─── Supabase 직접 적재 ───────────────────────────────────────────

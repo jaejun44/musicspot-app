@@ -41,7 +41,7 @@
 | 스타일 | Tailwind CSS / Framer Motion (`^12`) |
 | DB/백엔드 | Supabase (PostgreSQL, RLS 대부분 비활성화) |
 | 지도/공유 | Kakao Maps + REST(지오코딩) / Kakao JS SDK |
-| 분석 | GA4 + Supabase `user_events` (`lib/analytics.ts`) |
+| 분석 | GA4 + Amplitude(Analytics·Session Replay) + Supabase `user_events` (`lib/analytics.ts`) |
 | 배포 | Vercel (main 브랜치 자동) |
 
 ### 환경변수 (`.env.local`)
@@ -49,6 +49,7 @@
 NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY
 NEXT_PUBLIC_KAKAO_MAP_KEY / NEXT_PUBLIC_KAKAO_JS_KEY
 NEXT_PUBLIC_GA_ID / NEXT_PUBLIC_ADMIN_PASSWORD
+NEXT_PUBLIC_AMPLITUDE_API_KEY   # Amplitude 클라이언트 write key (미설정 시 트래킹만 비활성)
 SUPABASE_SERVICE_KEY        # 서버사이드만
 CRON_SECRET                 # Vercel Cron 인증
 ```

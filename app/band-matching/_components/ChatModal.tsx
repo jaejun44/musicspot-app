@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send } from 'lucide-react';
 import { Musician } from '../_data/musicians';
 import { trackBandContact } from '@/lib/analytics';
+import { SR_MASK_CLASS } from '@/lib/amplitude';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { useT } from '@/lib/i18n';
@@ -214,7 +215,10 @@ export default function ChatModal({ musician, user, onClose }: Props) {
               ) : (
                 /* 실제 채팅 */
                 <>
-                  <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2 min-h-[180px]">
+                  {/* SR_MASK_CLASS: DM 본문이 Session Replay 녹화에 찍히지 않게 마스킹 */}
+                  <div
+                    className={`${SR_MASK_CLASS} flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2 min-h-[180px]`}
+                  >
                     {messages.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-8 text-center">
                         <p className="text-[28px] mb-2">💬</p>

@@ -244,6 +244,38 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 
 ---
 
+## ✅ Phase 18 — Amplitude 도입 마무리 (2026-08-08)
+
+`aa82b6b`에서 WIP로 넘어온 Amplitude 연동(`@amplitude/unified`)을 마감.
+
+### 무엇을 고쳤나
+- **API 키 하드코딩 → `NEXT_PUBLIC_AMPLITUDE_API_KEY`** (Vercel Development/Preview/Production 3개 환경 등록 완료).
+  설정 상수는 `lib/amplitude.ts` 한 곳으로 모음 — 프로바이더·analytics·채팅 UI가 공유.
+- **user_id 연결 (기존 누락).** Supabase 세션의 `user.id`를 `setUserId`로 전달하고
+  `onAuthStateChange`로 갱신, 로그아웃 시 `amplitude.reset()`. 그전까지 Amplitude 이벤트는 전부 익명이었다.
+- **country / language user property** — `getClientCountry()` / `getClientLocale()` (docs/RULES.md 요구 축).
+- **Session Replay 프라이버시.** `sampleRate: 1`(100% 녹화)인데 1:1 DM 말풍선이 그대로 찍히고 있었다.
+  `privacyConfig.maskSelector`에 `SR_MASK_CLASS`를 등록하고 `ChatModal`의 메시지 컨테이너에 적용.
+  `<input>` 값은 기본 마스킹 레벨(medium)이 이미 가리지만 **div 텍스트는 안 가려진다**는 게 핵심.
+- **키 미설정 시 가드.** init 없이 `track()`을 부르면 이벤트가 SDK 내부 큐에 무한 적립되므로
+  `AMPLITUDE_ENABLED`가 false면 아예 호출하지 않음. GA4·`user_events`는 영향 없음.
+
+### 확인한 것 / 안 한 것
+- ✅ `npx tsc --noEmit` 0 에러, `npm run build` 성공
+- ✅ 런타임 스모크(dev + 브라우저): session replay 설정 fetch, `api2.amplitude.com/2/httpapi` 이벤트 업로드,
+  `AMP_*` 쿠키 생성, 콘솔 에러/경고 0. 마스킹 클래스가 layout·band-matching 청크 양쪽에 번들됨.
+- ⚠️ **미검증**: 로그인 상태의 `setUserId` 반영과 Amplitude 대시보드 실제 도착 — 로그인 플로우를 태우지 않았다.
+  첫 배포 후 대시보드에서 user_id·country·language가 붙는지 직접 확인 필요.
+- ⚠️ ESLint 미설정 프로젝트 (`next lint`가 대화형 초기 설정을 요구) — lint는 못 돌림.
+
+### 주의
+- `initAll()`은 async지만 그전 `track()`은 `dispatchQ`가 버퍼링 → 순서 가드 불필요
+  (`@amplitude/analytics-core/lib/cjs/core-client.js:153`).
+- **개인정보가 뜨는 화면을 새로 만들 때마다 `SR_MASK_CLASS` 적용을 검토할 것.**
+- `sampleRate: 1`은 초기 단계 의도. 트래픽 늘면 비용 때문에 낮춰야 함.
+
+---
+
 ## 진행 중 / 다음 작업
 
 ### 일본어 i18n — 잔여 검증 (구현은 완료)
@@ -266,6 +298,20 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 - `Authorization: Bearer {CRON_SECRET}` 헤더 검증
 - `CRON_SECRET` 환경변수 Vercel 추가
 - `vercel.json`: `"0 15 * * 0"` (일요일 15:00 UTC = 월요일 00:00 KST)
+
+### 보류: 챌린지 폼(form) 옵션 — 12마디 블루스 (2026-08-08 결정)
+"메인 컨셉을 8마디 → 12마디(블루스)로 리네임" 안을 검토했고 **8마디 유지**로 결론.
+12마디는 길이가 아니라 형식(I–IV–V 블루스 폼)이라 이름에 박으면 장르가 좁아지고,
+녹음 길이가 16초→24초로 +50% 늘어 릴레이 완주율이 떨어진다. 전환 비용도 큼
+(코드·문서 162곳, JA 사전이 한국어 원문을 키로 쓰는 구조라 전면 재작성 + sitemap/OG SEO 리셋).
+
+대신 기타리스트 유입 훅은 **폼 선택 기능**으로 가져간다 (지금은 보류, 착수 시 아래대로):
+- `stem_projects.form` 컬럼 추가 — `default '8bar'`, nullable (기존 데이터 안전)
+- 프로젝트 생성 시 선택: 8마디 자유(기본) / 12마디 블루스 / 16마디
+- `app/stems/_components/JamRecorder.tsx`의 `const BARS = 8`을 props로 — **여기가 유일한 하드코딩**.
+  `lib/metronome.ts`의 `eightBarsDuration(bpm, bars, beatsPerBar)`은 이미 파라미터화됐고
+  JamRecorder 카피도 `{bars}마디` 템플릿이라 엔진 변경은 사실상 없음.
+- 12마디 모드는 I–IV–V 진행 가이드 + 키 표시가 진짜 훅 (이름표보다 이게 중요)
 
 ### 장기 대기 (B2B 계약 후)
 - 실결제 PG 연동 (토스페이먼츠 / 아임포트)
