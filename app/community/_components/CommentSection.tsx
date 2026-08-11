@@ -7,6 +7,7 @@ import { useT, getClientLocale } from '@/lib/i18n';
 import { getClientCountry, countryFlag } from '@/lib/geo';
 import { useTranslatable } from '@/hooks/useTranslatable';
 import TranslateButton from '@/components/TranslateButton';
+import { track, lengthBucket } from '@/lib/analytics';
 
 interface Comment {
   id: string;
@@ -68,6 +69,7 @@ export default function CommentSection({
       .single();
     if (!error && data) {
       setComments((prev) => [...prev, data as Comment]);
+      track('post_comment', { post_id: postId, length_bucket: lengthBucket(body) });
       onCommentAdded?.();
     }
     setBody('');

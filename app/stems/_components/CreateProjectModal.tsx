@@ -8,6 +8,7 @@ import type { User } from '@supabase/supabase-js';
 import type { StemProject } from '@/types/stem';
 import TrackUploadPanel from './TrackUploadPanel';
 import { useT } from '@/lib/i18n';
+import { track, incrementUserProperty } from '@/lib/analytics';
 
 const KEY_OPTIONS = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
@@ -81,6 +82,14 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
     setLoading(false);
 
     if (data?.id) {
+      // 릴레이 시작점 생성 완료. 이후 step2(첫 트랙 업로드) 이탈률을 따로 본다.
+      track('challenge_create_complete', {
+        project_id: data.id,
+        genre: genre.trim() || undefined,
+        bpm,
+        key_signature: keySignature,
+      });
+      incrementUserProperty('challenge_created_count');
       setCreatedProjectId(data.id);
       setStep(2);
     } else {

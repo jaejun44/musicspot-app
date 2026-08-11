@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { trackEvent } from '@/lib/analytics';
+import { track } from '@/lib/analytics';
 import { useT } from '@/lib/i18n';
 
 interface Props {
@@ -47,9 +47,10 @@ export default function ReportModal({ studioId, defaultType, onClose }: Props) {
 
     setSubmitting(false);
     if (!error) {
-      trackEvent('studio_report_submit', {
-        studio_id: studioId || 'none',
+      track('report_submit', {
+        target_type: 'studio',
         report_type: reportType,
+        studio_id: studioId || undefined,
       });
       setSubmitted(true);
       setTimeout(onClose, 1500);

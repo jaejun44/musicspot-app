@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Share } from 'lucide-react';
 import { useT } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -34,6 +35,7 @@ export default function PWAInstallBanner() {
     if (isIOSSafari()) {
       // iOS는 beforeinstallprompt 미지원 — 수동 안내 배너
       setMode('ios');
+      track('pwa_install_prompt', { action: 'shown' });
       return;
     }
 
@@ -41,6 +43,7 @@ export default function PWAInstallBanner() {
       e.preventDefault();
       setPrompt(e as BeforeInstallPromptEvent);
       setMode('android');
+      track('pwa_install_prompt', { action: 'shown' });
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
@@ -50,11 +53,13 @@ export default function PWAInstallBanner() {
     if (!prompt) return;
     await prompt.prompt();
     const { outcome } = await prompt.userChoice;
+    track('pwa_install_prompt', { action: outcome });
     if (outcome === 'accepted') setMode(null);
     setPrompt(null);
   }
 
   function handleDismiss() {
+    track('pwa_install_prompt', { action: 'dismissed' });
     localStorage.setItem(DISMISSED_KEY, '1');
     setMode(null);
   }

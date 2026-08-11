@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 import EditPostModal from './EditPostModal';
+import { track } from '@/lib/analytics';
 
 const SELECT_FIELDS = 'id, category, title, body, author_id, author_name, author_emoji, author_avatar_url, created_at, tags, country, language, post_likes(post_id), post_comments(id)';
 
@@ -64,7 +65,9 @@ export default function CommunityClient() {
         .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(50);
-      setPosts((data ?? []).map(mapPost));
+      const list = (data ?? []).map(mapPost);
+      setPosts(list);
+      track('community_list_view', { post_count: list.length });
     }
     fetchPosts();
   }, []);
@@ -132,6 +135,7 @@ export default function CommunityClient() {
   }
 
   function handleLikeToggle(postId: string, liked: boolean) {
+    track('post_like', { post_id: postId, action: liked ? 'add' : 'remove' });
     setLikedPostIds((prev) => {
       const next = new Set(prev);
       if (liked) next.add(postId); else next.delete(postId);
@@ -200,6 +204,7 @@ export default function CommunityClient() {
           <CategoryFilter active={activeTab} onChange={(tab) => {
           if (tab === '팔로잉' && !user) { router.push('/login'); return; }
           setActiveTab(tab);
+          track('filter_apply', { filter_type: 'community_tab', value: tab });
           const params = new URLSearchParams(searchParams.toString());
           if (tab === 'all') params.delete('category');
           else params.set('category', tab);
@@ -268,6 +273,7 @@ export default function CommunityClient() {
                   onClick={() => {
                     if (loading) return;
                     if (!user) { router.push('/login'); return; }
+                    track('post_write_start', { category: activeTab });
                     setShowWrite(true);
                   }}
                   whileTap={{ scale: 0.96, y: 2 }}
@@ -293,6 +299,7 @@ export default function CommunityClient() {
           onClick={() => {
             if (loading) return;
             if (!user) { router.push('/login'); return; }
+            track('post_write_start', { category: activeTab });
             setShowWrite(true);
           }}
           className="w-14 h-14 bg-[#FF3D77] rounded-full border-[3px] border-[#0A0A0A] flex items-center justify-center text-[24px]"

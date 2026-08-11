@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
@@ -14,6 +14,7 @@ import ProjectDetailModal from './ProjectDetailModal';
 import WaxMixerPlayer from './WaxMixerPlayer';
 import LeaderboardThrowers from '@/components/LeaderboardThrowers';
 import { useT } from '@/lib/i18n';
+import { track, type EntrySource } from '@/lib/analytics';
 
 type StemProjectRow = Database['public']['Tables']['stem_projects']['Row'] & {
   stem_tracks: Array<{ count: number }>;
@@ -33,6 +34,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
   const [editingProject, setEditingProject] = useState<StemProject | null>(null);
   const [selectedProject, setSelectedProject] = useState<StemProject | null>(null);
   const [introOpen, setIntroOpen] = useState(false);
+  const listViewTracked = useRef(false);
 
   useEffect(() => {
     fetchProjects();
@@ -63,8 +65,24 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
   useEffect(() => {
     if (!initialProjectId || projects.length === 0) return;
     const target = projects.find((p) => p.id === initialProjectId);
-    if (target) setSelectedProject(target);
+    // 공유 유입은 K-factor 분모 → 목록 클릭과 반드시 구분해서 기록
+    if (target) openProject(target, 'deeplink');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialProjectId, projects]);
+
+  /** 프로젝트 상세 열기 — 모든 진입 경로가 이 함수를 거쳐야 entry가 정확해진다. */
+  function openProject(project: StemProject, entry: EntrySource) {
+    setSelectedProject(project);
+    track('challenge_project_view', {
+      project_id: project.id,
+      genre: project.genre ?? undefined,
+      bpm: project.bpm ?? undefined,
+      pass_count: project.pass_count ?? 0,
+      track_count: project.track_count ?? 0,
+      is_open: project.is_open,
+      entry,
+    });
+  }
 
   async function fetchProjects() {
     const { data } = await supabase
@@ -91,6 +109,15 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
         pass_count: row.pass_count ?? 0,
       } satisfies StemProject));
       setProjects(mapped);
+
+      // fetchProjects는 업로드/삭제 후에도 다시 돌기 때문에 최초 1회만 기록한다.
+      if (!listViewTracked.current) {
+        listViewTracked.current = true;
+        track('challenge_list_view', {
+          project_count: mapped.length,
+          is_logged_in_view: user != null,
+        });
+      }
     }
   }
 
@@ -120,12 +147,15 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
   const loginReturnTo = initialProjectId ? `/stems/${initialProjectId}` : '/stems';
 
   function gotoLogin() {
+    // 비로그인 유입이 로그인 화면까지 간 지점 = 바이럴→가입 전환 퍼널의 시작
+    if (initialProjectId) track('challenge_login_cta_click', { project_id: initialProjectId });
     router.push(`/login?returnTo=${encodeURIComponent(loginReturnTo)}`);
   }
 
   function openCreate() {
     if (loading) return;
     if (!user) { gotoLogin(); return; }
+    track('challenge_create_start');
     setShowCreate(true);
   }
 
@@ -291,7 +321,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
                 project={p}
                 index={i}
                 user={user}
-                onOpen={setSelectedProject}
+                onOpen={(p) => openProject(p, 'list')}
                 onEdit={handleEditProject}
                 onDelete={handleDeleteProject}
               />
@@ -335,11 +365,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
           transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
           whileHover={{ scale: 1.07, rotate: 5 }}
           whileTap={{ scale: 0.92, y: 2 }}
-          onClick={() => {
-            if (loading) return;
-            if (!user) { gotoLogin(); return; }
-            setShowCreate(true);
-          }}
+          onClick={openCreate}
           className="w-14 h-14 bg-[#41C66B] rounded-full border-[3px] border-[#0A0A0A] flex items-center justify-center text-[24px]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
         >

@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, setLocaleAndReload, type Locale } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 const OPTIONS: { value: Locale; label: string }[] = [
   { value: 'ko', label: 'KO' },
@@ -23,7 +24,11 @@ export default function LocaleToggle({ className = '' }: { className?: string })
           key={opt.value}
           type="button"
           disabled={locale === opt.value}
-          onClick={() => setLocaleAndReload(opt.value)}
+          onClick={() => {
+            // reload로 페이지가 날아가므로 전환 전에 기록해야 한다
+            track('locale_switch', { from: locale, to: opt.value });
+            setLocaleAndReload(opt.value);
+          }}
           className={`px-2.5 py-1.5 text-[11px] font-bold transition-colors ${
             locale === opt.value
               ? 'bg-[#0A0A0A] text-white cursor-default'

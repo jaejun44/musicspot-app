@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useT, useIsJapanMode } from '@/lib/i18n';
+import { track, syncUserProperties } from '@/lib/analytics';
 
 const INSTRUMENTS = [
   { id: '보컬', label: '보컬', emoji: '🎤' },
@@ -151,6 +152,15 @@ export default function ProfileEditModal({ user, onClose, onSaved }: Props) {
       setSaveError(t('저장에 실패했습니다. 다시 시도해주세요.'));
       return;
     }
+    track('profile_save', {
+      has_instrument: instruments.length > 0,
+      has_genre: genres.length > 0,
+      has_region: region.trim().length > 0,
+      has_avatar: finalAvatarUrl.length > 0,
+      has_bio: bio.trim().length > 0,
+    });
+    void syncUserProperties(user.id);
+
     onSaved({
       display_name: displayName.trim(),
       bio: bio.trim(),

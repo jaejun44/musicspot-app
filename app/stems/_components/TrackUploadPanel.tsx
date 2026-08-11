@@ -10,6 +10,7 @@ import AudioTrimmer, { type TrimHandle } from './AudioTrimmer';
 import { acquireMic } from '@/lib/mic';
 import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playEnsemble, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 import { useT } from '@/lib/i18n';
+import { track, incrementUserProperty } from '@/lib/analytics';
 
 const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
 /** Storage에 실제로 올라가는 파일(잘라낸 8마디 또는 녹음물)의 상한. */
@@ -280,6 +281,21 @@ export default function TrackUploadPanel({
     // JAM은 녹음 시 고른 모드, 그 외 업로드는 이어붙이기(새 섹션)로 곡 확장
     const section = sectionFor(uploadMode === 'jam' ? jamMode : 'extend');
 
+    // start/complete를 쌍으로 남겨야 "업로드 시도했는데 실패한 비율"이 보인다.
+    // 8마디는 파일이 크고 모바일 네트워크에서 자주 끊기므로 이 비율이 이탈의 주범.
+    track('challenge_upload_start', { project_id: projectId, track_order: trackOrder, source: uploadMode });
+
+    const trackUploaded = () => {
+      track('challenge_upload_complete', {
+        project_id: projectId,
+        track_order: trackOrder,
+        source: uploadMode,
+        section,
+        has_instrument: instrument.trim().length > 0,
+      });
+      incrementUserProperty('stem_track_count');
+    };
+
     if (uploadMode === 'youtube') {
       const { error } = await supabase.from('stem_tracks').insert({
         project_id: projectId,
@@ -294,11 +310,13 @@ export default function TrackUploadPanel({
       });
 
       if (error) {
+        track('challenge_upload_fail', { project_id: projectId, source: uploadMode, reason: 'insert_error' });
         setUploadError(t('트랙 저장 실패: {message}', { message: error.message }));
         setUploading(false);
         return;
       }
 
+      trackUploaded();
       setYoutubeUrl('');
       setInstrument('');
       setUploading(false);
@@ -325,6 +343,7 @@ export default function TrackUploadPanel({
     }
 
     if (source.size > MAX_UPLOAD_BYTES) {
+      track('challenge_upload_fail', { project_id: projectId, source: uploadMode, reason: 'size_limit' });
       setUploadError(t('파일 크기는 30MB 이하여야 합니다.'));
       setUploading(false);
       return;
@@ -337,6 +356,7 @@ export default function TrackUploadPanel({
       .upload(path, source, { contentType });
 
     if (uploadErr) {
+      track('challenge_upload_fail', { project_id: projectId, source: uploadMode, reason: 'storage_error' });
       setUploadError(t('업로드 실패: {message}', { message: uploadErr.message }));
       setUploading(false);
       return;
@@ -357,11 +377,13 @@ export default function TrackUploadPanel({
     });
 
     if (insertErr) {
+      track('challenge_upload_fail', { project_id: projectId, source: uploadMode, reason: 'insert_error' });
       setUploadError(t('트랙 저장 실패: {message}', { message: insertErr.message }));
       setUploading(false);
       return;
     }
 
+    trackUploaded();
     setFile(null);
     setTrimUnavailable(false);
     setRecordedBlob(null);

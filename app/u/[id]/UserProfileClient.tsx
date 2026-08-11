@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { useT, useIsJapanMode } from '@/lib/i18n';
 import { countryFlag } from '@/lib/geo';
+import { track } from '@/lib/analytics';
 import { useTranslatable } from '@/hooks/useTranslatable';
 import TranslateButton from '@/components/TranslateButton';
 
@@ -116,6 +117,12 @@ export default function UserProfileClient({ userId }: { userId: string }) {
 
   const isSelf = user?.id === userId;
   const canFollow = !!(user && !isSelf);
+
+  // 남의 프로필 열람 = 매칭 관심의 선행 지표. 본인 프로필 조회와 반드시 분리
+  useEffect(() => {
+    track('profile_page_view', { target_user_id: userId, is_self: isSelf });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, isSelf]);
 
   useEffect(() => {
     async function load() {

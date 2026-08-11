@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 export default function FeedbackPage() {
   const t = useT();
@@ -28,6 +29,7 @@ export default function FeedbackPage() {
 
     setSubmitting(false);
     if (!error) {
+      track('feedback_submit');
       setSubmitted(true);
     } else {
       alert(t('제출에 실패했습니다. 다시 시도해주세요.'));

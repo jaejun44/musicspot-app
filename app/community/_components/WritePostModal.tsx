@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useT, getClientLocale } from '@/lib/i18n';
 import { getClientCountry } from '@/lib/geo';
 import { Category } from '../_data/posts';
+import { track, lengthBucket, incrementUserProperty } from '@/lib/analytics';
 
 const CATEGORIES: { value: Category; emoji: string; color: string }[] = [
   { value: '후기', emoji: '⭐', color: '#41C66B' },
@@ -77,6 +78,15 @@ export default function WritePostModal({ user, initialCategory = '자유', onClo
 
     setSubmitting(false);
     if (dbErr) { setError(t('저장 중 오류가 발생했어요. 다시 시도해주세요.')); return; }
+
+    // 본문은 보내지 않는다 — 카테고리/길이만으로 어떤 글이 리텐션을 만드는지 본다
+    track('post_publish', {
+      category,
+      has_tags: tags.length > 0,
+      length_bucket: lengthBucket(body),
+    });
+    incrementUserProperty('post_count');
+
     onSuccess();
   }
 

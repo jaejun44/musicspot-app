@@ -78,7 +78,7 @@ export default function ContactModal({ musician, onClose }: Props) {
               <div className="flex flex-col gap-2">
                 <motion.button
                   whileTap={{ scale: 0.96, y: 2 }}
-                  onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
+                  onClick={() => { trackBandContact('kakao', musician.id, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
                   className="w-full py-3.5 bg-[#F5FF4F] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]"
                   style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                 >

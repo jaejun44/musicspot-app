@@ -1,6 +1,6 @@
 'use client';
 
-import { trackEvent } from '@/lib/analytics';
+import { track } from '@/lib/analytics';
 import { buildShareUrl, type ShareCampaign } from '@/lib/share-utm';
 import { useT } from '@/lib/i18n';
 
@@ -43,11 +43,7 @@ export default function KakaoShareButton({
             },
           ],
         });
-        trackEvent('share_click', {
-          studio_id: studioId,
-          studio_name: studioName,
-          method: 'kakao',
-        });
+        track('share_click', { channel: 'kakao', target: 'studio', studio_id: studioId });
         return;
       } catch (e) {
         console.error('Kakao share error:', e);
@@ -62,11 +58,7 @@ export default function KakaoShareButton({
           text: `${studioName} - ${studioAddress}`,
           url: linkUrl,
         });
-        trackEvent('share_click', {
-          studio_id: studioId,
-          studio_name: studioName,
-          method: 'web_share',
-        });
+        track('share_click', { channel: 'native', target: 'studio', studio_id: studioId });
         return;
       } catch {
         // 사용자가 취소한 경우 무시
@@ -77,11 +69,7 @@ export default function KakaoShareButton({
     try {
       await navigator.clipboard.writeText(linkUrl);
       alert(t('링크가 복사되었습니다!'));
-      trackEvent('share_click', {
-        studio_id: studioId,
-        studio_name: studioName,
-        method: 'clipboard',
-      });
+      track('share_click', { channel: 'copy', target: 'studio', studio_id: studioId });
     } catch {
       // 폴백 없음
     }

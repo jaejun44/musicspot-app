@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 // leaderboard_throwers(p_since_days, p_limit) RPC 반환 행
 interface LeaderboardEntry {
@@ -35,6 +36,7 @@ export default function LeaderboardThrowers() {
           })),
         );
         setLoading(false);
+        track('leaderboard_view', { tab: 'weekly_throwers' });
       });
   }, []);
 

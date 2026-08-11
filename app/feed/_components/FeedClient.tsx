@@ -11,6 +11,7 @@ import { useT, t } from '@/lib/i18n';
 import { countryFlag } from '@/lib/geo';
 import { useTranslatable } from '@/hooks/useTranslatable';
 import TranslateButton from '@/components/TranslateButton';
+import { track } from '@/lib/analytics';
 
 const POSITION_EMOJIS: Record<string, string> = {
   보컬: '🎤', 기타: '🎸', 베이스: '🎵', 드럼: '🥁', 건반: '🎹', '기타(other)': '🎶',
@@ -175,6 +176,8 @@ export default function FeedClient() {
     );
 
     setItems(merged);
+    // 팔로우가 없으면 피드가 비어 리텐션이 죽는다 → item_count 0 비율을 본다
+    track('feed_view', { item_count: merged.length });
     setFeedLoading(false);
   }
 

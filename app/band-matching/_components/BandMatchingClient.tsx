@@ -12,6 +12,7 @@ import { Musician, Position } from '../_data/musicians';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { useT, t as tGlobal } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 const POSITION_EMOJIS: Record<string, string> = {
   '보컬': '🎤', '기타': '🎸', '베이스': '🎵', '드럼': '🥁', '건반': '🎹', '기타(other)': '🎶',
@@ -74,7 +75,10 @@ export default function BandMatchingClient() {
         .select('id, user_id, display_name, bio, instruments, genres, region, purposes, looking_for, avatar_url')
         .eq('is_public', true)
         .not('instruments', 'eq', '{}');
-      setMusicians(data ? data.map((p, i) => profileToMusician(p, i)) : []);
+      const list = data ? data.map((p, i) => profileToMusician(p, i)) : [];
+      setMusicians(list);
+      // 매칭 풀 크기가 0에 가까우면 전환율 저하의 원인이 UI가 아니라 공급이다
+      track('match_list_view', { musician_count: list.length });
     }
     fetchProfiles();
   }, []);
@@ -175,7 +179,14 @@ export default function BandMatchingClient() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <PositionFilter active={activePosition} onChange={setActivePosition} />
+          <PositionFilter
+            active={activePosition}
+            onChange={(p) => {
+              setActivePosition(p);
+              // 어떤 포지션 수요가 많은지 = 공급 부족 포지션 파악 (시딩 우선순위)
+              track('filter_apply', { filter_type: 'match_position', value: String(p) });
+            }}
+          />
         </motion.div>
       </div>
 

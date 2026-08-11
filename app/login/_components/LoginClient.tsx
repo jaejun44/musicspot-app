@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/lib/supabase';
 import { safeInternalPath } from '@/lib/safe-redirect';
 import { useT, useIsJapanMode } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 type Step = 'select' | 'email-input' | 'email-sent';
 
@@ -33,14 +34,25 @@ export default function LoginClient() {
         }`
       : '/auth/callback';
 
+  // returnTo가 있으면 공유/딥링크 유입 → 자연 유입과 전환율이 크게 다르다
+  useEffect(() => {
+    track('auth_login_view', { return_to: returnTo || undefined });
+    // returnTo는 렌더 중 고정 — 최초 1회만 기록
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleOAuth(provider: 'kakao' | 'google') {
     setLoading(provider);
     setError(null);
+    track('auth_login_start', { provider });
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo },
     });
     if (error) {
+      // OAuth 성공은 리다이렉트로 이탈하므로 여기서 못 잡는다.
+      // 성공 계측은 /auth/callback에서 (auth_login_success).
+      track('auth_login_fail', { provider, reason: error.message.slice(0, 80) });
       setError(t('로그인 중 오류가 발생했어요. 다시 시도해 주세요.'));
       setLoading(null);
     }
@@ -50,12 +62,14 @@ export default function LoginClient() {
     if (!email.trim()) return;
     setLoading('email');
     setError(null);
+    track('auth_login_start', { provider: 'email' });
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: { emailRedirectTo: redirectTo },
     });
     setLoading(null);
     if (error) {
+      track('auth_login_fail', { provider: 'email', reason: error.message.slice(0, 80) });
       setError(t('이메일 전송에 실패했어요. 이메일 주소를 확인해 주세요.'));
     } else {
       setStep('email-sent');

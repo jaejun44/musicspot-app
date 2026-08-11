@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Musician } from '../_data/musicians';
-import { trackBandContact } from '@/lib/analytics';
+import { trackBandContact, track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 
@@ -55,10 +55,12 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
         .eq('follower_id', currentUserId!)
         .eq('following_id', musician.id);
       setIsFollowing(false);
+      track('follow_toggle', { target_user_id: musician.id, action: 'unfollow' });
     } else {
       await supabase.from('user_follows')
         .insert({ follower_id: currentUserId!, following_id: musician.id });
       setIsFollowing(true);
+      track('follow_toggle', { target_user_id: musician.id, action: 'follow' });
       // 팔로우 대상에게 알림 삽입 (오류 무시)
       supabase.from('notifications').insert({
         user_id: musician.id,
@@ -195,7 +197,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
           </Link>
         )}
         <motion.button
-          onClick={() => { trackBandContact('open_modal', musician.name, musician.position); onContact(musician); }}
+          onClick={() => { trackBandContact('open_modal', musician.id, musician.position); onContact(musician); }}
           whileTap={{ scale: 0.95, y: 1 }}
           className="flex-1 py-2.5 bg-[#FF3D77] rounded-[12px] border-[2px] border-[#0A0A0A] text-white font-bold text-[13px]"
           style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}

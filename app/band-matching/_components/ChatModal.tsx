@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send } from 'lucide-react';
 import { Musician } from '../_data/musicians';
-import { trackBandContact } from '@/lib/analytics';
+import { trackBandContact, track, lengthBucket } from '@/lib/analytics';
 import { SR_MASK_CLASS } from '@/lib/amplitude';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -55,6 +55,8 @@ export default function ChatModal({ musician, user, onClose }: Props) {
       .limit(100)
       .then(({ data }) => {
         if (data) setMessages(data as Message[]);
+        // 대화 이력이 없는 첫 열람 = 매칭→대화 전환 퍼널의 진입 지점
+        track('dm_open', { thread_user_id: otherId, is_first: (data?.length ?? 0) === 0 });
       });
 
     const [a, b] = [myId, otherId].sort();
@@ -87,6 +89,8 @@ export default function ChatModal({ musician, user, onClose }: Props) {
   async function sendMessage() {
     if (!input.trim() || !canChat || !musician || sending) return;
     const content = input.trim();
+    // 내가 보낸 메시지가 하나도 없으면 이번이 첫 컨택 — 매칭 성사 판정의 기준
+    const isFirst = !messages.some((m) => m.sender_id === user!.id);
     setInput('');
     setSending(true);
 
@@ -110,6 +114,12 @@ export default function ChatModal({ musician, user, onClose }: Props) {
     setSending(false);
     if (!error && data) {
       setMessages((prev) => prev.map((m) => m.id === tempId ? { ...data } : m));
+      // 본문은 절대 보내지 않는다 (PII). 길이 버킷만.
+      track('dm_send', {
+        thread_user_id: musician.id,
+        is_first: isFirst,
+        length_bucket: lengthBucket(content),
+      });
     } else {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
@@ -275,7 +285,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                     {/* 카카오 보조 버튼 */}
                     <motion.button
                       whileTap={{ scale: 0.97 }}
-                      onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
+                      onClick={() => { trackBandContact('kakao', musician.id, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
                       className="w-full mt-2 py-2 bg-[#F5FF4F]/30 rounded-[10px] border-[1px] border-[#0A0A0A]/10 text-[12px] font-bold text-[#0A0A0A]/60"
                       style={{ fontFamily: 'Pretendard, sans-serif' }}
                     >
@@ -297,7 +307,7 @@ function KakaoButton({ musician }: { musician: Musician }) {
   return (
     <motion.button
       whileTap={{ scale: 0.96, y: 2 }}
-      onClick={() => { trackBandContact('kakao', musician.name, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
+      onClick={() => { trackBandContact('kakao', musician.id, musician.position); alert(t('카카오 채널 연동 준비 중이에요! 🎸')); }}
       className="w-full py-3.5 bg-[#F5FF4F] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-[#0A0A0A]"
       style={{ boxShadow: '3px 3px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
     >

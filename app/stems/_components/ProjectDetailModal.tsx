@@ -9,7 +9,7 @@ import type { User } from '@supabase/supabase-js';
 import type { StemProject } from '@/types/stem';
 import { buildShareUrl } from '@/lib/share-utm';
 import { buildTweetIntent, buildLineIntent } from '@/lib/share-challenge';
-import { trackEvent } from '@/lib/analytics';
+import { track } from '@/lib/analytics';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 import { createAudioContext, resumeContext, loadTracksAligned, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 import { useT, useIsJapanMode } from '@/lib/i18n';
@@ -133,6 +133,8 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
 
     ensembleHandleRef.current = playSequence(sections, ctx, ctx.currentTime + 0.1);
     setEnsembleState('playing');
+    // 합주 재생 = 소비 지표. 업로드(생산)와 분리해서 봐야 릴레이 참여 전환율이 나온다.
+    track('challenge_play', { project_id: project.id, mode: 'ensemble', track_count: count });
     const total = sections.reduce((sum, s) => sum + Math.max(0, ...s.map((b) => b.duration)), 0);
     ensembleTimerRef.current = setTimeout(() => stopEnsemble(), (total + 0.3) * 1000);
   }
@@ -151,6 +153,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   async function handleToggleOpen() {
     const newVal = !localIsOpen;
     await supabase.from('stem_projects').update({ is_open: newVal }).eq('id', project.id);
+    track('challenge_open_toggle', { project_id: project.id, is_open: newVal });
     setLocalIsOpen(newVal);
     onUpdate();
   }
@@ -163,7 +166,6 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     const linkUrl = buildShareUrl(`/stems/${project.id}`, 'link', 'challenge', project.id);
     const ogImage = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com'}/stems/${project.id}/opengraph-image`;
 
-    trackEvent('share_challenge', { project_id: project.id });
     // share_count 원자적 증가 (fire-and-forget — 공유 UX를 막지 않음)
     void supabase.rpc('increment_share_count', { p_project_id: project.id });
 
@@ -176,7 +178,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
         locale: 'ja',
         justAdded,
       });
-      trackEvent('share_challenge_x', { project_id: project.id, method: 'twitter' });
+      track('challenge_share', { project_id: project.id, channel: 'x', just_added: justAdded });
       if (typeof window !== 'undefined') {
         window.open(intent, '_blank', 'noopener,noreferrer');
       }
@@ -198,6 +200,8 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
             { title: t('이어서 만들기'), link: { mobileWebUrl: shareUrl, webUrl: shareUrl } },
           ],
         });
+        // 카카오 SDK는 전송 성공 콜백을 주지 않으므로 호출 성공 = 공유 시도로 본다
+        track('challenge_share', { project_id: project.id, channel: 'kakao', just_added: justAdded });
         return;
       } catch {
         // 폴백으로 진행
@@ -208,6 +212,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: project.title, url: linkUrl });
+        track('challenge_share', { project_id: project.id, channel: 'native', just_added: justAdded });
         return;
       } catch {
         // 사용자가 취소했거나 미지원 → 클립보드 폴백
@@ -217,6 +222,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     // 3순위: 클립보드 복사
     try {
       await navigator.clipboard.writeText(linkUrl);
+      track('challenge_share', { project_id: project.id, channel: 'copy', just_added: justAdded });
       setShareCopied(true);
       setTimeout(() => setShareCopied(false), 2000);
     } catch {
@@ -226,7 +232,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
 
   /** LINE 공유(일본 전용). X는 확산용, LINE은 지인 공유용으로 역할을 나눈다. */
   function handleLineShare() {
-    trackEvent('share_challenge_line', { project_id: project.id, method: 'line' });
+    track('challenge_share', { project_id: project.id, channel: 'line', just_added: true });
     void supabase.rpc('increment_share_count', { p_project_id: project.id });
     if (typeof window !== 'undefined') {
       window.open(buildLineIntent(project.id), '_blank', 'noopener,noreferrer');
@@ -236,6 +242,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   async function handleDeleteTrack(id: string) {
     if (!confirm(t('이 트랙을 삭제할까요?'))) return;
     await supabase.from('stem_tracks').delete().eq('id', id);
+    track('challenge_track_delete', { project_id: project.id, track_id: id });
     fetchTracks();
     onUpdate();
   }
@@ -769,9 +776,11 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 <motion.button
                   whileHover={{ y: 2, boxShadow: '2px 2px 0 #0A0A0A' }}
                   whileTap={{ scale: 0.96, y: 2 }}
-                  onClick={() =>
-                    router.push(`/login?returnTo=${encodeURIComponent(`/stems/${project.id}`)}`)
-                  }
+                  onClick={() => {
+                    // 공유로 들어온 비로그인 유저 → 가입 전환. 바이럴 루프의 병목 지점
+                    track('challenge_login_cta_click', { project_id: project.id });
+                    router.push(`/login?returnTo=${encodeURIComponent(`/stems/${project.id}`)}`);
+                  }}
                   className="w-full py-3.5 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[14px] font-bold"
                   style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                 >

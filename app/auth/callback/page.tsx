@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { safeInternalPath } from '@/lib/safe-redirect';
 import { useT } from '@/lib/i18n';
+import { track, setAnalyticsUserId, syncUserProperties } from '@/lib/analytics';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -21,8 +22,19 @@ export default function AuthCallbackPage() {
     // Supabase JS SDK가 URL의 code를 자동으로 세션으로 교환함
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        const user = session.user;
+        const provider = user.app_metadata?.provider ?? 'unknown';
+        // 계정 생성 직후 첫 콜백이면 신규 가입. created_at이 1분 이내면 신규로 본다
+        // (Supabase가 신규/기존 플래그를 세션에 주지 않음).
+        const isNewUser = Date.now() - new Date(user.created_at).getTime() < 60_000;
+
+        setAnalyticsUserId(user.id);
+        track('auth_login_success', { provider, is_new_user: isNewUser });
+        void syncUserProperties(user.id);
+
         router.replace(dest);
       } else {
+        track('auth_login_fail', { provider: 'unknown', reason: 'no_session_on_callback' });
         router.replace('/login');
       }
     });

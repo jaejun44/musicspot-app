@@ -14,6 +14,7 @@ import Navigation from '@/components/Navigation';
 import CommentSection from '../_components/CommentSection';
 import EditPostModal from '../_components/EditPostModal';
 import { Post, Category } from '../_data/posts';
+import { track } from '@/lib/analytics';
 
 interface UserProfile {
   display_name: string | null;
@@ -71,6 +72,13 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isOwn = !!user && !!post?.author_id && user.id === post.author_id;
+
+  // 상세 조회. is_own으로 자기 글 확인 트래픽을 걸러야 실제 소비량이 보인다
+  useEffect(() => {
+    if (!post) return;
+    track('post_view', { post_id: postId, category: post.category, is_own: isOwn });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId, isOwn]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { track, syncUserProperties } from '@/lib/analytics';
 
 const INSTRUMENTS = [
   { id: '보컬', label: '보컬', emoji: '🎤' },
@@ -74,20 +75,36 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
     return true;
   }
 
+  // 모달이 실제로 떠야 퍼널 분모가 잡힌다 (렌더 조건은 호출부에 있음)
+  useEffect(() => {
+    track('onboarding_view');
+  }, []);
+
   async function handleSave() {
     setSaving(true);
     setSaveError('');
-    const ok = await upsertProfile({ isPublic: instruments.length > 0 });
+    const isPublic = instruments.length > 0;
+    const ok = await upsertProfile({ isPublic });
     setSaving(false);
     if (!ok) {
       setSaveError(t('저장에 실패했어요. 잠시 후 다시 시도해주세요.'));
       return;
     }
+    track('onboarding_complete', {
+      has_instrument: instruments.length > 0,
+      has_genre: genres.length > 0,
+      has_region: region.trim().length > 0,
+      has_purpose: purposes.length > 0,
+      is_public: isPublic,
+    });
+    void syncUserProperties(user.id);
     onComplete();
   }
 
   async function handleSkip() {
     await upsertProfile({ isPublic: false });
+    // 건너뛴 유저는 매칭 풀 밖 → 이 비율이 높으면 온보딩 자체를 손봐야 한다
+    track('onboarding_skip');
     onComplete();
   }
 
