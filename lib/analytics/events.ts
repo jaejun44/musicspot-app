@@ -40,8 +40,8 @@ export type EventSchema = {
   booking_complete: { studio_id: string; studio_name: string; value?: number };
 
   // ── 8마디 챌린지 (Stage 1~4 관통 OS — 최우선 계측) ──────────
-  /** 챌린지 목록 진입 */
-  challenge_list_view: { project_count: number; is_logged_in_view: boolean };
+  /** 챌린지 목록 진입. 로그인 여부는 공통 속성 is_logged_in을 볼 것 */
+  challenge_list_view: { project_count: number };
   /** 프로젝트 상세(모달) 열람. entry로 딥링크/공유 유입 분리 → K-factor 분모 */
   challenge_project_view: {
     project_id: string;

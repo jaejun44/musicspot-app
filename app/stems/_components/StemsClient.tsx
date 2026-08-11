@@ -111,12 +111,11 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
       setProjects(mapped);
 
       // fetchProjects는 업로드/삭제 후에도 다시 돌기 때문에 최초 1회만 기록한다.
+      // 로그인 여부는 여기서 읽지 않는다 — 이 함수는 useEffect([])에서 즉시 실행되므로
+      // useAuth의 user가 아직 null이라 항상 false가 찍힌다. 공통 속성 is_logged_in을 볼 것.
       if (!listViewTracked.current) {
         listViewTracked.current = true;
-        track('challenge_list_view', {
-          project_count: mapped.length,
-          is_logged_in_view: user != null,
-        });
+        track('challenge_list_view', { project_count: mapped.length });
       }
     }
   }

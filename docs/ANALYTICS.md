@@ -66,7 +66,7 @@ track('challenge_upload_complete', {
 
 | 이벤트 | 트리거 | 파일 |
 |--------|--------|------|
-| `challenge_list_view` | `/stems` 목록 로드 (세션 1회) | `StemsClient.tsx` |
+| `challenge_list_view` | `/stems` 목록 로드 (세션 1회). 로그인 여부는 공통 속성 `is_logged_in`을 볼 것 | `StemsClient.tsx` |
 | `challenge_project_view` | 프로젝트 상세 오픈. `entry`로 `list`/`deeplink` 구분 | `StemsClient.tsx` |
 | `challenge_play` | 합주 재생 시작 (소비 지표) | `ProjectDetailModal.tsx` |
 | `challenge_create_start` | 생성 모달 오픈 | `StemsClient.tsx` |
