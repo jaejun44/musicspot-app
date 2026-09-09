@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { externalUrl, kakaoChannelUrl, studioBookingLink } from '@/lib/studio-contact';
 import { Studio } from '@/types/studio';
 import { trackContactClick } from '@/lib/analytics';
 
@@ -8,15 +9,11 @@ interface RoomContactBarProps {
   studio: Studio;
 }
 
-const NAVER_PLACE_DOMAINS = ['naver.me', 'map.naver.com', 'place.naver.com', 'booking.naver.com', 'spacecloud.kr'];
-
-function resolveNaverUrl(url: string): string | null {
-  return NAVER_PLACE_DOMAINS.some((d) => url.includes(d)) ? url : null;
-}
-
 export default function RoomContactBar({ studio }: RoomContactBarProps) {
-  const naverUrl = studio.naver_place_url ? resolveNaverUrl(studio.naver_place_url) : null;
-  const hasAny = naverUrl || studio.kakao_channel || studio.phone;
+  const naverUrl = externalUrl(studio.naver_place_url);
+  const kakaoUrl = kakaoChannelUrl(studio.kakao_channel);
+  const sourceLink = !naverUrl ? studioBookingLink(studio) : null;
+  const hasAny = naverUrl || sourceLink || kakaoUrl || studio.phone;
   if (!hasAny) return null;
 
   return (
@@ -36,9 +33,18 @@ export default function RoomContactBar({ studio }: RoomContactBarProps) {
           </motion.a>
         )}
 
-        {studio.kakao_channel && (
+        {sourceLink && (
+          <motion.a href={sourceLink.url} target="_blank" rel="noopener noreferrer"
+            onClick={() => trackContactClick(sourceLink.type, studio.id)}
+            whileTap={{ scale: 0.95, y: 1 }}
+            className="flex-1 py-3 bg-[#F5FF4F] rounded-[14px] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[14px] font-bold text-center"
+            style={{ boxShadow: '3px 3px 0 #0A0A0A' }}>
+            업체 정보·예약 ↗
+          </motion.a>
+        )}
+        {kakaoUrl && (
           <motion.a
-            href={`https://pf.kakao.com/${studio.kakao_channel}`}
+            href={kakaoUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackContactClick('kakao', studio.id)}

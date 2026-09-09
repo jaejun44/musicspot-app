@@ -8,6 +8,8 @@ import { StudioFilters } from '@/types/studio';
 interface UseRoomSearchReturn {
   studios: ReturnType<typeof useStudios>['studios'];
   loading: boolean;
+  error: string | null;
+  retry: () => void;
   hasMore: boolean;
   totalCount: number;
   query: string;
@@ -25,7 +27,7 @@ export function useRoomSearch(): UseRoomSearchReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { studios, loading, hasMore, totalCount, search, loadMore } = useStudios();
+  const { studios, loading, hasMore, totalCount, search, loadMore, error, retry } = useStudios();
 
   // Parse URL params
   const query = searchParams.get('q') ?? '';
@@ -102,7 +104,7 @@ export function useRoomSearch(): UseRoomSearchReturn {
   );
 
   const queryRef = useRef(query);
-  queryRef.current = query;
+  useEffect(() => { queryRef.current = query; }, [query]);
 
   const onQueryChange = useCallback((q: string) => {
     queryRef.current = q;
@@ -111,7 +113,7 @@ export function useRoomSearch(): UseRoomSearchReturn {
   const onSubmit = useCallback(() => {
     router.push(buildUrl({ q: queryRef.current, lat: null, lng: null }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, [query, userLat, userLng, filters]);
 
   const onGps = useCallback(() => {
     if (!navigator.geolocation) return;
@@ -124,11 +126,13 @@ export function useRoomSearch(): UseRoomSearchReturn {
       () => alert('위치 권한을 허용해 주세요.')
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, [query, userLat, userLng, filters]);
 
   return {
     studios,
     loading,
+    error,
+    retry,
     hasMore,
     totalCount,
     query,

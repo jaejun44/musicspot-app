@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { loadStemProjects } from '@/lib/stem-project-loader';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
 import type { StemProject } from '@/types/stem';
@@ -30,6 +31,10 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
   const router = useRouter();
   const { user, loading } = useAuth();
   const [projects, setProjects] = useState<StemProject[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsError, setProjectsError] = useState(false);
+  const [projectMissing, setProjectMissing] = useState(false);
+  const openedDeepLink = useRef<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingProject, setEditingProject] = useState<StemProject | null>(null);
   const [selectedProject, setSelectedProject] = useState<StemProject | null>(null);
@@ -63,10 +68,13 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
 
   // 공유 링크로 진입 시 해당 프로젝트 모달 자동 오픈
   useEffect(() => {
-    if (!initialProjectId || projects.length === 0) return;
+    if (!initialProjectId || projects.length === 0 || openedDeepLink.current === initialProjectId) return;
     const target = projects.find((p) => p.id === initialProjectId);
     // 공유 유입은 K-factor 분모 → 목록 클릭과 반드시 구분해서 기록
-    if (target) openProject(target, 'deeplink');
+    if (target) {
+      openedDeepLink.current = initialProjectId;
+      openProject(target, 'deeplink');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialProjectId, projects]);
 
@@ -85,38 +93,43 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
   }
 
   async function fetchProjects() {
-    const { data } = await supabase
-      .from('stem_projects')
-      .select('*, stem_tracks(count)')
-      .order('created_at', { ascending: false })
-      .limit(50);
+    setProjectsLoading(true);
+    setProjectsError(false);
+    setProjectMissing(false);
+    try {
+      const { rows: data, missing } = await loadStemProjects(initialProjectId);
+      setProjectMissing(missing);
+      if (data) {
+        const mapped = (data as StemProjectRow[]).map((row) => ({
+          id: row.id,
+          title: row.title,
+          creator_id: row.creator_id,
+          creator_name: row.creator_name,
+          creator_emoji: row.creator_emoji,
+          bpm: row.bpm,
+          key_signature: row.key_signature,
+          genre: row.genre,
+          description: row.description,
+          is_open: row.is_open,
+          created_at: row.created_at,
+          track_count: row.stem_tracks?.[0]?.count ?? 0,
+          share_count: row.share_count ?? 0,
+          pass_count: row.pass_count ?? 0,
+        } satisfies StemProject));
+        setProjects(mapped);
 
-    if (data) {
-      const mapped = (data as StemProjectRow[]).map((row) => ({
-        id: row.id,
-        title: row.title,
-        creator_id: row.creator_id,
-        creator_name: row.creator_name,
-        creator_emoji: row.creator_emoji,
-        bpm: row.bpm,
-        key_signature: row.key_signature,
-        genre: row.genre,
-        description: row.description,
-        is_open: row.is_open,
-        created_at: row.created_at,
-        track_count: row.stem_tracks?.[0]?.count ?? 0,
-        share_count: row.share_count ?? 0,
-        pass_count: row.pass_count ?? 0,
-      } satisfies StemProject));
-      setProjects(mapped);
-
-      // fetchProjects는 업로드/삭제 후에도 다시 돌기 때문에 최초 1회만 기록한다.
-      // 로그인 여부는 여기서 읽지 않는다 — 이 함수는 useEffect([])에서 즉시 실행되므로
-      // useAuth의 user가 아직 null이라 항상 false가 찍힌다. 공통 속성 is_logged_in을 볼 것.
-      if (!listViewTracked.current) {
-        listViewTracked.current = true;
-        track('challenge_list_view', { project_count: mapped.length });
+        // fetchProjects는 업로드/삭제 후에도 다시 돌기 때문에 최초 1회만 기록한다.
+        // 로그인 여부는 여기서 읽지 않는다 — 이 함수는 useEffect([])에서 즉시 실행되므로
+        // useAuth의 user가 아직 null이라 항상 false가 찍힌다. 공통 속성 is_logged_in을 볼 것.
+        if (!listViewTracked.current) {
+          listViewTracked.current = true;
+          track('challenge_list_view', { project_count: mapped.length });
+        }
       }
+    } catch {
+      setProjectsError(true);
+    } finally {
+      setProjectsLoading(false);
     }
   }
 
@@ -292,6 +305,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
         </motion.div>
       </div>
 
+      {projectMissing && <p role="status" className="mx-4 mb-4 p-4 bg-white rounded-[16px] border-[3px] border-[#0A0A0A]">{t('공유된 챌린지를 찾을 수 없어요. 아래 다른 챌린지를 둘러보세요.')}</p>}
       {/* 카운트 */}
       <div className="px-4 pb-3 max-w-2xl mx-auto">
         <motion.div
@@ -312,7 +326,14 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
 
       {/* 프로젝트 목록 */}
       <div className="px-4 pb-28 max-w-2xl mx-auto">
-        {projects.length > 0 ? (
+        {projectsLoading && projects.length === 0 ? (
+          <p role="status" className="bg-white rounded-[16px] p-5 border-[3px] border-[#0A0A0A]">{t('챌린지를 불러오는 중입니다.')}</p>
+        ) : projectsError ? (
+          <div role="alert" className="bg-white rounded-[16px] p-5 border-[3px] border-[#0A0A0A]">
+            <p>{t('챌린지를 불러오지 못했어요. 다시 시도해 주세요.')}</p>
+            <button onClick={fetchProjects} className="mt-3 px-4 py-2 bg-[#F5FF4F] rounded-[12px] border-[3px] border-[#0A0A0A]">{t('다시 시도')}</button>
+          </div>
+        ) : projects.length > 0 ? (
           <div className="flex flex-col gap-4">
             {projects.map((p, i) => (
               <ProjectCard

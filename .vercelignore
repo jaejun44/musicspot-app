@@ -1,0 +1,14 @@
+.env*
+.venv/
+.claude/
+.git/
+.next/
+node_modules/
+/ms_character/
+data/
+scripts/
+tests/
+docs/
+design_handoff_wax_mixer/
+*.tsbuildinfo
+.DS_Store

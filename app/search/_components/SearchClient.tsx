@@ -20,6 +20,8 @@ export default function SearchClient() {
   const {
     studios,
     loading,
+    error,
+    retry,
     hasMore,
     totalCount,
     query,
@@ -97,7 +99,13 @@ export default function SearchClient() {
 
       {/* 본문 */}
       <div className="flex-1 flex flex-col min-h-0">
-        {view === 'list' ? (
+        {error && (
+          <div role="alert" className="m-4 p-5 bg-white border-[3px] border-[#0A0A0A] rounded-[16px]" style={{ boxShadow: '4px 4px 0 #0A0A0A' }}>
+            <p>{error}</p>
+            <button onClick={retry} disabled={loading} className="mt-3 px-4 py-2 bg-[#F5FF4F] border-[3px] border-[#0A0A0A] rounded-[12px] font-bold">다시 시도</button>
+          </div>
+        )}
+        {error && studios.length === 0 ? null : view === 'list' ? (
           <RoomList
             studios={studios}
             loading={loading}

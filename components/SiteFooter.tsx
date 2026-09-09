@@ -27,10 +27,10 @@ export default function SiteFooter() {
         { label: t('커뮤니티'), href: '/community' },
       ]
     : [
-        { label: t('연습실 예약'), href: '/search' },
+        { label: t('연습실 찾기'), href: '/search' },
         { label: t('합주실'), href: '/search' },
-        { label: t('밴드 매칭'), href: '/search' },
-        { label: t('공연'), href: '/search' },
+        { label: t('밴드 매칭'), href: '/band-matching' },
+        { label: t('8마디 챌린지'), href: '/stems' },
       ];
 
   return (
@@ -117,49 +117,11 @@ export default function SiteFooter() {
           </div>
           )}
 
-          {/* Company */}
           <div>
-            <h4
-              className="mb-4"
-              style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#F5FF4F' }}
-            >
-              {t('회사')}
-            </h4>
-            <ul className="space-y-2">
-              {['회사소개', '팀', '채용', '파트너'].map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-[#FF3D77] transition-colors"
-                    style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
-                  >
-                    {t(item)}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h4
-              className="mb-4"
-              style={{ fontFamily: 'Bungee, sans-serif', fontSize: '16px', color: '#F5FF4F' }}
-            >
-              {t('고객지원')}
-            </h4>
-            <ul className="space-y-2">
-              {['FAQ', '문의하기', '이용약관', '개인정보처리'].map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-[#FF3D77] transition-colors"
-                    style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
-                  >
-                    {t(item)}
-                  </a>
-                </li>
-              ))}
+            <h4 className="mb-4 font-bold text-[#F5FF4F]">{t('고객지원')}</h4>
+            <ul className="space-y-2 text-sm text-gray-300">
+              <li><Link href="/feedback" className="hover:text-[#FF3D77]">{t('문의하기')}</Link></li>
+              {!isJapanMode && <li><Link href="/room/new" className="hover:text-[#FF3D77]">연습실 등록 요청</Link></li>}
             </ul>
           </div>
         </div>
@@ -173,18 +135,10 @@ export default function SiteFooter() {
             >
               © 2026 Music Spot. All rights reserved.
             </p>
-            <div className="flex gap-6">
-              {['Instagram', 'Facebook', 'YouTube', 'Twitter'].map((social) => (
-                <a
-                  key={social}
-                  href="#"
-                  className="text-gray-400 hover:text-[#4FC3F7] transition-colors"
-                  style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '14px' }}
-                >
-                  {social}
-                </a>
-              ))}
-            </div>
+            <a href="https://www.instagram.com/music_spot_kr/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-[#4FC3F7] text-sm">
+              Instagram · @music_spot_kr
+            </a>
+
           </div>
         </div>
       </div>

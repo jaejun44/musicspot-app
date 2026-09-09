@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { kakaoChannelUrl, studioBookingLink } from '@/lib/studio-contact';
 import { Studio } from '@/types/studio';
 import { trackBookingAttempt, trackContactClick } from '@/lib/analytics';
 
@@ -10,30 +11,19 @@ interface RoomBookingWidgetProps {
   studio: Studio;
 }
 
-type SelectedRoom = 'T' | 'M' | null;
-
 export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
-  const [selectedRoom, setSelectedRoom] = useState<SelectedRoom>(
-    studio.room_type === 'T' ? 'T' : studio.room_type === 'M' ? 'M' : null
-  );
-  const [persons, setPersons] = useState(2);
-  // 외부 예약 링크가 하나도 없는 극히 드문 케이스(직접 등록 룸 등)에만 뜨는 안내
   const [showNoLinkFallback, setShowNoLinkFallback] = useState(false);
-
-  const showRoomSelector = studio.room_type === 'both';
   const priceLabel = studio.price_per_hour
     ? `₩${studio.price_per_hour.toLocaleString()}/h`
     : studio.price_info ?? '가격 문의';
 
-  // 예약은 우리가 직접 받지 않고 원본 사이트로 보낸다.
-  // 크롤링된 룸은 source_url(스페이스클라우드/뮬)이 거의 항상 있어 그걸 우선하고,
-  // 사용자가 직접 등록한 룸처럼 source_url이 없는 경우엔
-  // 등록 시 입력한 예약 링크(naver_place_url, 도메인 무관)를 그대로 쓴다.
-  const bookingUrl = studio.source_url ?? studio.naver_place_url ?? null;
-  const bookingUrlType: 'naver' | 'source' = studio.source_url ? 'source' : 'naver';
+  const bookingLink = studioBookingLink(studio);
+  const bookingUrl = bookingLink?.url;
+  const bookingUrlType = bookingLink?.type ?? 'source';
+  const kakaoUrl = kakaoChannelUrl(studio.kakao_channel);
 
   const hasPhone = !!studio.phone;
-  const hasKakao = !!studio.kakao_channel;
+  const hasKakao = !!kakaoUrl;
   const hasAlternatives = hasPhone || hasKakao;
 
   function handleBookingClick() {
@@ -56,12 +46,12 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
           className="text-[16px] font-bold mb-4 text-[#0A0A0A]"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          🎸 예약하기
+          🎸 업체에 문의하기
         </h2>
 
         {/* 가격 */}
         <div
-          className="bg-[#FA6522] rounded-[14px] border-[2px] border-[#0A0A0A] px-4 py-3 mb-4 flex items-center justify-between"
+          className="bg-[#F5FF4F] rounded-[14px] border-[2px] border-[#0A0A0A] px-4 py-3 mb-4 flex items-center justify-between"
           style={{ boxShadow: '3px 3px 0 #FF3D77' }}
         >
           <span className="text-[12px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
@@ -75,69 +65,9 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
           </span>
         </div>
 
-        {/* 룸 선택 (T/M both일 때만) */}
-        {showRoomSelector && (
-          <div className="mb-4">
-            <p className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              룸 타입
-            </p>
-            <div className="flex gap-2">
-              {(['T', 'M'] as const).map((r) => (
-                <motion.button
-                  key={r}
-                  onClick={() => setSelectedRoom(r)}
-                  whileTap={{ scale: 0.95 }}
-                  className={[
-                    'flex-1 py-3 rounded-[12px] border-[2px] border-[#0A0A0A] font-bold text-[14px] transition-colors',
-                    selectedRoom === r
-                      ? 'bg-[#FF3D77] text-white'
-                      : 'bg-[#FFF8F0] text-[#0A0A0A]',
-                  ].join(' ')}
-                  style={{
-                    boxShadow: selectedRoom === r ? '3px 3px 0 #0A0A0A' : '2px 2px 0 #0A0A0A',
-                    fontFamily: 'Pretendard, sans-serif',
-                  }}
-                >
-                  {r}룸
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 인원 선택 */}
-        <div className="mb-5">
-          <p className="text-[12px] font-bold text-[#0A0A0A]/50 mb-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            인원
-          </p>
-          <div className="flex items-center gap-3">
-            <motion.button
-              onClick={() => setPersons((p) => Math.max(1, p - 1))}
-              whileTap={{ scale: 0.88 }}
-              className="w-10 h-10 rounded-[10px] border-[2px] border-[#0A0A0A] bg-[#FFF8F0] font-bold text-[18px] flex items-center justify-center"
-              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
-            >
-              −
-            </motion.button>
-            <span
-              className="text-[20px] font-bold w-8 text-center"
-              style={{ fontFamily: 'Bungee, sans-serif' }}
-            >
-              {persons}
-            </span>
-            <motion.button
-              onClick={() => setPersons((p) => Math.min(20, p + 1))}
-              whileTap={{ scale: 0.88 }}
-              className="w-10 h-10 rounded-[10px] border-[2px] border-[#0A0A0A] bg-[#FFF8F0] font-bold text-[18px] flex items-center justify-center"
-              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
-            >
-              +
-            </motion.button>
-            <span className="text-[13px] text-[#0A0A0A]/50 ml-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              명
-            </span>
-          </div>
-        </div>
+        <p className="text-sm mb-5 text-[#0A0A0A]/70">
+          이용 인원·장비·예약 가능한 시간과 최종 가격은 업체에서 확인해 주세요.
+        </p>
 
         {/* CTA */}
         <motion.button
@@ -146,14 +76,14 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
           className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[16px]"
           style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
         >
-          🔥 예약하러 가기 ↗
+          업체 정보·예약 확인 ↗
         </motion.button>
         {bookingUrl && (
           <p
             className="text-[11px] text-[#0A0A0A]/40 font-bold text-center mt-2"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            {bookingUrlType === 'source' ? '스페이스클라우드/뮬' : '외부 링크'} 등 외부 사이트에서 예약이 진행돼요
+            업체의 외부 페이지로 이동합니다.
           </p>
         )}
       </div>
@@ -224,7 +154,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
                     )}
                     {hasKakao && (
                       <a
-                        href={studio.kakao_channel!}
+                        href={kakaoUrl!}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => trackContactClick('kakao', studio.id, studio.name)}

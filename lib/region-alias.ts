@@ -1,3 +1,5 @@
+import { REGIONS } from './regions';
+
 /** 검색어 → 법정동명 별칭 매핑 */
 const ALIAS_MAP: Record<string, string[]> = {
   홍대: ['서교동', '동교동', '합정동', '상수동', '홍익'],
@@ -31,5 +33,13 @@ const ALIAS_MAP: Record<string, string[]> = {
 /** 검색어를 별칭 배열로 확장. 매칭 없으면 원본 반환. */
 export function expandRegion(query: string): string[] {
   const trimmed = query.trim();
-  return ALIAS_MAP[trimmed] ?? [trimmed];
+  return [...new Set([trimmed, ...(ALIAS_MAP[trimmed] ?? [])])];
+}
+
+/** 같은 동 이름이 다른 도시에 있는 경우를 구분한다 (서울 합정동 / 평택 합정동). */
+export function regionCity(query: string): string | undefined {
+  const value = query.trim();
+  if (value === '홍대입구') return '서울';
+  if (value === '수원') return '수원';
+  return REGIONS.find(region => region.keyword === value)?.city;
 }

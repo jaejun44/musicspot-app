@@ -5,6 +5,7 @@
  * 통째로 깨지는데(한/일 비교가 핵심), 손으로 넣는 방식은 반드시 빠뜨린다.
  */
 
+import { getAttribution } from './attribution';
 import * as amplitude from '@amplitude/unified';
 import { AMPLITUDE_ENABLED } from '@/lib/amplitude';
 import { getClientLocale } from '@/lib/i18n';
@@ -62,17 +63,9 @@ function referrerHost(): string {
 
 function utmProps(): Partial<CommonProps> {
   if (typeof window === 'undefined') return {};
-  const q = new URLSearchParams(window.location.search);
-  const out: Partial<CommonProps> = {};
-  const source = q.get('utm_source');
-  const medium = q.get('utm_medium');
-  const campaign = q.get('utm_campaign');
-  const content = q.get('utm_content');
-  if (source) out.utm_source = source;
-  if (medium) out.utm_medium = medium;
-  if (campaign) out.utm_campaign = campaign;
-  if (content) out.utm_content = content;
-  return out;
+  let storage: Storage | undefined;
+  try { storage = window.sessionStorage; } catch { /* 저장소 차단 시 현재 URL만 사용 */ }
+  return getAttribution(window.location.search, storage);
 }
 
 export function getCommonProps(): CommonProps {

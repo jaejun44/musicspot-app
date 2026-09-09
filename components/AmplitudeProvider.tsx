@@ -1,5 +1,6 @@
 'use client';
 
+import { getCommonProps } from '@/lib/analytics/context';
 import { useEffect } from 'react';
 import * as amplitude from '@amplitude/unified';
 import { AMPLITUDE_API_KEY, AMPLITUDE_ENABLED, SR_MASK_CLASS } from '@/lib/amplitude';
@@ -20,6 +21,7 @@ let initialized = false;
  */
 export default function AmplitudeProvider() {
   useEffect(() => {
+    getCommonProps(); // 첫 이벤트/내부 이동 전에 랜딩 캠페인을 보존
     if (initialized) return;
     initialized = true;
 

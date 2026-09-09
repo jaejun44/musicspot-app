@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import RoomCard from '@/components/RoomCard';
 import { Studio } from '@/types/studio';
@@ -57,8 +58,10 @@ export default function RoomList({
             해당 조건의 연습실이 없어요.
           </p>
           <p className="text-[13px] text-[#0A0A0A]/50 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-            다른 지역을 검색해보세요
+            예산·드럼 조건을 줄이거나 가까운 다른 지역을 찾아보세요
           </p>
+          <Link href="/search" className="inline-block mt-4 px-4 py-2 bg-[#F5FF4F] rounded-[12px] border-[3px] border-[#0A0A0A] font-bold" style={{ boxShadow: '4px 4px 0 #0A0A0A' }}>조건 초기화</Link>
+          <Link href="/region" className="block mt-4 underline">지역별로 찾아보기</Link>
         </div>
       </div>
     );

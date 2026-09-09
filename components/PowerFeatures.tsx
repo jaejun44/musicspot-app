@@ -9,7 +9,7 @@ const features = [
     id: 1,
     jaHidden: true, // 일본 모드에서 연습실 카드 숨김
     name: '연습실 찾기',
-    description: '내 동네 연습실을 3초만에 찾고 예약!',
+    description: '내 동네 연습실을 비교하고 업체에 문의!',
     image: '/ms_character/doll.png',
     overlayFrom: 'from-[#FF3D77]',
     overlayColor: '#FF3D77',

@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { expandRegion } from '@/lib/region-alias';
+import { expandRegion, regionCity } from '@/lib/region-alias';
 import { REGIONS, getRegionBySlug, CITY_ISO } from '@/lib/regions';
 import { localeAlternates } from '@/lib/seo';
 import { Studio } from '@/types/studio';
@@ -31,7 +31,7 @@ async function fetchRoomsByRegion(keyword: string): Promise<Studio[]> {
     .flatMap((t) => [`address.ilike.%${t}%`, `region.ilike.%${t}%`])
     .join(',');
 
-  const { data } = await supabase
+  let query = supabase
     .from('studios')
     .select('*')
     .eq('is_published', true)
@@ -41,7 +41,10 @@ async function fetchRoomsByRegion(keyword: string): Promise<Studio[]> {
     .or(regionConditions)
     .order('data_quality_score', { ascending: false })
     .order('review_avg', { ascending: false, nullsFirst: false })
-    .limit(60);
+    .range(0, 59);
+  const city = regionCity(keyword);
+  if (city) query = query.or(`address.ilike.%${city}%,region.ilike.%${city}%`);
+  const { data } = await query;
 
   return (data as unknown as Studio[]) ?? [];
 }

@@ -4,13 +4,10 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Studio, StudioFilters } from '@/types/studio';
 import { sortByDistanceAndQuality } from '@/lib/sort';
-import type { StudioWithDistance } from '@/lib/sort';
-import { getDistanceKm } from '@/lib/distance';
-import { expandRegion } from '@/lib/region-alias';
+import { expandRegion, regionCity } from '@/lib/region-alias';
 
 const PAGE_SIZE = 20;
 const BATCH_SIZE = 1000;
-
 interface UseStudiosOptions {
   lat?: number;
   lng?: number;
@@ -18,202 +15,110 @@ interface UseStudiosOptions {
   filters?: StudioFilters;
 }
 
-interface UseStudiosReturn {
-  studios: Studio[];
-  loading: boolean;
-  hasMore: boolean;
-  totalCount: number;
-  search: (opts: UseStudiosOptions) => Promise<void>;
-  loadMore: () => void;
+// 검색어의 PostgREST OR 구문 문자를 제거해 잘못된 쿼리를 방지한다.
+function searchTerms(value: string) {
+  return expandRegion(value.replace(/[,().%_*\\"']/g, ' ').trim()).filter(Boolean);
 }
 
-export function useStudios(): UseStudiosReturn {
+export function useStudios() {
   const [studios, setStudios] = useState<Studio[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
+  const generation = useRef(0);
+  const busy = useRef(false);
+  const cached = useRef<Studio[]>([]);
+  const page = useRef(0);
+  const lastOpts = useRef<UseStudiosOptions>({});
 
-  // GPS 모드일 때 전체 결과를 캐싱해 클라이언트 페이지네이션에 활용
-  const gpsResultsRef = useRef<StudioWithDistance[]>([]);
-  const pageRef = useRef(0);
-  const modeRef = useRef<'gps' | 'text'>('text');
-  const lastOptsRef = useRef<UseStudiosOptions>({});
-
-  /** Supabase 쿼리에 공통 필터 적용 */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function applyFilters(query: any, filters?: StudioFilters) {
-    // 음악(악기·보컬·녹음·합주·개인연습실) 연습실만 표시
-    query = query.or(
-      'category.ilike.%악기%,' +
-      'category.ilike.%보컬%,' +
-      'category.ilike.%녹음%,' +
-      'category.ilike.%합주%,' +
-      'category.ilike.%개인연습실%'
-    );
-
-    if (!filters) return query;
-    if (filters.room_type) {
-      query = query.or(`room_type.eq.${filters.room_type},room_type.eq.both`);
-    }
-    if (filters.has_drum) {
-      query = query.eq('has_drum', true);
-    }
-    if (filters.max_price) {
-      query = query.lte('price_per_hour', filters.max_price);
-    }
-    return query;
-  }
-
-  /** GPS 모드: nearby_studios RPC로 서버 정렬·반경필터 → 클라이언트 페이지네이션
-   *  RPC 실패(확장 미설치 등) 시 기존 전체 fetch + 클라 정렬로 폴백. */
-  const fetchGps = useCallback(async (opts: UseStudiosOptions) => {
-    const { lat, lng, filters } = opts;
-    if (!lat || !lng) return;
-
+  const fetchPage = useCallback(async (opts: UseStudiosOptions, pageNum: number, request: number) => {
+    busy.current = true;
     setLoading(true);
-    const radius = filters?.radius ?? 3;
+    setError(null);
+    const gps = Number.isFinite(opts.lat) && Number.isFinite(opts.lng);
+    try {
+      const makeQuery = () => {
+        let query = supabase.from('studios').select('*', { count: 'exact' }).eq('is_published', true)
+          .or('category.ilike.%악기%,category.ilike.%보컬%,category.ilike.%녹음%,category.ilike.%합주%,category.ilike.%개인연습실%');
+        const f = opts.filters;
+        if (f?.room_type) query = query.or(`room_type.eq.${f.room_type},room_type.eq.both`);
+        if (f?.has_drum) query = query.eq('has_drum', true);
+        if (f?.max_price) query = query.lte('price_per_hour', f.max_price);
+        for (const [value, includeName] of [[f?.region, false], [opts.region, true]] as const) {
+          if (!value) continue;
+          const terms = searchTerms(value);
+          const city = regionCity(value);
+          if (city) query = query.or(`address.ilike.%${city}%,region.ilike.%${city}%`);
+          if (terms.length) query = query.or(terms.flatMap(t => [
+            `address.ilike.%${t}%`, `region.ilike.%${t}%`, ...(includeName ? [`name.ilike.%${t}%`] : []),
+          ]).join(','));
+        }
+        if (f?.sort_by === 'price') query = query.order('price_per_hour', { ascending: true, nullsFirst: false });
+        else query = query.order('data_quality_score', { ascending: false }).order('review_avg', { ascending: false, nullsFirst: false });
+        return query.order('id', { ascending: true });
+      };
 
-    // 1순위: 서버 RPC (정렬·반경필터를 DB에서 처리, 최대 200개까지 캐싱)
-    const { data: rpcData, error: rpcError } = await supabase.rpc('nearby_studios', {
-      p_lat: lat,
-      p_lng: lng,
-      p_radius_km: radius,
-      p_limit: 200,
-      p_offset: 0,
-    });
-
-    let inRadius: StudioWithDistance[];
-
-    if (!rpcError && rpcData) {
-      // 서버가 거리순 정렬해 반환. 거리값은 표시용으로 클라에서 계산.
-      inRadius = (rpcData as Studio[]).map((s) => ({
-        ...s,
-        distance:
-          s.lat != null && s.lng != null ? getDistanceKm(lat, lng, s.lat, s.lng) : 999,
-      }));
-    } else {
-      // 폴백: 전체 배치 fetch → 클라 정렬 → 반경 필터
-      const all: Studio[] = [];
-      let offset = 0;
-      while (true) {
-        let query = supabase
-          .from('studios')
-          .select('*')
-          .eq('is_published', true)
-          .range(offset, offset + BATCH_SIZE - 1);
-        query = applyFilters(query, filters);
-        const { data, error } = await query;
-        if (error || !data) break;
-        all.push(...(data as unknown as Studio[]));
-        if (data.length < BATCH_SIZE) break;
-        offset += BATCH_SIZE;
-      }
-      const withCoords = all.filter((s) => s.lat != null && s.lng != null);
-      inRadius = sortByDistanceAndQuality(withCoords, lat, lng).filter(
-        (s) => s.distance <= radius
-      );
-    }
-
-    gpsResultsRef.current = inRadius;
-    pageRef.current = 0;
-
-    const firstPage = inRadius.slice(0, PAGE_SIZE);
-    setStudios(firstPage);
-    setTotalCount(inRadius.length);
-    setHasMore(inRadius.length > PAGE_SIZE);
-    setLoading(false);
-  }, []);
-
-  /** 텍스트 모드: 서버사이드 페이지네이션 */
-  const fetchText = useCallback(async (opts: UseStudiosOptions, pageNum: number, append = false) => {
-    const { region, filters } = opts;
-    setLoading(true);
-
-    let query = supabase
-      .from('studios')
-      .select('*')
-      .eq('is_published', true)
-      .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
-
-    query = applyFilters(query, filters);
-
-    // 가격순 정렬 또는 기본 품질순 정렬
-    if (filters?.sort_by === 'price') {
-      query = query.order('price_per_hour', { ascending: true, nullsFirst: false });
-    } else {
-      query = query
-        .order('data_quality_score', { ascending: false })
-        .order('review_avg', { ascending: false, nullsFirst: false });
-    }
-
-    // 필터 칩으로 선택된 지역
-    if (filters?.region) {
-      const chipTerms = expandRegion(filters.region);
-      const chipConditions = chipTerms
-        .flatMap((t) => [`address.ilike.%${t}%`, `region.ilike.%${t}%`])
-        .join(',');
-      query = query.or(chipConditions);
-    }
-
-    // 텍스트 검색어로 선택된 지역 (name 포함)
-    if (region) {
-      const terms = expandRegion(region);
-      const orConditions = terms
-        .flatMap((t) => [
-          `address.ilike.%${t}%`,
-          `region.ilike.%${t}%`,
-          `name.ilike.%${t}%`,
-        ])
-        .join(',');
-      query = query.or(orConditions);
-    }
-
-    const { data, error } = await query;
-    if (error || !data) {
-      setLoading(false);
-      return;
-    }
-
-    const results = data as unknown as Studio[];
-    setHasMore(results.length === PAGE_SIZE);
-
-    if (append) {
-      setStudios((prev) => [...prev, ...results]);
-    } else {
-      setStudios(results);
-      setTotalCount(results.length); // 텍스트 모드는 정확한 total 없이 누적
-    }
-    setLoading(false);
-  }, []);
-
-  const search = useCallback(
-    async (opts: UseStudiosOptions) => {
-      lastOptsRef.current = opts;
-      pageRef.current = 0;
-
-      if (opts.lat && opts.lng) {
-        modeRef.current = 'gps';
-        await fetchGps(opts);
+      if (gps) {
+        // 모든 필터를 적용한 전체 배치를 거리 정렬. RPC의 200개 상한/필터 누락 방지.
+        const all: Studio[] = [];
+        for (let offset = 0; ; offset += BATCH_SIZE) {
+          const { data, error: failure } = await makeQuery().range(offset, offset + BATCH_SIZE - 1);
+          if (request !== generation.current) return;
+          if (failure) throw failure;
+          all.push(...(data ?? []) as Studio[]);
+          if (!data || data.length < BATCH_SIZE) break;
+        }
+        let results = sortByDistanceAndQuality(all.filter(s => s.lat != null && s.lng != null), opts.lat!, opts.lng!)
+          .filter(s => s.distance <= (opts.filters?.radius ?? 3));
+        if (opts.filters?.sort_by === 'price') results = results.sort((a, b) => (a.price_per_hour ?? Infinity) - (b.price_per_hour ?? Infinity));
+        cached.current = results;
+        setStudios(results.slice(0, PAGE_SIZE));
+        setTotalCount(results.length);
+        setHasMore(results.length > PAGE_SIZE);
       } else {
-        modeRef.current = 'text';
-        await fetchText(opts, 0, false);
+        const { data, count, error: failure } = await makeQuery().range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
+        if (request !== generation.current) return;
+        if (failure) throw failure;
+        const results = (data ?? []) as Studio[];
+        setStudios(prev => pageNum === 0 ? results : [...prev, ...results]);
+        setTotalCount(count ?? results.length);
+        setHasMore((pageNum + 1) * PAGE_SIZE < (count ?? 0));
       }
-    },
-    [fetchGps, fetchText]
-  );
+      page.current = pageNum;
+    } catch {
+      if (request === generation.current) setError('연습실 정보를 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.');
+    } finally {
+      if (request === generation.current) {
+        busy.current = false;
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  const search = useCallback(async (opts: UseStudiosOptions) => {
+    lastOpts.current = opts;
+    page.current = 0;
+    cached.current = [];
+    setStudios([]);
+    setTotalCount(0);
+    setHasMore(false);
+    await fetchPage(opts, 0, ++generation.current);
+  }, [fetchPage]);
 
   const loadMore = useCallback(() => {
-    const nextPage = pageRef.current + 1;
-    pageRef.current = nextPage;
+    if (busy.current) return;
+    const next = page.current + 1;
+    if (Number.isFinite(lastOpts.current.lat) && Number.isFinite(lastOpts.current.lng)) {
+      page.current = next;
+      setStudios(cached.current.slice(0, (next + 1) * PAGE_SIZE));
+      setHasMore((next + 1) * PAGE_SIZE < cached.current.length);
+    } else void fetchPage(lastOpts.current, next, generation.current);
+  }, [fetchPage]);
 
-    if (modeRef.current === 'gps') {
-      const end = (nextPage + 1) * PAGE_SIZE;
-      setStudios(gpsResultsRef.current.slice(0, end));
-      setHasMore(end < gpsResultsRef.current.length);
-    } else {
-      fetchText(lastOptsRef.current, nextPage, true);
-    }
-  }, [fetchText]);
+  const retry = useCallback(() => {
+    if (!busy.current) void fetchPage(lastOpts.current, studios.length ? page.current + 1 : 0, generation.current);
+  }, [fetchPage, studios.length]);
 
-  return { studios, loading, hasMore, totalCount, search, loadMore };
+  return { studios, loading, error, retry, hasMore, totalCount, search, loadMore };
 }

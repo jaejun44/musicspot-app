@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, MapPin } from 'lucide-react';
 import FilterChips from '@/components/FilterChips';
@@ -25,6 +25,8 @@ export default function SearchHeader({
   onFilterChange,
 }: SearchHeaderProps) {
   const [value, setValue] = useState(initialQuery);
+
+  useEffect(() => { setValue(initialQuery); }, [initialQuery]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setValue(e.target.value);

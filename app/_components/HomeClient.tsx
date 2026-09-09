@@ -36,14 +36,14 @@ export default function HomeClient() {
       <Navigation />
       <DecorativeElements scrollY={scrollY} />
       <HeroSection />
-      <ThemeSongPlayer />
-      <PowerFeatures />
       {!isJapanMode && (
         <>
           <SearchBar />
           <HotRooms />
         </>
       )}
+      <PowerFeatures />
+      <ThemeSongPlayer />
       <FinalCTA />
       <SiteFooter />
       <WelcomeSheet />

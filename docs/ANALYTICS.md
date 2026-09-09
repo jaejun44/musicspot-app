@@ -40,7 +40,7 @@ track('challenge_upload_complete', {
 | `country` | IP 국가 (`ms_country` 쿠키) 또는 `unknown` | 한일 비교의 축 |
 | `is_logged_in` | boolean | `setAnalyticsUserId()` 캐시 기반 |
 | `is_pwa` | boolean | `display-mode: standalone` |
-| `utm_source/medium/campaign/content` | 현재 URL에 있을 때만 | 인플루언서 = `utm_content` |
+| `utm_source/medium/campaign/content` | 탭 세션에서 최근 명시적 캠페인을 유지 | 인플루언서 = `utm_content` |
 
 ## 유저 속성 (Amplitude)
 
@@ -189,4 +189,4 @@ group by 1 order by 2 desc;
 - `utm_source` / `utm_medium` / `utm_campaign` / `utm_content`
 - 인플루언서: `utm_content={influencer_id}`
 - 모든 공유 버튼 자동 삽입 (`lib/share-utm.ts`, `KakaoShareButton` 참조)
-- 모든 이벤트에 자동 첨부되므로 별도 처리 불필요
+- 모든 이벤트에 자동 첨부. 내부 이동에도 sessionStorage로 유지하며 새 UTM 링크 진입 시 이전 캠페인 전체를 교체한다. 저장소가 차단되면 현재 URL 값만 사용한다.
