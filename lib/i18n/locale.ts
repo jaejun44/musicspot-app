@@ -14,10 +14,8 @@ export const JA_BLOCKED_PREFIXES = [
   '/search',
   '/region',
   '/room',
-  '/booking',
+  '/booking', // 실시간 예약(별도 배포, next.config rewrites)
   '/my-bookings',
-  '/complete',
-  '/payment',
   '/partner',
   '/register', // 연습실 등록 신청
 ];

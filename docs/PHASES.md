@@ -358,3 +358,15 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 - 사용자가 카드 5장과 문안 공개 게시를 명시적으로 승인. 4:5 이미지 01~05와 승인 캡션으로 공유 실행.
 - 로그인 복구 후 실제 게시물 확인: https://www.instagram.com/music_spot_kr/p/DdB-xh8k76v/ . 계정 게시물 수 101→102, 승인된 표지와 전체 캡션 확인. 중복 게시하지 않음.
 - 공개 발행 승인 대기는 해소됨. 신규 사이트 방문·문의 성과는 별도 측정 필요.
+
+## 2026-09-29 — 실시간 예약 서비스 연결 (`/booking`)
+- 실시간 예약은 별도 저장소(`musicspot-booking`, Express + Vite)다. `next.config.js` rewrites로 `/booking/*`를
+  `BOOKING_ORIGIN`에 넘긴다. 같은 출처라 예약 화면이 이 사이트의 Supabase 로그인을 그대로 쓴다(로그인 한 번).
+- 옛 목업 `/booking`·`/payment`·`/complete` 삭제(어디서도 링크되지 않았음). `booking_start`·`payment_select`·
+  `booking_complete` 이벤트 정의는 이름 변경 금지 규칙에 따라 남김.
+- 연습실 상세: 예약 서비스에 이어진 연습실이면 "⚡ 실시간 예약하기"(→ `/booking/s/:id`, `booking_realtime_click`).
+- 마이 > 예약: "실시간 예약 내역"(→ `/booking/me`). 파트너: 초대받은 사장님에게 "예약관리"(→ `/booking/owner`).
+- 관리자 > 연습실 수정: "사장님 초대 링크 만들기". server action이 예약 서버 관리자 API를 부른다(키는 서버 env만).
+- 회귀 테스트 `tests/booking-service.cjs` 7개 추가(`node --test tests/`).
+- **운영 반영 전 필요**: Vercel env `BOOKING_ORIGIN`(없으면 production 빌드가 멈춤), `NEXT_PUBLIC_BOOKING_API_URL`,
+  `BOOKING_ADMIN_API_TOKEN`(서버 전용). 예약 서버 배포·업체/방 등록 UI는 아직 없음.

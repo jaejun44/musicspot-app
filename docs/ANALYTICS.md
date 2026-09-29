@@ -122,6 +122,11 @@ track('challenge_upload_complete', {
 
 `studio_view` · `contact_click` · `search` · `filter_apply` · `view_toggle` · `load_more` · `favorite_toggle` · `map_marker_click` · `hot_room_click` · `coming_soon_click` · `booking_attempt` · `booking_start` · `payment_select` · `booking_complete`
 
+- `booking_realtime_click` (2026-09-29 추가): 연습실 상세의 "실시간 예약" → `/booking/s/:id`. `RoomBookingWidget.tsx`.
+  외부 링크 이동(`booking_attempt`)과 분리한다. 실시간 예약 전환율의 분모다.
+- `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
+  호출부가 없다. 이름 변경 금지 규칙에 따라 정의는 남긴다. 실시간 예약 결제가 붙으면 다시 쓴다.
+
 호출부는 `lib/analytics/index.ts`의 `track*()` 래퍼를 그대로 쓴다 (내부에서 `track()` 호출).
 
 ### 공통 UX

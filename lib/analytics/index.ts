@@ -162,6 +162,10 @@ export function trackBookingAttempt(studioId: string, studioName: string) {
   track('booking_attempt', { studio_id: studioId, studio_name: studioName });
 }
 
+export function trackRealtimeBookingClick(studioId: string, studioName: string) {
+  track('booking_realtime_click', { studio_id: studioId, studio_name: studioName });
+}
+
 export function trackBookingStart(studioId: string, studioName: string) {
   track('booking_start', { studio_id: studioId, studio_name: studioName });
 }

@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Studio } from '@/types/studio';
-import { adminFetchStudio, adminSaveStudio, adminUploadStudioPhoto, adminCheckSession } from '../actions';
+import {
+  adminFetchStudio,
+  adminSaveStudio,
+  adminUploadStudioPhoto,
+  adminCheckSession,
+  adminCreateOwnerInvite,
+  type OwnerInviteResult,
+} from '../actions';
 
 const inputClass =
   'w-full px-3 py-2.5 bg-white border-[2px] border-comic-black text-sm font-medium placeholder:text-comic-black/30 focus:outline-none focus:border-comic-pink';
@@ -16,6 +23,9 @@ export default function AdminEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [invite, setInvite] = useState<OwnerInviteResult | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -94,6 +104,24 @@ export default function AdminEditPage() {
   function updateField<K extends keyof Studio>(key: K, value: Studio[K]) {
     if (!studio) return;
     setStudio({ ...studio, [key]: value });
+  }
+
+  async function handleCreateInvite() {
+    setInviting(true);
+    setCopied(false);
+    setInvite(await adminCreateOwnerInvite(id));
+    setInviting(false);
+  }
+
+  async function handleCopyInvite() {
+    if (!invite?.inviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(invite.inviteUrl);
+      setCopied(true);
+    } catch {
+      // 복사가 막힌 브라우저면 입력창에서 직접 복사하게 둔다(값은 이미 보이고 선택돼 있다).
+      setCopied(false);
+    }
   }
 
   if (loading) {
@@ -307,6 +335,57 @@ export default function AdminEditPage() {
               className="hidden"
             />
           </label>
+        </section>
+
+        {/* 실시간 예약: 사장님 초대 */}
+        <section>
+          <div
+            className="bg-comic-yellow border-[2px] border-comic-black px-3 py-1.5 inline-block mb-3"
+            style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+          >
+            <h2 className="text-xs font-bold text-comic-black">실시간 예약 · 사장님 초대</h2>
+          </div>
+          <div className="p-4 bg-white border-[2px] border-comic-black space-y-3" style={{ boxShadow: '3px 3px 0 #0A0A0A' }}>
+            <p className="text-xs text-comic-black/60">
+              링크를 카톡으로 보내면 사장님이 열어 로그인하는 것만으로 예약관리에 들어옵니다. 7일 뒤 만료, 한 번만 쓸 수 있습니다.
+            </p>
+            <button
+              type="button"
+              onClick={handleCreateInvite}
+              disabled={inviting}
+              className="px-4 py-2 bg-comic-pink border-[2px] border-comic-black text-white text-sm font-bold disabled:opacity-50"
+              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+            >
+              {inviting ? '만드는 중...' : '🔑 사장님 초대 링크 만들기'}
+            </button>
+            {invite?.error && <p className="text-xs font-bold text-comic-pink">{invite.error}</p>}
+            {invite?.inviteUrl && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={invite.inviteUrl}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className={inputClass}
+                    aria-label="사장님 초대 링크"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyInvite}
+                    className="px-3 shrink-0 bg-white border-[2px] border-comic-black text-sm font-bold"
+                    style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+                  >
+                    {copied ? '복사됨' : '복사'}
+                  </button>
+                </div>
+                {invite.expiresAt && (
+                  <p className="text-xs text-comic-black/50">
+                    {new Date(invite.expiresAt).toLocaleString('ko-KR')}까지 유효
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Notes */}
