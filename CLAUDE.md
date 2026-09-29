@@ -52,6 +52,9 @@ NEXT_PUBLIC_GA_ID / NEXT_PUBLIC_ADMIN_PASSWORD
 NEXT_PUBLIC_AMPLITUDE_API_KEY   # Amplitude 클라이언트 write key (미설정 시 트래킹만 비활성)
 SUPABASE_SERVICE_KEY        # 서버사이드만
 CRON_SECRET                 # Vercel Cron 인증
+BOOKING_ORIGIN              # 실시간 예약 프론트 배포 주소. /booking/* rewrite 대상 (production 빌드 필수)
+NEXT_PUBLIC_BOOKING_API_URL # 실시간 예약 API (예: https://api.musicspotfest.com)
+BOOKING_ADMIN_API_TOKEN     # 예약 서버 관리자 키(사장님 초대 링크). 서버 전용, NEXT_PUBLIC 금지
 ```
 
 ---

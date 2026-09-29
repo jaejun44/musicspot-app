@@ -5,6 +5,18 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import BookingServiceLinkCard from '@/components/BookingServiceLinkCard';
+import { bookingPath } from '@/lib/booking-service';
+
+// 실시간 예약(별도 서비스)으로 잡은 예약은 이 목록(bookings 표)에 없다. 그쪽 내역으로 가는 입구.
+const realtimeLink = (
+  <BookingServiceLinkCard
+    href={bookingPath.myReservations}
+    emoji="⚡"
+    title="실시간 예약 내역"
+    description="뮤직스팟에서 바로 잡은 예약은 여기서 확인하고 취소해요"
+  />
+);
 
 interface Booking {
   id: string;
@@ -113,6 +125,7 @@ export default function BookingsTab() {
         transition={{ type: 'spring', stiffness: 260, damping: 22 }}
         className="flex flex-col items-center justify-center py-16 px-4"
       >
+        <div className="w-full max-w-sm mb-6">{realtimeLink}</div>
         <div
           className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] px-6 py-8 flex flex-col items-center w-full max-w-sm"
           style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
@@ -155,6 +168,7 @@ export default function BookingsTab() {
       transition={{ type: 'spring', stiffness: 260, damping: 22 }}
       className="px-4 pb-8 space-y-4"
     >
+      {realtimeLink}
       {bookings.map((b, i) => {
         const status = STATUS_LABEL[b.status] ?? STATUS_LABEL.confirmed;
         const createdDate = new Date(b.created_at).toLocaleDateString('ko-KR', {

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { kakaoChannelUrl, studioBookingLink } from '@/lib/studio-contact';
 import { Studio } from '@/types/studio';
-import { trackBookingAttempt, trackContactClick } from '@/lib/analytics';
+import { trackBookingAttempt, trackContactClick, trackRealtimeBookingClick } from '@/lib/analytics';
+import { bookingPath, isRealtimeBookable } from '@/lib/booking-service';
 
 interface RoomBookingWidgetProps {
   studio: Studio;
@@ -13,6 +14,18 @@ interface RoomBookingWidgetProps {
 
 export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
   const [showNoLinkFallback, setShowNoLinkFallback] = useState(false);
+  // 실시간 예약을 받는 연습실이면 그게 첫 번째 길이다. 확인 전에는 지금처럼 보인다.
+  const [isBookable, setIsBookable] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    isRealtimeBookable(studio.id).then((bookable) => {
+      if (alive) setIsBookable(bookable);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [studio.id]);
   const priceLabel = studio.price_per_hour
     ? `₩${studio.price_per_hour.toLocaleString()}/h`
     : studio.price_info ?? '가격 문의';
@@ -46,7 +59,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
           className="text-[16px] font-bold mb-4 text-[#0A0A0A]"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
-          🎸 업체에 문의하기
+          {isBookable ? '🎸 예약하기' : '🎸 업체에 문의하기'}
         </h2>
 
         {/* 가격 */}
@@ -66,14 +79,31 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
         </div>
 
         <p className="text-sm mb-5 text-[#0A0A0A]/70">
-          이용 인원·장비·예약 가능한 시간과 최종 가격은 업체에서 확인해 주세요.
+          {isBookable
+            ? '빈 시간을 바로 확인하고 예약할 수 있어요.'
+            : '이용 인원·장비·예약 가능한 시간과 최종 가격은 업체에서 확인해 주세요.'}
         </p>
 
-        {/* CTA */}
+        {/* 실시간 예약. 예약 화면은 별도 배포라 next/link가 아니라 <a>로 이동한다. */}
+        {isBookable && (
+          <motion.a
+            href={bookingPath.studio(studio.id)}
+            onClick={() => trackRealtimeBookingClick(studio.id, studio.name)}
+            whileTap={{ scale: 0.96, y: 2 }}
+            className="block w-full py-4 mb-3 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[16px] text-center"
+            style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
+          >
+            ⚡ 실시간 예약하기
+          </motion.a>
+        )}
+
+        {/* 외부 링크. 실시간 예약이 있으면 보조 버튼으로 내려간다. */}
         <motion.button
           onClick={handleBookingClick}
           whileTap={{ scale: 0.96, y: 2 }}
-          className="w-full py-4 bg-[#FF3D77] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[16px]"
+          className={`w-full py-4 rounded-[16px] border-[3px] border-[#0A0A0A] font-bold text-[16px] ${
+            isBookable ? 'bg-white text-[#0A0A0A]' : 'bg-[#FF3D77] text-white'
+          }`}
           style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
         >
           업체 정보·예약 확인 ↗

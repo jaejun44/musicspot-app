@@ -285,3 +285,50 @@ export async function adminFetchKpi(): Promise<KpiData> {
 
   return { totalUsers, totalProjects, totalTracks, totalBookings, totalPosts, newUsersThisWeek, responseRate, activeUsers, activationRate, avgChallengeScore, scoreDistribution, kFactor, d7Retention, d7CohortSize };
 }
+
+export interface OwnerInviteResult {
+  inviteUrl?: string;
+  expiresAt?: string;
+  error?: string;
+}
+
+/**
+ * 사장님 초대 링크(실시간 예약 · 예약관리)를 만든다. 링크는 7일 뒤 만료되고 한 번만 쓸 수 있다.
+ * 예약 서버의 관리자 API는 비밀 헤더로만 열린다. 그 값(BOOKING_ADMIN_API_TOKEN)은 서버 env에만 두고
+ * 브라우저로 보내지 않는다. 그래서 브라우저가 아니라 이 server action이 부른다.
+ */
+export async function adminCreateOwnerInvite(studioId: string): Promise<OwnerInviteResult> {
+  assertAdmin();
+
+  const apiUrl = (process.env.NEXT_PUBLIC_BOOKING_API_URL ?? '').replace(/\/+$/, '');
+  const adminToken = process.env.BOOKING_ADMIN_API_TOKEN ?? '';
+  if (!apiUrl || !adminToken) {
+    return { error: '예약 서비스 설정(NEXT_PUBLIC_BOOKING_API_URL, BOOKING_ADMIN_API_TOKEN)이 없습니다.' };
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${apiUrl}/api/admin/studios/by-site/${encodeURIComponent(studioId)}/invites`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+      body: JSON.stringify({ role: 'OWNER' }),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch (err) {
+    console.error('[admin] 사장님 초대 링크 생성 실패', err);
+    return { error: '예약 서비스에 연결하지 못했습니다.' };
+  }
+
+  if (res.status === 404) {
+    return { error: '실시간 예약 서비스에 이어진 연습실이 아닙니다. 예약 서비스에 업체·방을 먼저 등록해야 합니다.' };
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    console.error('[admin] 사장님 초대 링크 생성 실패', res.status, detail);
+    return { error: `초대 링크를 만들지 못했습니다 (${res.status}).` };
+  }
+
+  const body = (await res.json()) as { inviteUrl: string; expiresAt: string };
+  return { inviteUrl: body.inviteUrl, expiresAt: body.expiresAt };
+}

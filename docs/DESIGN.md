@@ -23,7 +23,7 @@ White:      #FFFFFF   카드, 입력창
 
 | 브랜드 색 | 허용 지점 |
 |-----------|-----------|
-| `#FFD600` 카카오 | `LoginClient.tsx` OAuth · `PaymentClient.tsx` 카카오페이 · `RoomBookingWidget.tsx` 채널 · `RoomContactBar.tsx` 채널 |
+| `#FFD600` 카카오 | `LoginClient.tsx` OAuth · `RoomBookingWidget.tsx` 채널 · `RoomContactBar.tsx` 채널 |
 | `#06C755` LINE | `ProjectDetailModal.tsx` LINE 공유 버튼 2곳 (일본 모드) |
 | `#00D26A` 네이버 | 현재 네이버 버튼 없음. 생기면 그때 허용 |
 

@@ -8,6 +8,8 @@ import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
+import BookingServiceLinkCard from '@/components/BookingServiceLinkCard';
+import { bookingPath, fetchManagedStudios, type ManagedStudio } from '@/lib/booking-service';
 
 interface Review {
   id: string;
@@ -45,6 +47,8 @@ export default function PartnerClient() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [noPartner, setNoPartner] = useState(false);
+  // 실시간 예약의 예약관리. 초대 링크로 들어온 사장님은 partner_studios에 없을 수 있어 따로 묻는다.
+  const [managedStudios, setManagedStudios] = useState<ManagedStudio[]>([]);
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<EditForm>({ hours: '', phone: '', price_info: '', naver_place_url: '', kakao_channel: '' });
@@ -60,6 +64,19 @@ export default function PartnerClient() {
   useEffect(() => {
     if (!user) return;
     fetchPartnerData();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const studios = await fetchManagedStudios(session.access_token);
+      if (alive) setManagedStudios(studios);
+    });
+    return () => {
+      alive = false;
+    };
   }, [user]);
 
   async function fetchPartnerData() {
@@ -175,6 +192,17 @@ export default function PartnerClient() {
           </p>
         </motion.div>
 
+        {managedStudios.length > 0 && (
+          <div className="mb-6">
+            <BookingServiceLinkCard
+              href={bookingPath.owner}
+              emoji="📅"
+              title="예약관리"
+              description={`${managedStudios.map((studio) => studio.name).join(', ')} 실시간 예약 보기`}
+            />
+          </div>
+        )}
+
         {dataLoading ? (
           <div className="flex justify-center py-24">
             <div
@@ -185,7 +213,8 @@ export default function PartnerClient() {
             </div>
           </div>
         ) : noPartner ? (
-          <NoPartnerState />
+          // 예약관리만 쓰는 사장님에게 "파트너가 아니에요"를 보여주면 잘못 들어온 줄 안다.
+          managedStudios.length > 0 ? null : <NoPartnerState />
         ) : studio ? (
           <PartnerDashboard
             studio={studio}
