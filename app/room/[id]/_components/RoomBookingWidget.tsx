@@ -7,6 +7,8 @@ import { kakaoChannelUrl, studioBookingLink } from '@/lib/studio-contact';
 import { Studio } from '@/types/studio';
 import { trackBookingAttempt, trackContactClick, trackRealtimeBookingClick } from '@/lib/analytics';
 import { bookingPath, isRealtimeBookable } from '@/lib/booking-service';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RoomBookingWidgetProps {
   studio: Studio;
@@ -16,16 +18,21 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
   const [showNoLinkFallback, setShowNoLinkFallback] = useState(false);
   // 실시간 예약을 받는 연습실이면 그게 첫 번째 길이다. 확인 전에는 지금처럼 보인다.
   const [isBookable, setIsBookable] = useState(false);
+  // 시범 운영 중인 업체는 그 업체 사장님 계정에게만 입구가 열린다. 로그인·로그아웃하면 다시 묻는다.
+  const { user } = useAuth();
 
   useEffect(() => {
     let alive = true;
-    isRealtimeBookable(studio.id).then((bookable) => {
-      if (alive) setIsBookable(bookable);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => isRealtimeBookable(studio.id, session?.access_token))
+      .then((bookable) => {
+        if (alive) setIsBookable(bookable);
+      });
     return () => {
       alive = false;
     };
-  }, [studio.id]);
+  }, [studio.id, user?.id]);
   const priceLabel = studio.price_per_hour
     ? `₩${studio.price_per_hour.toLocaleString()}/h`
     : studio.price_info ?? '가격 문의';

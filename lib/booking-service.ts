@@ -19,13 +19,22 @@ const TIMEOUT_MS = 4000;
  * 이 연습실이 실시간 예약을 받는지. 예약 서비스가 404면 받지 않는 것이고,
  * 그 밖의 실패(서버 다운 등)도 입구를 숨긴다. 연습실 상세를 막을 이유는 아니라서
  * 던지지 않되, 조용히 삼키지 않고 콘솔에 남긴다.
+ *
+ * 공개 전(시범 운영) 업체는 그 업체 사장님 계정에게만 200이다. 그래서 로그인했으면
+ * 사이트 세션 토큰을 함께 보낸다. 없으면 손님으로 묻는다.
  */
-export async function isRealtimeBookable(siteStudioId: string): Promise<boolean> {
+export async function isRealtimeBookable(
+  siteStudioId: string,
+  accessToken?: string,
+): Promise<boolean> {
   if (!API_URL) return false;
   try {
     const res = await fetch(
       `${API_URL}/api/studios/by-site/${encodeURIComponent(siteStudioId)}`,
-      { signal: AbortSignal.timeout(TIMEOUT_MS) },
+      {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      },
     );
     if (res.status === 404) return false;
     if (!res.ok) {
