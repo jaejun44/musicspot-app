@@ -44,3 +44,4 @@ ms_character/
 # Claude Code (local tool config)
 .claude/
 .env*
+!.env.example

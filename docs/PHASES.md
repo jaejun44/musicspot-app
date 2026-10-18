@@ -370,3 +370,14 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 - 회귀 테스트 `tests/booking-service.cjs` 7개 추가(`node --test tests/`).
 - **운영 반영 전 필요**: Vercel env `BOOKING_ORIGIN`(없으면 production 빌드가 멈춤), `NEXT_PUBLIC_BOOKING_API_URL`,
   `BOOKING_ADMIN_API_TOKEN`(서버 전용). 예약 서버 배포·업체/방 등록 UI는 아직 없음.
+
+## 2026-10-18 — 밴드매칭 "온라인으로 먼저 맞춰보기" (SonoBus 연결, `feature/sonobus-jam`)
+- 매칭 엔티티가 없어서 **서로 DM을 1통 이상 주고받은 쌍**을 매칭으로 본다(DB 변경 없음).
+- 방 정보는 저장하지 않는다. `lib/jam-room.ts`가 정렬한 user id 쌍 + `SONOBUS_ROOM_SECRET` HMAC으로 그룹 이름(`musicspot-<hex10>`)과
+  비밀번호(base32 12자)를 매번 같게 만든다. 비밀값을 바꾸면 모든 방이 바뀐다.
+- `GET /api/jam-room?peer=` — 사이트 첫 일반 유저 서버 인증 라우트(Bearer → `auth.getUser`). 비당사자 403, `no-store`.
+- ChatModal 상단 버튼 → `JamRoomSheet`. 하단 CTA: ko는 `/booking`, ja는 `/booking`이 차단 경로라 "채팅으로 돌아가 오프라인 약속".
+- "SonoBus로 열기"는 `sonobus://aoo.sonobus.net:10998/?g=&p=`. Android 앱은 스킴 미등록(소스 기준)이라 숨김.
+  `go.sonobus.net/sblaunch`는 비밀번호가 제3자 URL에 남아 쓰지 않음.
+- 이벤트: `match_jam_open`·`match_jam_copy`·`match_jam_launch`·`match_jam_booking_click`. 테스트 `tests/jam-room.cjs` 5개.
+- **운영 반영 전 필요**: Vercel env `SONOBUS_ROOM_SECRET`(없으면 API 500 + 로그). 실기기 딥링크 동작은 미확인.

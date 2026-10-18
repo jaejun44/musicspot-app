@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send } from 'lucide-react';
+import { X, Send, Headphones } from 'lucide-react';
 import { Musician } from '../_data/musicians';
 import { trackBandContact, track, lengthBucket } from '@/lib/analytics';
 import { SR_MASK_CLASS } from '@/lib/amplitude';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { useT } from '@/lib/i18n';
+import JamRoomSheet from './JamRoomSheet';
 
 interface Message {
   id: string;
@@ -33,6 +34,9 @@ export default function ChatModal({ musician, user, onClose }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [jamOpen, setJamOpen] = useState(false);
+  // 다른 뮤지션 채팅을 열 때 이전 합주 시트가 따라 열리지 않게
+  useEffect(() => { setJamOpen(false); }, [musician?.id]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const isReal = musician ? isUUID(musician.id) : false;
@@ -225,6 +229,17 @@ export default function ChatModal({ musician, user, onClose }: Props) {
               ) : (
                 /* 실제 채팅 */
                 <>
+                  <div className="px-4 pt-3 flex-shrink-0">
+                    <motion.button
+                      whileTap={{ scale: 0.95, x: 2, y: 2 }}
+                      onClick={() => setJamOpen(true)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 bg-[#4FC3F7] rounded-[12px] border-[2px] border-[#0A0A0A] text-[12px] font-bold text-[#0A0A0A]"
+                      style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                    >
+                      <Headphones className="w-3.5 h-3.5" />
+                      {t('온라인으로 먼저 맞춰보기')}
+                    </motion.button>
+                  </div>
                   {/* SR_MASK_CLASS: DM 본문이 Session Replay 녹화에 찍히지 않게 마스킹 */}
                   <div
                     className={`${SR_MASK_CLASS} flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2 min-h-[180px]`}
@@ -296,6 +311,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
               )}
             </div>
           </motion.div>
+          {canChat && <JamRoomSheet open={jamOpen} peerId={musician.id} onClose={() => setJamOpen(false)} />}
         </>
       )}
     </AnimatePresence>

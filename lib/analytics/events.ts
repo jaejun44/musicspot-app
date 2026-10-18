@@ -126,6 +126,12 @@ export type EventSchema = {
   dm_open: { thread_user_id: string; is_first: boolean };
   /** 첫 메시지(is_first)가 매칭→대화 전환의 핵심 */
   dm_send: { thread_user_id: string; is_first: boolean; length_bucket: LengthBucket };
+  /** SonoBus 온라인 합주 시트 — 매칭 후 오프라인 합주로 넘어가기 전 보조 단계 */
+  match_jam_open: { thread_user_id: string; status: 'ready' | 'not_matched' | 'error' };
+  match_jam_copy: { thread_user_id: string; field: 'group' | 'password' };
+  match_jam_launch: { thread_user_id: string };
+  /** 하단 CTA. ko = /booking 이동, ja = /booking 차단 지역이라 채팅으로 돌아가 오프라인 약속 */
+  match_jam_booking_click: { thread_user_id: string; target: 'booking' | 'chat' };
 
   // ── 커뮤니티 · 피드 (리텐션) ────────────────────────────────
   community_list_view: { category?: string; post_count: number };
