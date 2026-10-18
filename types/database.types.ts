@@ -355,13 +355,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "chat_messages_jam_session_id_fkey"
-            columns: ["jam_session_id"]
-            isOneToOne: false
-            referencedRelation: "jam_sessions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "chat_messages_receiver_id_fkey"
             columns: ["receiver_id"]
             isOneToOne: false
@@ -646,20 +639,23 @@ export type Database = {
       }
       jam_participants: {
         Row: {
-          joined_at: string
-          role: string
+          country: string
+          created_at: string
+          language: string
           session_id: string
           user_id: string
         }
         Insert: {
-          joined_at?: string
-          role?: string
+          country?: string
+          created_at?: string
+          language?: string
           session_id: string
           user_id: string
         }
         Update: {
-          joined_at?: string
-          role?: string
+          country?: string
+          created_at?: string
+          language?: string
           session_id?: string
           user_id?: string
         }
@@ -675,50 +671,45 @@ export type Database = {
       }
       jam_sessions: {
         Row: {
-          created_at: string | null
-          creator_id: string
+          capacity: number
+          country: string
+          created_at: string
           description: string | null
-          genre: string | null
+          host_id: string
           id: string
-          instruments: string[] | null
-          max_participants: number | null
-          status: string | null
+          instruments_wanted: string[]
+          language: string
+          starts_at: string
+          status: string
           title: string
-          updated_at: string | null
         }
         Insert: {
-          created_at?: string | null
-          creator_id: string
+          capacity?: number
+          country?: string
+          created_at?: string
           description?: string | null
-          genre?: string | null
+          host_id: string
           id?: string
-          instruments?: string[] | null
-          max_participants?: number | null
-          status?: string | null
+          instruments_wanted?: string[]
+          language?: string
+          starts_at: string
+          status?: string
           title: string
-          updated_at?: string | null
         }
         Update: {
-          created_at?: string | null
-          creator_id?: string
+          capacity?: number
+          country?: string
+          created_at?: string
           description?: string | null
-          genre?: string | null
+          host_id?: string
           id?: string
-          instruments?: string[] | null
-          max_participants?: number | null
-          status?: string | null
+          instruments_wanted?: string[]
+          language?: string
+          starts_at?: string
+          status?: string
           title?: string
-          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "jam_sessions_creator_id_fkey"
-            columns: ["creator_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       matches: {
         Row: {
@@ -1630,6 +1621,10 @@ export type Database = {
         }[]
       }
       get_my_band_ids: { Args: never; Returns: string[] }
+      join_jam_session: {
+        Args: { p_country?: string; p_language?: string; p_session_id: string }
+        Returns: string
+      }
       reset_weekly_challenge_scores: { Args: never; Returns: undefined }
     }
     Enums: {

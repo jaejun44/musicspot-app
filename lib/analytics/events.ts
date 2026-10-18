@@ -21,6 +21,9 @@ export type ShareChannel = 'copy' | 'x' | 'line' | 'kakao' | 'native';
 /** 8마디 업로드 경로. TrackUploadPanel의 UploadMode와 1:1 대응 */
 export type UploadSource = 'file' | 'record' | 'youtube' | 'jam';
 
+/** 온라인 잼 방 정보가 열린 곳 */
+export type JamSource = 'dm' | 'session';
+
 // ─── 이벤트 스키마 ───────────────────────────────────────────────
 export type EventSchema = {
   // ── 연습실 (기존 — 이름 변경 금지) ──────────────────────────
@@ -126,6 +129,16 @@ export type EventSchema = {
   dm_open: { thread_user_id: string; is_first: boolean };
   /** 첫 메시지(is_first)가 매칭→대화 전환의 핵심 */
   dm_send: { thread_user_id: string; is_first: boolean; length_bucket: LengthBucket };
+  /** SonoBus 온라인 잼 시트. source = dm(채팅창 1:1) | session(밴드찾기 > 온라인 잼 공개 방), target_id = 상대 user id | 세션 id */
+  match_jam_open: { source: JamSource; target_id: string; status: 'ready' | 'denied' | 'error' };
+  match_jam_copy: { source: JamSource; target_id: string; field: 'group' | 'password' };
+  match_jam_launch: { source: JamSource; target_id: string };
+  /** 하단 CTA. ko = /booking 이동, ja = /booking 차단 지역이라 채팅·멤버 메시지로 오프라인 약속 */
+  match_jam_booking_click: { source: JamSource; target_id: string; target: 'booking' | 'chat' };
+  /** 온라인 잼 탭 진입. session_count가 0에 가까우면 공급(방 여는 사람) 문제 */
+  match_jam_tab_view: { session_count: number };
+  match_jam_session_create: { capacity: number; instrument_count: number; has_description: boolean };
+  match_jam_session_join: { session_id: string; result: 'joined' | 'already' | 'full' | 'closed' | 'host' | 'not_found' | 'error' };
 
   // ── 커뮤니티 · 피드 (리텐션) ────────────────────────────────
   community_list_view: { category?: string; post_count: number };
