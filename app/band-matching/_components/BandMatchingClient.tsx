@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import PositionFilter from './PositionFilter';
 import MusicianCard from './MusicianCard';
 import ChatModal from './ChatModal';
+import JamSessionsTab, { JamProfile } from './JamSessionsTab';
 import OnboardingModal from '@/components/OnboardingModal';
 import { Musician, Position } from '../_data/musicians';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,6 +52,9 @@ export default function BandMatchingClient() {
   const t = useT();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const searchParams = useSearchParams();
+  // ?tab=jam 으로 온라인 잼 탭을 바로 열 수 있다 (공유·배너 링크용)
+  const [tab, setTab] = useState<'musicians' | 'jam'>(searchParams.get('tab') === 'jam' ? 'jam' : 'musicians');
   const [activePosition, setActivePosition] = useState<Position | 'all'>('all');
   const [contactTarget, setContactTarget] = useState<Musician | null>(null);
   const [musicians, setMusicians] = useState<Musician[]>([]);
@@ -130,6 +134,22 @@ export default function BandMatchingClient() {
     setShowOnboarding(true);
   }
 
+  function switchTab(next: 'musicians' | 'jam') {
+    setTab(next);
+    const url = new URL(window.location.href);
+    if (next === 'jam') url.searchParams.set('tab', 'jam');
+    else url.searchParams.delete('tab');
+    window.history.replaceState(null, '', url.toString());
+  }
+
+  function messageJamMember(userId: string, profile?: JamProfile) {
+    const row: JamProfile = profile ?? {
+      id: userId, user_id: userId, display_name: null, bio: null, instruments: [], genres: [],
+      region: null, purposes: [], looking_for: null, avatar_url: null,
+    };
+    setContactTarget(profileToMusician(row, 0));
+  }
+
   const filtered =
     activePosition === 'all'
       ? musicians
@@ -172,6 +192,32 @@ export default function BandMatchingClient() {
         </motion.div>
       </div>
 
+      {/* 탭: 뮤지션 | 온라인 잼 */}
+      <div className="px-4 pb-4 max-w-2xl mx-auto">
+        <div className="flex gap-2" role="tablist">
+          {([
+            { key: 'musicians', label: t('🎸 뮤지션') },
+            { key: 'jam', label: t('🎧 온라인 잼') },
+          ] as const).map(({ key, label }) => (
+            <motion.button
+              key={key}
+              role="tab"
+              aria-selected={tab === key}
+              whileTap={{ scale: 0.95, x: 2, y: 2 }}
+              onClick={() => switchTab(key)}
+              className={`flex-1 py-3 rounded-[14px] border-[3px] border-[#0A0A0A] text-[14px] font-bold ${tab === key ? 'bg-[#FF3D77] text-white' : 'bg-white text-[#0A0A0A]'}`}
+              style={{ boxShadow: tab === key ? '4px 4px 0 #0A0A0A' : '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+            >
+              {label}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {tab === 'jam' ? (
+        <JamSessionsTab user={user} onMessage={messageJamMember} />
+      ) : (
+      <>
       {/* 필터 */}
       <div className="px-4 pb-4 max-w-2xl mx-auto">
         <motion.div
@@ -315,6 +361,8 @@ export default function BandMatchingClient() {
           )}
         </div>
       </div>
+      </>
+      )}
 
       <ChatModal musician={contactTarget} user={user} onClose={() => setContactTarget(null)} />
     </div>

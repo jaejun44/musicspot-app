@@ -57,9 +57,24 @@ function toBase32(bytes: Buffer, length: number): string {
   return out;
 }
 
+/** 공개 잼 방은 호스트와 참가자만 방 정보를 받는다 */
+export function canAccessJamSession(callerId: string, hostId: string, participantIds: string[]): boolean {
+  if (!callerId) return false;
+  return callerId === hostId || participantIds.includes(callerId);
+}
+
+/** 1:1 매칭 쌍의 방 (채팅창 버튼) */
 export function deriveJamRoom(userA: string, userB: string, secret: string): JamRoom {
+  return deriveRoom(pairKey(userA, userB), secret);
+}
+
+/** 공개 잼 방 (밴드찾기 > 온라인 잼). 쌍 키(uuid:uuid)와 겹치지 않게 접두어를 붙인다 */
+export function deriveSessionJamRoom(sessionId: string, secret: string): JamRoom {
+  return deriveRoom(`session:${sessionId}`, secret);
+}
+
+function deriveRoom(key: string, secret: string): JamRoom {
   if (!secret) throw new Error('SONOBUS_ROOM_SECRET is not set');
-  const key = pairKey(userA, userB);
   const groupName = `musicspot-${hmac(secret, 'sonobus-group:v1', key).toString('hex').slice(0, 10)}`;
   // 60비트. 그룹 이름과 다른 라벨을 써서 이름에서 비밀번호를 유추할 수 없게 한다.
   const password = toBase32(hmac(secret, 'sonobus-password:v1', key), 12);

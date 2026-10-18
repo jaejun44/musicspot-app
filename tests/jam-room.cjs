@@ -27,7 +27,7 @@ function load() {
   return exports;
 }
 
-const { deriveJamRoom, isMutualDmPair } = load();
+const { deriveJamRoom, deriveSessionJamRoom, isMutualDmPair, canAccessJamSession } = load();
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
 test('같은 쌍이면 누가 열든 같은 그룹 이름·비밀번호가 나온다', () => {
@@ -73,4 +73,23 @@ test('비당사자는 남의 대화 기록을 넘겨도 방 정보를 받을 수
   assert.equal(isMutualDmPair(C, A, thread), false);
   assert.equal(isMutualDmPair(A, A, thread), false, '자기 자신');
   assert.equal(isMutualDmPair('', B, thread), false);
+});
+
+const S1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const S2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+test('공개 잼 방: 같은 세션이면 같은 방, 다른 세션이면 다른 방', () => {
+  const s1 = plain(deriveSessionJamRoom(S1, SECRET));
+  assert.deepEqual(plain(deriveSessionJamRoom(S1, SECRET)), s1);
+  assert.notEqual(deriveSessionJamRoom(S2, SECRET).groupName, s1.groupName);
+  assert.match(s1.groupName, /^musicspot-[0-9a-f]{10}$/);
+  // 세션 방과 1:1 방은 키 공간이 달라 겹치지 않는다
+  assert.notEqual(deriveJamRoom(A, B, SECRET).groupName, s1.groupName);
+});
+
+test('공개 잼 방: 호스트와 참가자만 방 정보를 받는다', () => {
+  assert.equal(canAccessJamSession(A, A, []), true, '호스트');
+  assert.equal(canAccessJamSession(B, A, [B]), true, '참가자');
+  assert.equal(canAccessJamSession(C, A, [B]), false, '비참가자');
+  assert.equal(canAccessJamSession('', A, [B]), false);
 });

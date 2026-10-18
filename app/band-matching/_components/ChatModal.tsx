@@ -311,7 +311,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
               )}
             </div>
           </motion.div>
-          {canChat && <JamRoomSheet open={jamOpen} peerId={musician.id} onClose={() => setJamOpen(false)} />}
+          {canChat && <JamRoomSheet open={jamOpen} source="dm" targetId={musician.id} onClose={() => setJamOpen(false)} />}
         </>
       )}
     </AnimatePresence>

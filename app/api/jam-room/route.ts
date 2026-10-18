@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { deriveJamRoom, isMutualDmPair } from '@/lib/jam-room';
+import { createServiceClient, getCallerId } from '@/lib/api-auth';
 
 // 매칭(서로 DM을 주고받은) 두 사람에게만 SonoBus 방 정보를 내준다.
 // GET /api/jam-room?peer=<상대 user id>  +  Authorization: Bearer <Supabase access token>
@@ -15,21 +15,17 @@ function fail(status: number, error: string) {
 }
 
 export async function GET(req: NextRequest) {
-  const token = req.headers.get('authorization')?.match(/^Bearer (.+)$/)?.[1];
-  if (!token) return fail(401, 'unauthorized');
+  if (!req.headers.get('authorization')) return fail(401, 'unauthorized');
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_KEY;
+  const admin = createServiceClient();
   const secret = process.env.SONOBUS_ROOM_SECRET;
-  if (!url || !serviceKey || !secret) {
-    console.error('[jam-room] missing env', { url: !!url, serviceKey: !!serviceKey, secret: !!secret });
+  if (!admin || !secret) {
+    if (!secret) console.error('[jam-room] SONOBUS_ROOM_SECRET is not set');
     return fail(500, 'not_configured');
   }
 
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { data: auth, error: authError } = await admin.auth.getUser(token);
-  if (authError || !auth.user) return fail(401, 'unauthorized');
-  const callerId = auth.user.id;
+  const callerId = await getCallerId(req, admin);
+  if (!callerId) return fail(401, 'unauthorized');
 
   const peerId = req.nextUrl.searchParams.get('peer') ?? '';
   if (!UUID_RE.test(peerId) || peerId === callerId) return fail(400, 'invalid_peer');
