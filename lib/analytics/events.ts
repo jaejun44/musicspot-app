@@ -133,7 +133,7 @@ export type EventSchema = {
   match_jam_open: { source: JamSource; target_id: string; status: 'ready' | 'denied' | 'error' };
   match_jam_copy: { source: JamSource; target_id: string; field: 'group' | 'password' };
   match_jam_launch: { source: JamSource; target_id: string };
-  /** 하단 CTA. ko = /booking 이동, ja = /booking 차단 지역이라 채팅·멤버 메시지로 오프라인 약속 */
+  /** 하단 CTA. target 'booking' = ko에서 /search(연습실 찾기→예약) 이동, 'chat' = ja(연습실 경로 차단)에서 채팅·멤버 메시지로 오프라인 약속 */
   match_jam_booking_click: { source: JamSource; target_id: string; target: 'booking' | 'chat' };
   /** 온라인 잼 탭 진입. session_count가 0에 가까우면 공급(방 여는 사람) 문제 */
   match_jam_tab_view: { session_count: number };

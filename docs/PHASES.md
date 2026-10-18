@@ -387,3 +387,5 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
     DROP 후 재생성. `chat_messages_jam_session_id_fkey`도 CASCADE로 제거(컬럼은 남음). RLS + `join_jam_session()` RPC(행 잠금으로 정원 보장).
   - 방 정보 `GET /api/jam-sessions/[id]/room` (호스트·참가자만). 공통 인증은 `lib/api-auth.ts`.
   - 이벤트 `match_jam_*`를 `{source: dm|session, target_id}`로 일반화 + `match_jam_tab_view`·`match_jam_session_create`·`match_jam_session_join`.
+- **수정 (같은 날)**: 잼 시트 하단 "오프라인 합주실 예약하기"를 `/booking` → `/search`로 변경. `/booking` 첫 화면은 예약 서비스의
+  "내 예약" 목록(`/booking/me`)이라 예약 입구가 아니었고, Preview에는 `BOOKING_ORIGIN`이 없어 404였다. 이벤트 값 `target: 'booking'`은 유지.

@@ -222,7 +222,7 @@ export default function JamRoomSheet({ open, source, targetId, onClose }: Props)
               {/* 하단 고정 CTA — 온라인에서 끝나지 않고 오프라인 합주로 이어지게 */}
               <div className="px-5 pb-5 pt-3 border-t-[2px] border-[#0A0A0A]/10 flex-shrink-0">
                 {isJapan ? (
-                  // /booking 은 ja 모드에서 차단 경로(lib/i18n/locale.ts) → 채팅(dm) 또는 방 카드의 멤버 메시지(session)로 돌아가 오프라인 약속
+                  // /search(연습실)는 ja 모드에서 차단 경로(lib/i18n/locale.ts) → 채팅(dm) 또는 방 카드의 멤버 메시지(session)로 돌아가 오프라인 약속
                   <motion.button
                     whileTap={{ scale: 0.95, x: 2, y: 2 }}
                     onClick={() => {
@@ -235,9 +235,10 @@ export default function JamRoomSheet({ open, source, targetId, onClose }: Props)
                     {source === 'dm' ? t('채팅으로 돌아가서 오프라인 합주 약속 잡기') : t('멤버에게 메시지 보내서 오프라인 합주 약속 잡기')}
                   </motion.button>
                 ) : (
-                  // /booking 은 별도 배포로 rewrite 되므로 next/link 대신 <a>
+                  // 연습실 찾기 → 상세에서 실시간 예약(가능한 곳) 또는 연락. /booking 첫 화면은 '내 예약' 목록이라 예약 입구가 아니다.
+                  // 이벤트 target 값 'booking'은 배포된 이름이라 유지
                   <motion.a
-                    href="/booking"
+                    href="/search"
                     onClick={() => track('match_jam_booking_click', { ...ids, target: 'booking' })}
                     whileTap={{ scale: 0.95, x: 2, y: 2 }}
                     className="block w-full py-3.5 bg-[#FF3D77] rounded-[14px] border-[2px] border-[#0A0A0A] font-bold text-[14px] text-white text-center"
