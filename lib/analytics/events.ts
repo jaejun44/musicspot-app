@@ -138,6 +138,8 @@ export type EventSchema = {
   /** 온라인 잼 탭 진입. session_count가 0에 가까우면 공급(방 여는 사람) 문제 */
   match_jam_tab_view: { session_count: number };
   match_jam_session_create: { capacity: number; instrument_count: number; has_description: boolean };
+  /** 연습실 상세·지역 페이지의 온라인 잼 입구 카드 클릭 (방문이 많은 곳 → 잼 탭) */
+  match_jam_entry_click: { from: 'room' | 'region' };
   match_jam_session_join: { session_id: string; result: 'joined' | 'already' | 'full' | 'closed' | 'host' | 'not_found' | 'error' };
 
   // ── 커뮤니티 · 피드 (리텐션) ────────────────────────────────

@@ -9,6 +9,7 @@ import { Studio } from '@/types/studio';
 import RoomCard from '@/components/RoomCard';
 import Navigation from '@/components/Navigation';
 import SiteFooter from '@/components/SiteFooter';
+import JamEntryCard from '@/components/JamEntryCard';
 
 interface Props {
   params: { slug: string };
@@ -150,6 +151,9 @@ export default async function RegionPage({ params }: Props) {
             ))}
           </section>
         )}
+
+        {/* 온라인 잼 입구 — 연습실 목록 다음 */}
+        <JamEntryCard from="region" className="mt-10 max-w-2xl" />
 
         {sameCity.length > 0 && (
           <section className="mt-12 pt-6 border-t-[2px] border-comic-black/10">
