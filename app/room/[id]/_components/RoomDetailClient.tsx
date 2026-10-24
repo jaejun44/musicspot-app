@@ -17,6 +17,7 @@ import RoomInfoCard from './RoomInfoCard';
 import RoomBookingWidget from './RoomBookingWidget';
 import RoomContactBar from './RoomContactBar';
 import ReviewSection from './ReviewSection';
+import JamEntryCard from '@/components/JamEntryCard';
 
 export default function RoomDetailClient() {
   const { id } = useParams<{ id: string }>();
@@ -251,6 +252,9 @@ export default function RoomDetailClient() {
             )}
           </div>
         )}
+
+        {/* 온라인 잼 입구 — 예약·위치 확인 뒤, 리뷰 위 */}
+        <JamEntryCard from="room" />
 
         {/* 뮤지션 리뷰 */}
         <div id="reviews">
