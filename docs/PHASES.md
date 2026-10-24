@@ -371,21 +371,47 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 - **운영 반영 전 필요**: Vercel env `BOOKING_ORIGIN`(없으면 production 빌드가 멈춤), `NEXT_PUBLIC_BOOKING_API_URL`,
   `BOOKING_ADMIN_API_TOKEN`(서버 전용). 예약 서버 배포·업체/방 등록 UI는 아직 없음.
 
-## 2026-10-18 — 밴드매칭 "온라인으로 먼저 맞춰보기" (SonoBus 연결, `feature/sonobus-jam`)
-- 매칭 엔티티가 없어서 **서로 DM을 1통 이상 주고받은 쌍**을 매칭으로 본다(DB 변경 없음).
-- 방 정보는 저장하지 않는다. `lib/jam-room.ts`가 정렬한 user id 쌍 + `SONOBUS_ROOM_SECRET` HMAC으로 그룹 이름(`musicspot-<hex10>`)과
-  비밀번호(base32 12자)를 매번 같게 만든다. 비밀값을 바꾸면 모든 방이 바뀐다.
-- `GET /api/jam-room?peer=` — 사이트 첫 일반 유저 서버 인증 라우트(Bearer → `auth.getUser`). 비당사자 403, `no-store`.
-- ChatModal 상단 버튼 → `JamRoomSheet`. 하단 CTA: ko는 `/booking`, ja는 `/booking`이 차단 경로라 "채팅으로 돌아가 오프라인 약속".
-- "SonoBus로 열기"는 `sonobus://aoo.sonobus.net:10998/?g=&p=`. Android 앱은 스킴 미등록(소스 기준)이라 숨김.
+## 2026-10-18 — 온라인 잼 (SonoBus로 먼저 맞춰보고 오프라인 합주로) — 운영 반영 완료
+PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 정리(삭제) 완료.
+오디오 기능은 만들지 않고, 무료 P2P 합주 앱 SonoBus의 같은 그룹 방으로 보내는 다리 역할만 한다.
+원칙: 온라인에서 끝나지 않고 오프라인 합주로 이어지게 한다.
+
+### 사용자 흐름
+- **메인 입구 — 밴드찾기 > 🎧 온라인 잼 탭** (`/band-matching?tab=jam`): 누구나 잼 방을 열고 참가.
+  카드: 시작 시간(시작 후 "진행 중")·제목·호스트·구하는 악기·인원. 시작 3시간 뒤 목록에서 내림. 호스트 [마감하기], 참가자 [나가기].
+  참가하면 방 정보 시트, 멤버끼리 💬 1:1 메시지(ChatModal).
+- **보조 입구 — 채팅창 "온라인으로 먼저 맞춰보기"**: 서로 DM을 1통 이상 주고받은 두 사람만(매칭 엔티티가 없어서 이 기준으로 정함).
+- **방 정보 시트** (`JamRoomSheet`): 그룹 이름·비밀번호 복사, "SonoBus로 열기", 3단계 가이드, 품질 안내(유선 랜·오디오 인터페이스·이어폰).
+- **하단 CTA**: ko는 "오프라인 합주실 예약하기" → `/search`(연습실 찾기 → 상세에서 실시간 예약/연락).
+  ja는 `/search`·`/booking`이 차단 경로라 "채팅·멤버 메시지로 오프라인 약속".
+  - 처음엔 `/booking`으로 보냈으나 그 첫 화면은 예약 서비스의 "내 예약" 목록(`/booking/me`)이라 PR #5에서 `/search`로 변경.
+
+### 구현
+- 방 정보는 저장하지 않는다. `lib/jam-room.ts`가 `SONOBUS_ROOM_SECRET` HMAC으로 매번 같은 값을 만든다.
+  키: 1:1 방 = 정렬한 user id 쌍, 공개 방 = `session:<세션 id>`. 그룹 `musicspot-<hex10>`, 비밀번호 base32 12자.
+  ⚠️ 비밀값을 바꾸면 모든 방 이름·비밀번호가 바뀐다.
+- API (사이트 첫 일반 유저 서버 인증, 공통 `lib/api-auth.ts`: Bearer → `auth.getUser`, 응답 `no-store`):
+  - `GET /api/jam-room?peer=` — 서로 DM한 두 사람만(아니면 403)
+  - `GET /api/jam-sessions/[id]/room` — 호스트·참가자만(아니면 403)
+- DB `supabase/09_jam_sessions.sql` 운영 적용(사용자 승인): 2026-04 옛 `jam_sessions`/`jam_participants`(앱 미사용, 테스트 8건)를
+  DROP 후 재생성. `chat_messages_jam_session_id_fkey`도 CASCADE로 제거(컬럼은 남음).
+  RLS: 읽기 공개 / 생성은 본인 호스트로만 / 마감은 호스트만 / 나가기는 본인만. 참가는 `join_jam_session()` RPC로만(행 잠금으로 정원 보장).
+  실제 유저 권한으로 시나리오 검증(롤백): 사칭 생성·직접 INSERT 거부, 정원 초과 `full`, 마감 후 `closed`.
+- "SonoBus로 열기" = `sonobus://aoo.sonobus.net:10998/?g=&p=`. SonoBus 소스 기준 macOS·Windows·Linux·iOS만 스킴 등록 → Android는 버튼 숨김.
   `go.sonobus.net/sblaunch`는 비밀번호가 제3자 URL에 남아 쓰지 않음.
-- 이벤트: `match_jam_open`·`match_jam_copy`·`match_jam_launch`·`match_jam_booking_click`. 테스트 `tests/jam-room.cjs` 5개.
-- **운영 반영 전 필요**: Vercel env `SONOBUS_ROOM_SECRET`(없으면 API 500 + 로그). 실기기 딥링크 동작은 미확인.
-- **추가 (같은 날) — 밴드찾기 > 🎧 온라인 잼 탭 (공개 잼 방)**: 채팅창 안 버튼만으로는 찾기 어려워서, 누구나 잼 방을 열고 참가하는 탭을 추가.
-  - `/band-matching?tab=jam`. 카드: 시간·제목·호스트·구하는 악기·인원. 참가하면 SonoBus 방 정보, 멤버끼리 💬 1:1 메시지.
-  - DB `supabase/09_jam_sessions.sql` 운영 적용(사용자 승인): 2026-04 옛 `jam_sessions`/`jam_participants`(앱 미사용, 테스트 8건)를
-    DROP 후 재생성. `chat_messages_jam_session_id_fkey`도 CASCADE로 제거(컬럼은 남음). RLS + `join_jam_session()` RPC(행 잠금으로 정원 보장).
-  - 방 정보 `GET /api/jam-sessions/[id]/room` (호스트·참가자만). 공통 인증은 `lib/api-auth.ts`.
-  - 이벤트 `match_jam_*`를 `{source: dm|session, target_id}`로 일반화 + `match_jam_tab_view`·`match_jam_session_create`·`match_jam_session_join`.
-- **수정 (같은 날)**: 잼 시트 하단 "오프라인 합주실 예약하기"를 `/booking` → `/search`로 변경. `/booking` 첫 화면은 예약 서비스의
-  "내 예약" 목록(`/booking/me`)이라 예약 입구가 아니었고, Preview에는 `BOOKING_ORIGIN`이 없어 404였다. 이벤트 값 `target: 'booking'`은 유지.
+- 이벤트(`lib/analytics/events.ts`): `match_jam_open`·`match_jam_copy`·`match_jam_launch`·`match_jam_booking_click`(`{source: dm|session, target_id}`),
+  `match_jam_tab_view`·`match_jam_session_create`·`match_jam_session_join`. 7종 모두 `user_events` 기록 확인.
+  `match_jam_booking_click`의 `target: 'booking'`은 목적지가 `/search`로 바뀌었어도 배포된 값이라 유지.
+- 테스트 `tests/jam-room.cjs` 7개(같은 입력 같은 결과, 다른 쌍·세션 다른 결과, 비당사자·비참가자 거부). 전체 `node --test tests/*.cjs` 24개 통과.
+  (Node 24에서는 `node --test tests/`가 실행되지 않아 glob 사용)
+
+### 설정·운영
+- Vercel env `SONOBUS_ROOM_SECRET`: Production·Preview에 서로 다른 무작위 값으로 등록(없으면 API 500 + 로그).
+- Supabase Auth Redirect URLs에 Vercel 미리보기 주소 추가(사용자 작업) — 미리보기에서 로그인하면 운영으로 튕기던 문제 해결.
+- Preview에는 `BOOKING_ORIGIN`이 없어 미리보기의 `/booking`은 404(운영은 정상). 잼 CTA는 `/search`라 영향 없음.
+- 확인된 사실: Claude에 연결된 Amplitude 프로젝트는 비어 있음(사이트 키는 다른 프로젝트). 당분간 GA4 + Supabase `user_events`로 확인.
+
+### 남은 것
+- 실기기에서 "SonoBus로 열기"로 바로 그룹 접속되는지(Mac·Windows·iPhone) 미확인.
+- 지켜볼 지표: 잼 탭 방문 → 방 생성 → 참가 → "오프라인 합주실 예약하기" 클릭(온라인이 오프라인으로 이어지는지가 핵심).
+- 새 화면은 Figma 디자인이 없어 기존 카드·시트 스타일을 따름 — Figma 반영 시 재검토.
