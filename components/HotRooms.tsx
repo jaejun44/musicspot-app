@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase';
 import { Studio } from '@/types/studio';
 import { trackHotRoomClick } from '@/lib/analytics';
 
-const ROTATIONS = [-2, 1, -1, 2, -1, 0, 2, -2];
 
 function PriceLabel({ studio }: { studio: Studio }) {
   if (studio.price_per_hour) {
@@ -78,9 +77,9 @@ export default function HotRooms() {
               return (
                 <Link key={studio.id} href={`/room/${studio.id}`} onClick={() => trackHotRoomClick(studio.id, studio.name)}>
                   <motion.div
-                    initial={{ y: 50, opacity: 0, rotate: 0 }}
-                    whileInView={{ y: 0, opacity: 1, rotate: ROTATIONS[index % ROTATIONS.length] }}
-                    whileHover={{ y: -10, rotate: 0, boxShadow: '10px 10px 0 #0A0A0A' }}
+                    initial={{ y: 50, opacity: 0 }}
+                    whileInView={{ y: 0, opacity: 1 }}
+                    whileHover={{ y: -10, boxShadow: '10px 10px 0 #0A0A0A' }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.08 }}
                     className="w-[280px] bg-white rounded-[24px] border-[3px] border-[#0A0A0A] overflow-hidden flex-shrink-0 cursor-pointer"

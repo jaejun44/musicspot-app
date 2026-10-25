@@ -26,7 +26,6 @@ interface Props {
 
 export default function MusicianCard({ musician, index, onContact, currentUserId, currentUserName }: Props) {
   const t = useT();
-  const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
   const isRealUser = UUID_RE.test(musician.id);
   const isExample = musician.name.startsWith('[이용예시]');
   const canFollow = !!(currentUserId && isRealUser && currentUserId !== musician.id && !isExample);
@@ -78,8 +77,8 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, type: 'spring', stiffness: 260, damping: 22 }}
-      whileHover={{ y: -6, rotate: rotate + 1, boxShadow: '8px 8px 0 #0A0A0A' }}
-      style={{ rotate, boxShadow: '5px 5px 0 #0A0A0A' }}
+      whileHover={{ y: -6, boxShadow: '8px 8px 0 #0A0A0A' }}
+      style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
       className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-4 flex flex-col gap-3"
     >
       {/* 아바타 + 이름 */}

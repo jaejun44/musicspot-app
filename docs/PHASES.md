@@ -445,3 +445,9 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - 홈 제목의 외곽선+노란 그림자 제거(한글이 번져 보임) → 굵기 900
 - 사용자 화면 10~11px 글자 148곳 → 12px
 남은 단계: 2) 배경·제목·기울기 규칙 통일 3) 모바일 하단 탭바 4) 페이지별 다듬기
+
+### 2단계 — 목록 카드 기울기 제거만 (사용자 결정: 배경·제목은 기존 유지)
+- 기울기 제거: `RoomCard`(검색·지역), `HotRooms`, `MusicianCard`, `PostCard`, `ProjectCard`, `StudioMiniCard` — 평상시·hover 모두. 떠오름(y)·그림자 hover는 유지
+- `RoomCard`의 `rotationIndex` prop 삭제(호출부 2곳 정리)
+- 유지: 홈 히어로·PowerFeatures·FinalCTA·퀴즈·로고·HOT 배지 기울기(장식)
+- 발견만: 검색 카드에서 가격 문구(`price_info`)가 길면 평점 배지가 두 줄로 접힘 — 기존부터 있던 문제, 미수정

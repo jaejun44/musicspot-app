@@ -54,8 +54,7 @@ whileHover={{ y: -8, rotate: 2, boxShadow: '10px 10px 0 #0A0A0A' }}
 whileTap={{ scale: 0.95, x: 2, y: 2 }}
 // 페이지 진입
 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-// 카드 회전 variance
-rotate: index % 3 === 0 ? -2 : index % 3 === 1 ? 0 : 2
+// 목록 카드(연습실·뮤지션·게시글·8마디·HOT)는 기울이지 않는다 (2026-10-25). 기울기는 히어로·배지 등 장식에만
 ```
 
 ## Figma → Next.js 변환

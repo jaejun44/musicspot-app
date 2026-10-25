@@ -12,13 +12,9 @@ interface RoomCardProps {
   studio: Studio;
   userLat?: number;
   userLng?: number;
-  /** 0·1·2 반복 → -2°·0°·+2° 회전 variance */
-  rotationIndex?: number;
 }
 
-const ROTATION_MAP = [-2, 0, 2] as const;
-
-export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }: RoomCardProps) {
+export default function RoomCard({ studio, userLat, userLng }: RoomCardProps) {
   const { isFav, toggle } = useFavorites();
   const fav = isFav(studio.id);
 
@@ -29,7 +25,6 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
       ? getDistanceKm(userLat, userLng, studio.lat, studio.lng)
       : null;
 
-  const rotation = ROTATION_MAP[rotationIndex % 3];
 
   const roomLabel =
     studio.room_type === 'T'
@@ -54,9 +49,9 @@ export default function RoomCard({ studio, userLat, userLng, rotationIndex = 0 }
   return (
     <Link href={`/room/${studio.id}`} className="block">
       <motion.div
-        initial={{ opacity: 0, y: 20, rotate: 0 }}
-        whileInView={{ opacity: 1, y: 0, rotate: rotation }}
-        whileHover={{ y: -8, rotate: 0, boxShadow: '10px 10px 0 #0A0A0A' }}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -8, boxShadow: '10px 10px 0 #0A0A0A' }}
         whileTap={{ scale: 0.97 }}
         viewport={{ once: true }}
         transition={{ type: 'spring', stiffness: 260, damping: 22 }}
