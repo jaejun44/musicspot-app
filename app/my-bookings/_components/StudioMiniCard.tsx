@@ -13,7 +13,6 @@ interface Props {
 export default function StudioMiniCard({ studio, index }: Props) {
   const router = useRouter();
   const photo = studio.photos?.[0] ?? null;
-  const rotate = index % 3 === 0 ? -1 : index % 3 === 1 ? 0 : 1;
 
   return (
     <motion.div
@@ -21,8 +20,8 @@ export default function StudioMiniCard({ studio, index }: Props) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, type: 'spring', stiffness: 260, damping: 22 }}
       onClick={() => router.push(`/room/${studio.id}`)}
-      style={{ rotate, boxShadow: '4px 4px 0 #0A0A0A' }}
-      whileHover={{ y: -4, rotate: rotate + 1, boxShadow: '6px 6px 0 #0A0A0A' }}
+      style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+      whileHover={{ y: -4, boxShadow: '6px 6px 0 #0A0A0A' }}
       whileTap={{ scale: 0.97, x: 2, y: 2 }}
       className="bg-white/80 backdrop-blur-sm rounded-[16px] border-[3px] border-[#0A0A0A] overflow-hidden cursor-pointer"
     >

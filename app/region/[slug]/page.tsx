@@ -146,8 +146,8 @@ export default async function RegionPage({ params }: Props) {
           </div>
         ) : (
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rooms.map((studio, i) => (
-              <RoomCard key={studio.id} studio={studio} rotationIndex={i % 3} />
+            {rooms.map((studio) => (
+              <RoomCard key={studio.id} studio={studio} />
             ))}
           </section>
         )}

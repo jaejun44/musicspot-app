@@ -23,7 +23,6 @@ interface Props {
 
 export default function ProjectCard({ project, index, user, onOpen, onEdit, onDelete }: Props) {
   const t = useT();
-  const rotate = index % 3 === 0 ? -1.5 : index % 3 === 1 ? 0 : 1.5;
   const keyColor = KEY_COLORS[project.key_signature[0]] ?? '#F5FF4F';
   const isOwner = !!user && user.id === project.creator_id;
   const isExample = project.creator_name.startsWith('[이용예시]');
@@ -50,7 +49,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, type: 'spring', stiffness: 260, damping: 22 }}
       whileHover={{ y: -4, boxShadow: '8px 8px 0 #0A0A0A' }}
-      style={{ rotate, boxShadow: '5px 5px 0 #0A0A0A' }}
+      style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
       onClick={() => onOpen(project)}
       className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5 cursor-pointer"
     >

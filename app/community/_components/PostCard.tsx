@@ -72,7 +72,6 @@ export default function PostCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const rotate = index % 3 === 0 ? -1 : index % 3 === 1 ? 0 : 1;
   const style = CATEGORY_STYLE[post.category];
   const isOwn = !!currentUserId && currentUserId === post.author_id;
 
@@ -114,8 +113,8 @@ export default function PostCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, type: 'spring', stiffness: 260, damping: 22 }}
-      whileHover={{ y: -4, rotate: rotate + 0.5, boxShadow: '7px 7px 0 #0A0A0A' }}
-      style={{ rotate, boxShadow: '5px 5px 0 #0A0A0A' }}
+      whileHover={{ y: -4, boxShadow: '7px 7px 0 #0A0A0A' }}
+      style={{ boxShadow: '5px 5px 0 #0A0A0A' }}
       className="bg-white/80 backdrop-blur-sm rounded-[20px] border-[3px] border-[#0A0A0A] p-4 flex flex-col gap-3"
     >
       {/* 카테고리 + 날짜 + 메뉴 */}

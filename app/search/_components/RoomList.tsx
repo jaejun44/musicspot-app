@@ -79,13 +79,12 @@ export default function RoomList({
 
       {/* 카드 그리드 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {studios.map((studio, i) => (
+        {studios.map((studio) => (
           <RoomCard
             key={studio.id}
             studio={studio}
             userLat={userLat ?? undefined}
             userLng={userLng ?? undefined}
-            rotationIndex={i % 3}
           />
         ))}
       </div>
