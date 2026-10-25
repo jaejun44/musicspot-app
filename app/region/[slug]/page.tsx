@@ -10,6 +10,7 @@ import {
   selectRegionRooms,
   nearbyRegions,
   nearestHourlyRoom,
+  isIndexable,
   regionStats,
   walkMinutes,
   type RegionSelection,
@@ -133,6 +134,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: { card: 'summary_large_image', title, description },
     other: geoMeta,
+    // 연습실이 적은 서울 지역은 얇은 페이지라 검색엔진에 올리지 않는다(링크는 따라가게)
+    ...(isIndexable(region, selection) ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

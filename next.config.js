@@ -47,6 +47,12 @@ const nextConfig = {
         destination: '/room/:id',
         permanent: true,
       },
+      // 검색 유입이 있었지만 역 1.5km 안 연습실이 7곳뿐이라 페이지를 만들지 않은 지역 → 지역 목록
+      {
+        source: '/region/noryangjin',
+        destination: '/region',
+        permanent: false,
+      },
     ];
   },
   images: {

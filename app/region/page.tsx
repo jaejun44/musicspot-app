@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { REGIONS } from '@/lib/regions';
+import { REGIONS, type RegionMeta } from '@/lib/regions';
+import { fetchSeoulStudios } from '@/lib/region-rooms';
+import { selectRegionRooms } from '@/lib/region-select';
 import { localeAlternates } from '@/lib/seo';
 import Navigation from '@/components/Navigation';
 import SiteFooter from '@/components/SiteFooter';
@@ -32,13 +34,14 @@ export function generateMetadata(): Metadata {
   };
 }
 
-/** REGIONS 를 등장 순서 유지하며 city 로 그룹핑 */
-function groupByCity() {
-  const groups: { city: string; regions: typeof REGIONS }[] = [];
-  for (const region of REGIONS) {
-    let group = groups.find((g) => g.city === region.city);
+/** 등장 순서를 유지하며 key 로 그룹핑 */
+function groupBy(regions: RegionMeta[], key: (r: RegionMeta) => string) {
+  const groups: { name: string; regions: RegionMeta[] }[] = [];
+  for (const region of regions) {
+    const name = key(region);
+    let group = groups.find((g) => g.name === name);
     if (!group) {
-      group = { city: region.city, regions: [] };
+      group = { name, regions: [] };
       groups.push(group);
     }
     group.regions.push(region);
@@ -46,8 +49,13 @@ function groupByCity() {
   return groups;
 }
 
-export default function RegionIndexPage() {
-  const groups = groupByCity();
+export default async function RegionIndexPage() {
+  const groups = groupBy(REGIONS, (r) => r.city);
+  // 서울은 구별로 묶고 지역 페이지와 같은 기준(역 반경·구)의 연습실 수를 붙인다
+  const seoulStudios = await fetchSeoulStudios();
+  const roomCount = new Map(
+    REGIONS.filter((r) => r.area).map((r) => [r.slug, selectRegionRooms(r.area!, seoulStudios).rooms.length]),
+  );
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -89,22 +97,22 @@ export default function RegionIndexPage() {
 
         <div className="flex flex-col gap-10">
           {groups.map((group) => (
-            <section key={group.city}>
+            <section key={group.name}>
               <h2 className="text-lg sm:text-xl font-bungee mb-4">
-                {group.city}
+                {group.name}
               </h2>
-              <div className="flex flex-wrap gap-2.5">
-                {group.regions.map((r) => (
-                  <Link
-                    key={r.slug}
-                    href={`/region/${r.slug}`}
-                    className="px-4 py-2 bg-white border-[2px] border-comic-black text-sm font-bold hover:bg-comic-pink hover:text-white transition-colors"
-                    style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
-                  >
-                    {r.label} 연습실
-                  </Link>
-                ))}
-              </div>
+              {group.name === '서울' ? (
+                <div className="flex flex-col gap-5">
+                  {groupBy(group.regions, (r) => r.gu ?? '기타').map((gu) => (
+                    <div key={gu.name}>
+                      <h3 className="text-sm font-bold text-comic-black/60 mb-2">{gu.name}</h3>
+                      <RegionLinks regions={gu.regions} roomCount={roomCount} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <RegionLinks regions={group.regions} roomCount={roomCount} />
+              )}
             </section>
           ))}
         </div>
@@ -124,5 +132,26 @@ export default function RegionIndexPage() {
       </main>
       <SiteFooter />
     </>
+  );
+}
+
+function RegionLinks({ regions, roomCount }: { regions: RegionMeta[]; roomCount: Map<string, number> }) {
+  return (
+    <div className="flex flex-wrap gap-2.5">
+      {regions.map((r) => {
+        const count = roomCount.get(r.slug);
+        return (
+          <Link
+            key={r.slug}
+            href={`/region/${r.slug}`}
+            className="px-4 py-2 bg-white border-[2px] border-comic-black text-sm font-bold hover:bg-comic-pink hover:text-white transition-colors"
+            style={{ boxShadow: '3px 3px 0 #0A0A0A' }}
+          >
+            {r.label} 연습실
+            {count != null && <span className="ml-1.5 text-comic-black/40">{count}</span>}
+          </Link>
+        );
+      })}
+    </div>
   );
 }

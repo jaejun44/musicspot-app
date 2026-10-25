@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
 import { REGIONS } from '@/lib/regions';
+import { fetchSeoulStudios } from '@/lib/region-rooms';
+import { selectRegionRooms, isIndexable } from '@/lib/region-select';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
@@ -19,8 +21,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/stems`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
   ];
 
-  // 지역 SEO 페이지 (롱테일 검색 유입)
-  const regionRoutes: MetadataRoute.Sitemap = REGIONS.map((r) => ({
+  // 지역 SEO 페이지 (롱테일 검색 유입). 연습실이 적어 noindex인 서울 지역은 뺀다
+  const seoulStudios = await fetchSeoulStudios();
+  const regionRoutes: MetadataRoute.Sitemap = REGIONS.filter(
+    (r) => !r.area || isIndexable(r, selectRegionRooms(r.area, seoulStudios)),
+  ).map((r) => ({
     url: `${SITE_URL}/region/${r.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
