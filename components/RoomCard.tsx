@@ -14,9 +14,11 @@ interface RoomCardProps {
   studio: Studio;
   userLat?: number;
   userLng?: number;
+  /** 위치 줄을 대신할 문구 (지역 페이지의 '○○역 도보 약 N분') */
+  locationNote?: string;
 }
 
-export default function RoomCard({ studio, userLat, userLng }: RoomCardProps) {
+export default function RoomCard({ studio, userLat, userLng, locationNote }: RoomCardProps) {
   const { isFav, toggle } = useFavorites();
   const fav = isFav(studio.id);
 
@@ -122,10 +124,14 @@ export default function RoomCard({ studio, userLat, userLng }: RoomCardProps) {
             className="text-[#0A0A0A]/60 text-[13px] mb-3"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
-            📍{' '}
-            {distance != null
-              ? `${distance.toFixed(1)}km · ${studio.region ?? ''}`
-              : (studio.region ?? studio.address ?? '')}
+            {locationNote ?? (
+              <>
+                📍{' '}
+                {distance != null
+                  ? `${distance.toFixed(1)}km · ${studio.region ?? ''}`
+                  : (studio.region ?? studio.address ?? '')}
+              </>
+            )}
           </p>
 
           <div className="flex items-center justify-between gap-2">
