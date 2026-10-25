@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
@@ -57,8 +58,8 @@ export default function RoomCard({ studio, userLat, userLng }: RoomCardProps) {
         className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] overflow-hidden"
         style={{ boxShadow: '6px 6px 0 #0A0A0A' }}
       >
-        {/* 사진 */}
-        <div className="relative aspect-[4/3] bg-[#0A0A0A]/10 border-b-[2px] border-[#0A0A0A]">
+        {/* 사진 — 휴대폰(1열)에선 낮춰 한 화면에 카드가 더 보이게, 2열 이상은 기존 4:3 */}
+        <div className="relative aspect-[16/9] sm:aspect-[4/3] bg-[#0A0A0A]/10 border-b-[2px] border-[#0A0A0A]">
           {photo ? (
             <img
               src={photo}
@@ -151,7 +152,14 @@ export default function RoomCard({ studio, userLat, userLng }: RoomCardProps) {
                 color: '#FF3D77',
               }}
             >
-              {priceLabel}
+              {/* ' / '로 나뉜 짧은 요금(시간당·패키지)은 덩어리째 줄바꿈 — '~'만 다음 줄로 떨어지지 않게.
+                  업체 원문이 긴 문장인 경우는 그대로 줄바꿈(안 그러면 화면 밖으로 넘침) */}
+              {priceLabel.split(' / ').map((part, i) => (
+                <Fragment key={i}>
+                  {i > 0 && ' / '}
+                  <span className={part.length <= 16 ? 'whitespace-nowrap' : undefined}>{part}</span>
+                </Fragment>
+              ))}
             </span>
           </div>
         </div>
