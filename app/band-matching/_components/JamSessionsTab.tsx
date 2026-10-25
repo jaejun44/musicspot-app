@@ -354,7 +354,7 @@ export default function JamSessionsTab({ user, onMessage }: Props) {
       </div>
 
       {/* 하단 고정: 잼 방 열기 */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+      <div className="fixed left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-3" style={{ bottom: 'var(--tabbar-h)', paddingBottom: 'calc(12px + var(--bottom-safe))' }}>
         <div className="max-w-2xl mx-auto">
           <motion.button
             whileTap={{ scale: 0.96, y: 2 }}

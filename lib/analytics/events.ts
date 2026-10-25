@@ -24,6 +24,9 @@ export type UploadSource = 'file' | 'record' | 'youtube' | 'jam';
 /** 온라인 잼 방 정보가 열린 곳 */
 export type JamSource = 'dm' | 'session';
 
+/** 모바일 하단 탭바의 탭. feed는 일본 모드(연습실 탭 대신)에서만 */
+export type NavTab = 'studio' | 'band' | 'stems' | 'community' | 'feed' | 'my';
+
 // ─── 이벤트 스키마 ───────────────────────────────────────────────
 export type EventSchema = {
   // ── 연습실 (기존 — 이름 변경 금지) ──────────────────────────
@@ -158,6 +161,8 @@ export type EventSchema = {
 
   // ── 공통 UX ────────────────────────────────────────────────
   locale_switch: { from: string; to: string };
+  /** 모바일 하단 탭바 클릭 — 어떤 메뉴로 이동하는지 */
+  nav_tab_click: { tab: NavTab };
   pwa_install_prompt: { action: 'shown' | 'accepted' | 'dismissed' };
   /** 연습실 등 8마디 외 공유. 챌린지 공유는 challenge_share를 쓸 것 */
   share_click: { channel: ShareChannel; target: 'studio'; studio_id?: string };

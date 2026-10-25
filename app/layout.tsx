@@ -1,13 +1,21 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { headers } from 'next/headers';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
+import BottomTabBar from '@/components/BottomTabBar';
 import AmplitudeProvider from '@/components/AmplitudeProvider';
 import { LocaleProvider } from '@/lib/i18n';
 import { DEFAULT_LOCALE, isLocale } from '@/lib/i18n/locale';
 import './globals.css';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
+
+// viewportFit: 'cover' — 이게 있어야 env(safe-area-inset-bottom)이 값을 가져 하단 탭바가 아이폰 홈 바를 피한다
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -66,6 +74,7 @@ export default function RootLayout({
         <AmplitudeProvider />
         <LocaleProvider locale={locale}>
           {children}
+          <BottomTabBar />
           <PWAInstallBanner />
         </LocaleProvider>
 
