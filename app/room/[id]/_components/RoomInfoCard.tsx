@@ -4,6 +4,7 @@ import { Heart, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Studio } from '@/types/studio';
 import { useFavorites } from '@/hooks/useFavorites';
+import { studioPriceLabel } from '@/lib/studio-price';
 
 interface RoomInfoCardProps {
   studio: Studio;
@@ -31,7 +32,7 @@ export default function RoomInfoCard({ studio, onShare }: RoomInfoCardProps) {
       {/* 이름 + 액션 버튼 */}
       <div className="flex items-start gap-3">
         <h1
-          className="flex-1 text-[22px] leading-tight text-[#0A0A0A]"
+          className="flex-1 text-[22px] leading-tight text-[#0A0A0A] break-keep"
           style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 800 }}
         >
           {studio.name}
@@ -133,6 +134,16 @@ export default function RoomInfoCard({ studio, onShare }: RoomInfoCardProps) {
             </span>
           </div>
         )}
+        {/* 요금 — 아래 문의 카드까지 내려가지 않아도 보이게 */}
+        <div className="flex gap-2">
+          <span className="text-[14px] flex-shrink-0">💰</span>
+          <span
+            className="text-[14px] text-[#FF3D77] font-bold"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            {studioPriceLabel(studio)}
+          </span>
+        </div>
         {studio.phone && (
           <div className="flex gap-2">
             <span className="text-[14px] flex-shrink-0">📞</span>

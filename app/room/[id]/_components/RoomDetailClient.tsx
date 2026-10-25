@@ -19,12 +19,27 @@ import RoomContactBar from './RoomContactBar';
 import ReviewSection from './ReviewSection';
 import JamEntryCard from '@/components/JamEntryCard';
 
+const TAG_PREVIEW = 8;
+
+/** 공백·대소문자만 다른 항목은 같은 것으로 보고 처음 것만 남긴다. exclude에 이미 있는 것도 뺀다 */
+function dedupeTags(tags: string[], exclude: string[] = []): string[] {
+  const norm = (t: string) => t.replace(/\s+/g, '').toLowerCase();
+  const seen = new Set(exclude.map(norm));
+  return tags.filter((t) => {
+    const key = norm(t);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export default function RoomDetailClient() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
   const [studio, setStudio] = useState<Studio | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAllTags, setShowAllTags] = useState(false);
   const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
@@ -96,11 +111,17 @@ export default function RoomDetailClient() {
     alert('링크가 복사되었습니다!');
   }
 
-  // 옵션 / 악기 태그
-  const optionTags = studio?.options
-    ? studio.options.split(/[,/]/).map((o) => o.trim()).filter(Boolean)
-    : [];
-  const instrumentTags = studio?.instruments ?? [];
+  // 옵션 / 악기 태그 — 업체 원문에 같은 항목이 띄어쓰기만 달리 여러 번 들어 있어 한 번만 남긴다
+  const instrumentTags = dedupeTags(studio?.instruments ?? []);
+  const optionTags = dedupeTags(
+    studio?.options ? studio.options.split(/[,/]/).map((o) => o.trim()).filter(Boolean) : [],
+    instrumentTags,
+  );
+  const hiddenTagCount = Math.max(0, instrumentTags.length + optionTags.length - TAG_PREVIEW);
+  const visibleInstrumentTags = showAllTags ? instrumentTags : instrumentTags.slice(0, TAG_PREVIEW);
+  const visibleOptionTags = showAllTags
+    ? optionTags
+    : optionTags.slice(0, Math.max(0, TAG_PREVIEW - instrumentTags.length));
 
   /* ── 로딩 ── */
   if (loading) {
@@ -191,7 +212,7 @@ export default function RoomDetailClient() {
               ✨ 시설 / 악기
             </h2>
             <div className="flex flex-wrap gap-2">
-              {instrumentTags.map((tag) => (
+              {visibleInstrumentTags.map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1 bg-[#4FC3F7]/20 border-[2px] border-[#4FC3F7] text-[#0A0A0A] text-[12px] font-bold rounded-[8px]"
@@ -199,7 +220,7 @@ export default function RoomDetailClient() {
                   🎸 {tag}
                 </span>
               ))}
-              {optionTags.map((tag) => (
+              {visibleOptionTags.map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1 bg-[#FFF8F0] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[8px]"
@@ -209,6 +230,17 @@ export default function RoomDetailClient() {
                 </span>
               ))}
             </div>
+            {hiddenTagCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAllTags((v) => !v)}
+                aria-expanded={showAllTags}
+                className="mt-3 text-[13px] font-bold text-[#0A0A0A]/60 underline underline-offset-2"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                {showAllTags ? '접기' : `+${hiddenTagCount}개 더보기`}
+              </button>
+            )}
           </div>
         )}
 
