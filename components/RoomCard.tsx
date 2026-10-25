@@ -7,6 +7,7 @@ import { Heart } from 'lucide-react';
 import { Studio } from '@/types/studio';
 import { getDistanceKm } from '@/lib/distance';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useWorkingPhotos } from '@/hooks/useWorkingPhotos';
 import { trackFavoriteToggle } from '@/lib/analytics';
 import { studioPriceLabel } from '@/lib/studio-price';
 
@@ -22,7 +23,8 @@ export default function RoomCard({ studio, userLat, userLng, locationNote }: Roo
   const { isFav, toggle } = useFavorites();
   const fav = isFav(studio.id);
 
-  const photo = studio.photos?.[0] ?? null;
+  const { working: photos, markFailed } = useWorkingPhotos(studio.photos ?? []);
+  const photo = photos[0] ?? null;
 
   const distance =
     userLat && userLng && studio.lat && studio.lng
@@ -67,6 +69,7 @@ export default function RoomCard({ studio, userLat, userLng, locationNote }: Roo
               src={photo}
               alt={studio.name}
               className="w-full h-full object-cover"
+              onError={() => markFailed(photo)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-5xl">

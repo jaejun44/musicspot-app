@@ -3,13 +3,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useWorkingPhotos } from '@/hooks/useWorkingPhotos';
 
 interface RoomPhotoGalleryProps {
   photos: string[];
   name: string;
 }
 
-export default function RoomPhotoGallery({ photos, name }: RoomPhotoGalleryProps) {
+export default function RoomPhotoGallery({ photos: allPhotos, name }: RoomPhotoGalleryProps) {
+  // 깨진 사진은 빼고 보여준다 (원본 글이 지워진 외부 사진)
+  const { working: photos, markFailed } = useWorkingPhotos(allPhotos);
   const [current, setCurrent] = useState(0);
   const [lightbox, setLightbox] = useState(false);
 
@@ -21,6 +24,8 @@ export default function RoomPhotoGallery({ photos, name }: RoomPhotoGalleryProps
     );
   }
 
+  // 사진이 깨져 목록이 줄면 보던 번호가 범위를 넘을 수 있어 맞춘다
+  const shown = Math.min(current, photos.length - 1);
   const prev = () => setCurrent((c) => (c === 0 ? photos.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === photos.length - 1 ? 0 : c + 1));
 
@@ -30,7 +35,7 @@ export default function RoomPhotoGallery({ photos, name }: RoomPhotoGalleryProps
       <div className="border-b-[4px] border-[#0A0A0A]">
         {photos.length === 1 ? (
           <div className="relative h-72 cursor-pointer" onClick={() => setLightbox(true)}>
-            <img src={photos[0]} alt={name} className="w-full h-full object-cover" />
+            <img src={photos[0]} alt={name} className="w-full h-full object-cover" onError={() => markFailed(photos[0])} />
           </div>
         ) : (
           <div className="flex h-72 gap-1">
@@ -39,7 +44,7 @@ export default function RoomPhotoGallery({ photos, name }: RoomPhotoGalleryProps
               className="relative w-[60%] cursor-pointer overflow-hidden"
               onClick={() => { setCurrent(0); setLightbox(true); }}
             >
-              <img src={photos[0]} alt={name} className="w-full h-full object-cover" />
+              <img src={photos[0]} alt={name} className="w-full h-full object-cover" onError={() => markFailed(photos[0])} />
             </div>
 
             {/* 보조 사진 (40%) — 세로 2분할 */}
@@ -51,7 +56,7 @@ export default function RoomPhotoGallery({ photos, name }: RoomPhotoGalleryProps
                     className="relative flex-1 cursor-pointer overflow-hidden"
                     onClick={() => { setCurrent(idx); setLightbox(true); }}
                   >
-                    <img src={photos[idx]} alt={`${name} ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img src={photos[idx]} alt={`${name} ${idx + 1}`} className="w-full h-full object-cover" onError={() => markFailed(photos[idx])} />
                     {/* 더보기 오버레이 (마지막 썸네일에만) */}
                     {idx === 2 && photos.length > 3 && (
                       <div className="absolute inset-0 bg-[#0A0A0A]/60 flex items-center justify-center">
@@ -85,9 +90,10 @@ export default function RoomPhotoGallery({ photos, name }: RoomPhotoGalleryProps
           >
             <div className="relative w-full max-w-2xl px-4" onClick={(e) => e.stopPropagation()}>
               <img
-                src={photos[current]}
-                alt={`${name} ${current + 1}`}
+                src={photos[shown]}
+                alt={`${name} ${shown + 1}`}
                 className="w-full max-h-[80vh] object-contain rounded-[12px]"
+                onError={() => markFailed(photos[shown])}
               />
 
               {photos.length > 1 && (
@@ -117,7 +123,7 @@ export default function RoomPhotoGallery({ photos, name }: RoomPhotoGalleryProps
                     key={i}
                     onClick={() => setCurrent(i)}
                     className={`w-2 h-2 rounded-full transition-colors ${
-                      i === current ? 'bg-[#FF3D77]' : 'bg-white/50'
+                      i === shown ? 'bg-[#FF3D77]' : 'bg-white/50'
                     }`}
                   />
                 ))}
