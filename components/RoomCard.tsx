@@ -128,24 +128,24 @@ export default function RoomCard({ studio, userLat, userLng }: RoomCardProps) {
               : (studio.region ?? studio.address ?? '')}
           </p>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             {(studio.review_count ?? 0) > 0 ? (
               <span
-                className="px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
+                className="flex-shrink-0 whitespace-nowrap px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
               >
                 ⭐ {studio.review_avg?.toFixed(1)} ({studio.review_count})
               </span>
             ) : studio.rating ? (
               <span
-                className="px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
+                className="flex-shrink-0 whitespace-nowrap px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
               >
                 ⭐ {studio.rating}
               </span>
             ) : null}
             <span
-              className="ml-auto"
+              className="ml-auto text-right break-keep"
               style={{
                 fontFamily: 'Bungee, sans-serif',
                 fontSize: '15px',
