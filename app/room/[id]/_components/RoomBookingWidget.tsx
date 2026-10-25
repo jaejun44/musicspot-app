@@ -9,6 +9,7 @@ import { trackBookingAttempt, trackContactClick, trackRealtimeBookingClick } fro
 import { bookingPath, isRealtimeBookable } from '@/lib/booking-service';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { studioPriceLabel } from '@/lib/studio-price';
 
 interface RoomBookingWidgetProps {
   studio: Studio;
@@ -33,9 +34,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
       alive = false;
     };
   }, [studio.id, user?.id]);
-  const priceLabel = studio.price_per_hour
-    ? `₩${studio.price_per_hour.toLocaleString()}/h`
-    : studio.price_info ?? '가격 문의';
+  const priceLabel = studioPriceLabel(studio);
 
   const bookingLink = studioBookingLink(studio);
   const bookingUrl = bookingLink?.url;

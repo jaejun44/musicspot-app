@@ -7,6 +7,7 @@ import { Studio } from '@/types/studio';
 import { getDistanceKm } from '@/lib/distance';
 import { useFavorites } from '@/hooks/useFavorites';
 import { trackFavoriteToggle } from '@/lib/analytics';
+import { studioPriceLabel } from '@/lib/studio-price';
 
 interface RoomCardProps {
   studio: Studio;
@@ -35,9 +36,7 @@ export default function RoomCard({ studio, userLat, userLng }: RoomCardProps) {
           ? 'T/M'
           : null;
 
-  const priceLabel = studio.price_per_hour
-    ? `₩${studio.price_per_hour.toLocaleString()}/h`
-    : studio.price_info ?? '가격 문의';
+  const priceLabel = studioPriceLabel(studio);
 
   function handleFav(e: React.MouseEvent) {
     e.preventDefault();
