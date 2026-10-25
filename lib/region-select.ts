@@ -13,6 +13,14 @@ const MIN_ROOMS_IN_BASE = 8;
 const DETOUR = 1.3;
 const WALK_M_PER_MIN = 70;
 
+/** 서울 지역 페이지가 검색엔진에 올라갈 최소 연습실 수. 미만은 noindex + 사이트맵 제외(얇은 페이지) */
+export const MIN_ROOMS_FOR_INDEX = 8;
+
+/** 이 선택 결과로 검색엔진에 올릴지. 서울 밖(area 없음)은 기존대로 항상 올린다 */
+export function isIndexable(region: RegionMeta, selection: RegionSelection): boolean {
+  return !region.area || selection.rooms.length >= MIN_ROOMS_FOR_INDEX;
+}
+
 export interface RegionRoom {
   studio: Studio;
   /** station 기준일 때만. gu 기준은 null */
