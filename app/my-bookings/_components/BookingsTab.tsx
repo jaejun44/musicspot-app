@@ -204,7 +204,7 @@ export default function BookingsTab() {
                 )}
               </div>
               <span
-                className="ml-3 flex-shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border-[2px] border-[#0A0A0A]"
+                className="ml-3 flex-shrink-0 px-2.5 py-1 rounded-full text-[12px] font-bold border-[2px] border-[#0A0A0A]"
                 style={{ background: status.bg, color: status.color, fontFamily: 'Pretendard, sans-serif' }}
               >
                 {status.label}
@@ -229,7 +229,7 @@ export default function BookingsTab() {
             {/* 금액 + 날짜 */}
             <div className="flex justify-between items-center pt-3 border-t-[2px] border-dashed border-[#0A0A0A]/20">
               <span
-                className="text-[11px] text-[#0A0A0A]/40 font-bold"
+                className="text-[12px] text-[#0A0A0A]/40 font-bold"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
                 예약일: {createdDate}
@@ -261,7 +261,7 @@ function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p
-        className="text-[10px] text-[#0A0A0A]/40 font-bold uppercase tracking-wide"
+        className="text-[12px] text-[#0A0A0A]/40 font-bold uppercase tracking-wide"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
         {label}

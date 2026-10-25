@@ -145,7 +145,7 @@ export default function JamRoomSheet({ open, source, targetId, onClose }: Props)
                     <p className="text-[13px] font-bold text-[#0A0A0A]" style={FONT}>
                       {source === 'dm' ? t('서로 메시지를 한 번씩 주고받으면 열려요') : t('참가하면 방 정보가 열려요')}
                     </p>
-                    <p className="text-[11px] text-[#0A0A0A]/40 font-bold mt-1" style={FONT}>
+                    <p className="text-[12px] text-[#0A0A0A]/40 font-bold mt-1" style={FONT}>
                       {source === 'dm' ? t('매칭된 두 사람만 같은 방 정보를 볼 수 있어요') : t('호스트와 참가자만 방 정보를 볼 수 있어요')}
                     </p>
                   </div>
@@ -196,7 +196,7 @@ export default function JamRoomSheet({ open, source, targetId, onClose }: Props)
                         t('위의 그룹 이름과 비밀번호 입력하기'),
                       ].map((step, i) => (
                         <li key={i} className="flex items-start gap-2 text-[12px] font-bold text-[#0A0A0A]" style={FONT}>
-                          <span className="w-5 h-5 rounded-full bg-[#F5FF4F] border-[2px] border-[#0A0A0A] flex items-center justify-center text-[10px] flex-shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-[#F5FF4F] border-[2px] border-[#0A0A0A] flex items-center justify-center text-[12px] flex-shrink-0">
                             {i + 1}
                           </span>
                           {i === 0 ? (
@@ -211,7 +211,7 @@ export default function JamRoomSheet({ open, source, targetId, onClose }: Props)
                     </ol>
 
                     <div className="bg-[#FFF8F0] rounded-[12px] border-[2px] border-[#0A0A0A]/10 p-3">
-                      <p className="text-[11px] font-bold text-[#0A0A0A]/70 leading-relaxed" style={FONT}>
+                      <p className="text-[12px] font-bold text-[#0A0A0A]/70 leading-relaxed" style={FONT}>
                         {t('💡 유선 랜, 오디오 인터페이스, 이어폰을 권장해요. 와이파이와 폰 스피커는 지연과 하울링이 생겨요.')}
                       </p>
                     </div>
@@ -261,7 +261,7 @@ function CopyRow({ label, value, copied, onCopy }: { label: string; value: strin
   return (
     <div className="flex items-center gap-2 bg-[#FFF8F0] rounded-[12px] border-[2px] border-[#0A0A0A] px-3 py-2">
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-bold text-[#0A0A0A]/50" style={FONT}>{label}</p>
+        <p className="text-[12px] font-bold text-[#0A0A0A]/50" style={FONT}>{label}</p>
         <p className="text-[14px] font-bold text-[#0A0A0A] font-mono break-all select-all">{value}</p>
       </div>
       <motion.button

@@ -169,14 +169,14 @@ function CommentItem({ c }: { c: Comment }) {
       <div className="flex-1 bg-[#FFF8F0] rounded-[12px] px-3 py-2">
         <div className="flex items-center gap-1.5 mb-0.5">
           <span
-            className="text-[11px] font-bold text-[#0A0A0A]/70"
+            className="text-[12px] font-bold text-[#0A0A0A]/70"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {c.user_name}
           </span>
-          {flag && <span className="text-[11px] leading-none">{flag}</span>}
+          {flag && <span className="text-[12px] leading-none">{flag}</span>}
           <span
-            className="text-[10px] text-[#0A0A0A]/30 font-bold"
+            className="text-[12px] text-[#0A0A0A]/30 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {c.created_at.slice(0, 10)}
@@ -188,7 +188,7 @@ function CommentItem({ c }: { c: Comment }) {
         >
           {tr.text(0)}
         </p>
-        <TranslateButton state={tr} className="mt-1 self-start text-[10px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
+        <TranslateButton state={tr} className="mt-1 self-start text-[12px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
       </div>
     </div>
   );

@@ -157,7 +157,7 @@ export default function MyStudiosTab() {
                 )}
               </div>
               <span
-                className="ml-3 flex-shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border-[2px] border-[#0A0A0A]"
+                className="ml-3 flex-shrink-0 px-2.5 py-1 rounded-full text-[12px] font-bold border-[2px] border-[#0A0A0A]"
                 style={{
                   background: s.is_published ? '#41C66B' : '#0A0A0A',
                   color: '#fff',

@@ -111,7 +111,7 @@ export default function Navigation() {
                     <Bell className="w-4 h-4 text-[#0A0A0A]" />
                     {unreadCount > 0 && (
                       <span
-                        className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-[#FF3D77] text-white text-[10px] font-bold rounded-full border-[1.5px] border-white"
+                        className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-[#FF3D77] text-white text-[12px] font-bold rounded-full border-[1.5px] border-white"
                         style={{ fontFamily: 'Bungee, sans-serif' }}
                       >
                         {unreadCount > 9 ? '9+' : unreadCount}

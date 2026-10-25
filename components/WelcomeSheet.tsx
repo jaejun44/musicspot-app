@@ -105,7 +105,7 @@ export default function WelcomeSheet() {
                 >
                   <span className="text-[26px] mb-1.5">{c.icon}</span>
                   <p className="text-[12px] font-bold text-comic-black leading-tight">{t(c.title)}</p>
-                  <p className="text-[10px] font-bold text-comic-black/45 mt-1 leading-tight">{t(c.desc)}</p>
+                  <p className="text-[12px] font-bold text-comic-black/45 mt-1 leading-tight">{t(c.desc)}</p>
                 </div>
               ))}
             </div>

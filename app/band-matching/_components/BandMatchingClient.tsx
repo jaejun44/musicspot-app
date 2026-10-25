@@ -265,7 +265,7 @@ export default function BandMatchingClient() {
                 {t('함께 자주 호흡 맞춘 뮤지션')}
               </h2>
               <span
-                className="px-2 py-0.5 bg-[#FF3D77] text-white text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+                className="px-2 py-0.5 bg-[#FF3D77] text-white text-[12px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
                 style={{ boxShadow: '1px 1px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
                 {t('8마디 케미')}
@@ -433,13 +433,13 @@ function ChemistryCard({ musician, index, responseCount, onContact }: {
       <p className="text-[12px] font-bold text-[#0A0A0A] truncate mb-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
         {musician.name}
       </p>
-      <p className="text-[10px] text-[#0A0A0A]/50 font-bold mb-2 truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+      <p className="text-[12px] text-[#0A0A0A]/50 font-bold mb-2 truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>
         {t(musician.position)}
       </p>
       <motion.button
         onClick={() => onContact(musician)}
         whileTap={{ scale: 0.95 }}
-        className="w-full py-1.5 bg-[#FF3D77] rounded-[8px] border-[1.5px] border-[#0A0A0A] text-white text-[10px] font-bold"
+        className="w-full py-1.5 bg-[#FF3D77] rounded-[8px] border-[1.5px] border-[#0A0A0A] text-white text-[12px] font-bold"
         style={{ boxShadow: '1px 1px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
       >
         {t('연락하기')}

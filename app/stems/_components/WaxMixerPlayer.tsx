@@ -105,7 +105,7 @@ export default function WaxMixerPlayer() {
       <div className="flex items-center gap-3 px-5 py-3">
         <div className="flex-1 min-w-0">
           <p
-            className="text-[11px] text-[#FF3D77] font-bold tracking-widest mb-1"
+            className="text-[12px] text-[#FF3D77] font-bold tracking-widest mb-1"
             style={{ fontFamily: 'Bungee, sans-serif' }}
           >
             OFFICIAL THEME
@@ -125,7 +125,7 @@ export default function WaxMixerPlayer() {
             />
           </div>
           <span
-            className={`text-[10px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`}
+            className={`text-[12px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`}
             style={{ fontFamily: 'Bungee, sans-serif' }}
           >
             {playing ? '▶ ON AIR' : '■ READY'}

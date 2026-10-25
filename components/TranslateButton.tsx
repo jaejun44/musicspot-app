@@ -28,7 +28,7 @@ export default function TranslateButton({
       disabled={state.translating}
       className={
         className ??
-        'self-start text-[11px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50'
+        'self-start text-[12px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50'
       }
       style={{ fontFamily: 'Pretendard, sans-serif' }}
     >

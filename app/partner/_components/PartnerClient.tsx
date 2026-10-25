@@ -452,7 +452,7 @@ function PartnerDashboard({ studio, reviews, bookings, editMode, form, saving, s
                     {r.body}
                   </p>
                 )}
-                <p className="text-[11px] text-[#0A0A0A]/30 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                <p className="text-[12px] text-[#0A0A0A]/30 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                   {new Date(r.created_at).toLocaleDateString('ko-KR')}
                 </p>
               </div>
@@ -491,7 +491,7 @@ function PartnerDashboard({ studio, reviews, bookings, editMode, form, saving, s
                   )}
                 </div>
                 <span
-                  className={`text-[11px] font-bold px-2 py-1 rounded-[6px] border-[2px] border-[#0A0A0A] ${
+                  className={`text-[12px] font-bold px-2 py-1 rounded-[6px] border-[2px] border-[#0A0A0A] ${
                     b.status === 'confirmed' ? 'bg-[#41C66B] text-white' : 'bg-[#F5FF4F] text-[#0A0A0A]'
                   }`}
                 >
@@ -515,7 +515,7 @@ function StatBox({ label, value, color, dark }: { label: string; value: string; 
       <p className={`text-[16px] font-bold ${dark ? 'text-[#0A0A0A]' : 'text-white'}`} style={{ fontFamily: 'Bungee, sans-serif' }}>
         {value}
       </p>
-      <p className={`text-[10px] font-bold mt-0.5 ${dark ? 'text-[#0A0A0A]/60' : 'text-white/80'}`} style={{ fontFamily: 'Pretendard, sans-serif' }}>
+      <p className={`text-[12px] font-bold mt-0.5 ${dark ? 'text-[#0A0A0A]/60' : 'text-white/80'}`} style={{ fontFamily: 'Pretendard, sans-serif' }}>
         {label}
       </p>
     </div>

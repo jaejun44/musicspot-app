@@ -392,7 +392,7 @@ const AudioTrimmer = forwardRef<TrimHandle, Props>(function AudioTrimmer(
 
       {/* 구간 정보 */}
       <div
-        className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold"
+        className="flex flex-wrap items-center justify-between gap-2 text-[12px] font-bold"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
         <span className="text-[#0A0A0A]/60">
@@ -415,7 +415,7 @@ const AudioTrimmer = forwardRef<TrimHandle, Props>(function AudioTrimmer(
         <button
           type="button"
           onClick={togglePlay}
-          className="flex items-center gap-1 rounded-[10px] border-[2px] border-[#0A0A0A] bg-white px-3 py-1.5 text-[11px] font-bold"
+          className="flex items-center gap-1 rounded-[10px] border-[2px] border-[#0A0A0A] bg-white px-3 py-1.5 text-[12px] font-bold"
           style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
         >
           {playing ? <Square className="h-3 w-3" /> : <Play className="h-3 w-3" />}
@@ -426,7 +426,7 @@ const AudioTrimmer = forwardRef<TrimHandle, Props>(function AudioTrimmer(
           type="button"
           onClick={fitToEightBars}
           disabled={tooShort}
-          className="flex items-center gap-1 rounded-[10px] border-[2px] border-[#0A0A0A] bg-[#FF3D77] px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-40"
+          className="flex items-center gap-1 rounded-[10px] border-[2px] border-[#0A0A0A] bg-[#FF3D77] px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-40"
           style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
         >
           <Scissors className="h-3 w-3" />
@@ -434,7 +434,7 @@ const AudioTrimmer = forwardRef<TrimHandle, Props>(function AudioTrimmer(
         </button>
 
         <label
-          className="flex cursor-pointer items-center gap-1.5 text-[11px] font-bold text-[#0A0A0A]/60"
+          className="flex cursor-pointer items-center gap-1.5 text-[12px] font-bold text-[#0A0A0A]/60"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           <input
@@ -447,7 +447,7 @@ const AudioTrimmer = forwardRef<TrimHandle, Props>(function AudioTrimmer(
         </label>
 
         <span
-          className="ml-auto text-[11px] font-bold text-[#0A0A0A]/40"
+          className="ml-auto text-[12px] font-bold text-[#0A0A0A]/40"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           BPM {bpm} · 4/4

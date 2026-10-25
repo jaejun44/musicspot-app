@@ -78,7 +78,7 @@ function ReviewCard({ review }: { review: Review }) {
           </span>
           <div className="flex items-center gap-2 mt-0.5">
             <StarRow value={review.rating_overall} size="sm" />
-            <span className="text-[11px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            <span className="text-[12px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
               {date}
             </span>
           </div>
@@ -94,7 +94,7 @@ function ReviewCard({ review }: { review: Review }) {
             return (
               <div key={key} className="flex items-center gap-1">
                 <span className="text-[12px]">{emoji}</span>
-                <span className="text-[11px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                <span className="text-[12px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                   {label}
                 </span>
                 <StarRow value={val} size="sm" />
@@ -110,7 +110,7 @@ function ReviewCard({ review }: { review: Review }) {
           {review.tags.map((tag) => (
             <span
               key={tag}
-              className="px-2 py-0.5 bg-[#F5FF4F] border-[1.5px] border-[#0A0A0A] rounded-[6px] text-[11px] font-bold text-[#0A0A0A]"
+              className="px-2 py-0.5 bg-[#F5FF4F] border-[1.5px] border-[#0A0A0A] rounded-[6px] text-[12px] font-bold text-[#0A0A0A]"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               {tag}
@@ -229,7 +229,7 @@ function WriteReviewModal({
                   <span className="text-[13px] font-bold text-[#0A0A0A] w-8" style={{ fontFamily: 'Pretendard, sans-serif' }}>{label}</span>
                   <StarRow value={val} onChange={set} size="md" />
                   {val > 0 && (
-                    <button onClick={() => set(0)} className="text-[11px] text-[#0A0A0A]/30 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                    <button onClick={() => set(0)} className="text-[12px] text-[#0A0A0A]/30 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       초기화
                     </button>
                   )}
@@ -278,7 +278,7 @@ function WriteReviewModal({
               className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[13px] font-bold text-[#0A0A0A] resize-none focus:outline-none focus:border-[#FF3D77]"
               style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
             />
-            <p className="text-right text-[11px] text-[#0A0A0A]/30 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            <p className="text-right text-[12px] text-[#0A0A0A]/30 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
               {body.length}/200
             </p>
           </section>
@@ -360,7 +360,7 @@ export default function ReviewSection({ studioId, onReviewSaved }: { studioId: s
                 <span className="text-white text-[13px] font-bold" style={{ fontFamily: 'Bungee, sans-serif' }}>
                   {avg}
                 </span>
-                <span className="text-white text-[11px] font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                <span className="text-white text-[12px] font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                   ({reviews.length})
                 </span>
               </div>

@@ -67,7 +67,7 @@ export default function NotificationDropdown({ open, onClose }: Props) {
               </span>
               {unreadCount > 0 && (
                 <span
-                  className="px-1.5 py-0.5 bg-[#FF3D77] text-white text-[11px] font-bold rounded-full"
+                  className="px-1.5 py-0.5 bg-[#FF3D77] text-white text-[12px] font-bold rounded-full"
                   style={{ fontFamily: 'Bungee, sans-serif' }}
                 >
                   {unreadCount}
@@ -78,7 +78,7 @@ export default function NotificationDropdown({ open, onClose }: Props) {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="text-[11px] font-bold text-[#0A0A0A]/50 hover:text-[#FF3D77] transition-colors"
+                  className="text-[12px] font-bold text-[#0A0A0A]/50 hover:text-[#FF3D77] transition-colors"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
                   {t('모두 읽음')}
@@ -130,7 +130,7 @@ export default function NotificationDropdown({ open, onClose }: Props) {
                         {n.body}
                       </p>
                     )}
-                    <p className="text-[11px] text-[#0A0A0A]/30 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                    <p className="text-[12px] text-[#0A0A0A]/30 mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       {timeAgo(n.created_at)}
                     </p>
                   </div>

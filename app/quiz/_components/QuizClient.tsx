@@ -255,7 +255,7 @@ function QuizHeader() {
           MUSIC SPOT
         </span>
       </Link>
-      <span className="bg-[#F5FF4F] font-bold text-[10px] text-[#0A0A0A] px-2.5 py-0.5 rounded-full border-[2px] border-[#0A0A0A]">
+      <span className="bg-[#F5FF4F] font-bold text-[12px] text-[#0A0A0A] px-2.5 py-0.5 rounded-full border-[2px] border-[#0A0A0A]">
         {t('악기 테스트')}
       </span>
     </header>

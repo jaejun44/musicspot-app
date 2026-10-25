@@ -61,14 +61,14 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
             <span className="text-[18px]">{project.creator_emoji}</span>
             {isExample && (
               <span
-                className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+                className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[12px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
                 style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
               >
                 {t('이용예시')}
               </span>
             )}
             <p
-              className="text-[11px] text-[#0A0A0A]/50 font-bold"
+              className="text-[12px] text-[#0A0A0A]/50 font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               {isExample ? project.creator_name.replace('[이용예시] ', '') : project.creator_name}
@@ -85,7 +85,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <span
             className={[
-              'px-2 py-0.5 rounded-[8px] border-[2px] border-[#0A0A0A] text-[11px] font-bold',
+              'px-2 py-0.5 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold',
               project.is_open ? 'bg-[#41C66B] text-white' : 'bg-[#0A0A0A]/10 text-[#0A0A0A]/50',
             ].join(' ')}
             style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -132,13 +132,13 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
       {/* 메타 뱃지 */}
       <div className="flex flex-wrap gap-2 mb-3">
         <span
-          className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[11px] font-bold rounded-[6px]"
+          className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           ♩ {project.bpm} BPM
         </span>
         <span
-          className="px-2 py-0.5 text-[#0A0A0A] text-[11px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+          className="px-2 py-0.5 text-[#0A0A0A] text-[12px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
           style={{
             backgroundColor: keyColor + '33',
             fontFamily: 'Pretendard, sans-serif',
@@ -148,7 +148,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
         </span>
         {project.genre && (
           <span
-            className="px-2 py-0.5 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[11px] font-bold rounded-[6px]"
+            className="px-2 py-0.5 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[12px] font-bold rounded-[6px]"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {project.genre}
@@ -177,7 +177,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
           {passCount > 0 && <span className="text-[#41C66B]">🎯 {passCount}</span>}
         </div>
         <span
-          className="text-[11px] text-[#0A0A0A]/30 font-bold"
+          className="text-[12px] text-[#0A0A0A]/30 font-bold"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {project.created_at.slice(0, 10)}
@@ -191,7 +191,7 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           <span className="text-[12px]">🎵</span>
-          <span className="text-[11px] font-bold text-[#0A0A0A]/70">
+          <span className="text-[12px] font-bold text-[#0A0A0A]/70">
             {t('참여 가능 ·')} <span className="text-[#41C66B]">{t('{count}번째 주자', { count: trackCount + 1 })}</span> {t('모집중')}
           </span>
         </div>

@@ -357,14 +357,14 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => { setMenuOpen(false); setConfirmDelete(false); deletePost(); }}
-                                className="flex-1 py-1.5 bg-[#FF3D77] text-white text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]"
+                                className="flex-1 py-1.5 bg-[#FF3D77] text-white text-[12px] font-bold rounded-[8px] border border-[#0A0A0A]"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
                                 {t('삭제')}
                               </button>
                               <button
                                 onClick={() => setConfirmDelete(false)}
-                                className="flex-1 py-1.5 bg-white text-[#0A0A0A] text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]/30"
+                                className="flex-1 py-1.5 bg-white text-[#0A0A0A] text-[12px] font-bold rounded-[8px] border border-[#0A0A0A]/30"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
                                 {t('취소')}
@@ -420,7 +420,7 @@ export default function PostDetailClient({ postId, initialPost }: Props) {
               {post.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-0.5 bg-[#FFF8F0] border-[1px] border-[#0A0A0A]/20 text-[#0A0A0A]/50 text-[11px] font-bold rounded-[6px]"
+                  className="px-2 py-0.5 bg-[#FFF8F0] border-[1px] border-[#0A0A0A]/20 text-[#0A0A0A]/50 text-[12px] font-bold rounded-[6px]"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
                   #{tag}

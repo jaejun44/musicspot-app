@@ -407,7 +407,7 @@ export default function BandDetailPage() {
               {/* 요일 헤더 */}
               <div className="grid grid-cols-7 mb-1">
                 {WEEKDAYS.map((d, i) => (
-                  <div key={d} className={`text-center text-[11px] font-bold pb-1 ${i === 0 ? 'text-[#FF3D77]' : i === 6 ? 'text-[#4FC3F7]' : 'text-[#0A0A0A]/40'}`}
+                  <div key={d} className={`text-center text-[12px] font-bold pb-1 ${i === 0 ? 'text-[#FF3D77]' : i === 6 ? 'text-[#4FC3F7]' : 'text-[#0A0A0A]/40'}`}
                     style={{ fontFamily: 'Pretendard, sans-serif' }}>
                     {t(d)}
                   </div>
@@ -531,7 +531,7 @@ export default function BandDetailPage() {
                       {m.display_name ?? t('뮤지션')}
                     </span>
                     {m.role === 'leader' && (
-                      <span className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] rounded-[6px] text-[10px] font-bold flex-shrink-0"
+                      <span className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] rounded-[6px] text-[12px] font-bold flex-shrink-0"
                         style={{ fontFamily: 'Pretendard, sans-serif' }}>
                         {t('리더')}
                       </span>
@@ -544,7 +544,7 @@ export default function BandDetailPage() {
                   )}
                 </div>
                 {m.user_id === user?.id && (
-                  <span className="text-[11px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('나')}</span>
+                  <span className="text-[12px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('나')}</span>
                 )}
               </motion.div>
             ))}
@@ -638,7 +638,7 @@ function ScheduleCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           {showDate && (
-            <p className="text-[11px] font-bold text-[#FF3D77] mb-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            <p className="text-[12px] font-bold text-[#FF3D77] mb-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
               {s.schedule_date}
             </p>
           )}

@@ -208,7 +208,7 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
                 key={m}
                 onClick={() => setMode(m)}
                 className={[
-                  'flex-1 py-2.5 text-[11px] font-bold transition-colors',
+                  'flex-1 py-2.5 text-[12px] font-bold transition-colors',
                   mode === m ? 'bg-[#0A0A0A] text-white' : 'bg-white text-[#0A0A0A]/50 hover:bg-[#0A0A0A]/5',
                 ].join(' ')}
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -225,7 +225,7 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
               <>
                 {t('첫 8마디예요! 카운트인 4박 뒤 바로 녹음돼요 🥁')}
                 <br />
-                <span className="text-[11px] text-[#0A0A0A]/40">{t('다음 주자가 이어붙이거나(확장) 쌓을 수(합주) 있어요')}</span>
+                <span className="text-[12px] text-[#0A0A0A]/40">{t('다음 주자가 이어붙이거나(확장) 쌓을 수(합주) 있어요')}</span>
               </>
             ) : mode === 'extend' ? (
               <>
@@ -259,7 +259,7 @@ export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevi
           >
             <Mic className="w-4 h-4" /> {phase === 'done' ? t('다시 함께 연주') : t('함께 연주 시작')} 🎙️
           </motion.button>
-          <p className="text-[10px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+          <p className="text-[12px] text-[#0A0A0A]/40 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
             {t('♩ {bpm} BPM · {bars}마디 (약 {sec}초) · 헤드폰 권장 🎧', { bpm, bars: BARS, sec: Math.round(totalSec) })}
           </p>
         </>

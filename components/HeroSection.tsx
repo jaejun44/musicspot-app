@@ -50,12 +50,11 @@ export default function HeroSection() {
             <h1
               className="leading-tight"
               style={{
-                fontFamily: 'Bungee, sans-serif',
+                // Bungee엔 한글 글리프가 없어 Pretendard로 떨어진다 → 굵기는 여기서 준다
+                fontFamily: 'Bungee, Pretendard, sans-serif',
                 fontSize: 'clamp(48px, 8vw, 72px)',
+                fontWeight: 900,
                 color: '#0A0A0A',
-                WebkitTextStroke: '3px #0A0A0A',
-                paintOrder: 'stroke fill',
-                textShadow: '8px 8px 0 #F5FF4F',
               }}
             >
               {t('8마디로')}<br />

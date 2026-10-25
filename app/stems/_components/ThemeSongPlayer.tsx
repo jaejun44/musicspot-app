@@ -147,7 +147,7 @@ export default function ThemeSongPlayer() {
         {/* 텍스트 */}
         <div className="flex-1 min-w-0">
           <p
-            className="text-[11px] text-[#FF3D77] font-bold tracking-widest mb-1"
+            className="text-[12px] text-[#FF3D77] font-bold tracking-widest mb-1"
             style={{ fontFamily: 'Bungee, sans-serif' }}
           >
             OFFICIAL THEME
@@ -161,7 +161,7 @@ export default function ThemeSongPlayer() {
             THE WORLD
           </p>
           <p
-            className="text-white/40 text-[11px] font-bold mt-1"
+            className="text-white/40 text-[12px] font-bold mt-1"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             Music Spot Official Theme
@@ -174,7 +174,7 @@ export default function ThemeSongPlayer() {
               />
             </div>
             <span
-              className={`text-[10px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`}
+              className={`text-[12px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`}
               style={{ fontFamily: 'Bungee, sans-serif' }}
             >
               {playing ? '▶ PLAYING' : '■ READY'}

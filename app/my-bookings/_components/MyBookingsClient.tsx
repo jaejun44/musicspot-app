@@ -108,7 +108,7 @@ export default function MyBookingsClient() {
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowProfileEdit(true)}
-                className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#FF3D77] rounded-full border-[2px] border-[#0A0A0A] flex items-center justify-center text-[11px]"
+                className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#FF3D77] rounded-full border-[2px] border-[#0A0A0A] flex items-center justify-center text-[12px]"
                 style={{ boxShadow: '1px 1px 0 #0A0A0A' }}
               >
                 ✏️

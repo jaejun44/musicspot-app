@@ -12,6 +12,21 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISSED_KEY = 'ms_pwa_dismissed';
+const VISITS_KEY = 'ms_pwa_visits';
+const SESSION_KEY = 'ms_pwa_session_counted';
+const MIN_VISITS = 2;
+
+/** 첫 방문은 둘러보게 두고, 터치 기기에서 다시 온 사람에게만 설치를 권한다 */
+function shouldOffer(): boolean {
+  if (!window.matchMedia('(pointer: coarse)').matches) return false;
+  let visits = Number(localStorage.getItem(VISITS_KEY) ?? '0');
+  if (!sessionStorage.getItem(SESSION_KEY)) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    visits += 1;
+    localStorage.setItem(VISITS_KEY, String(visits));
+  }
+  return visits >= MIN_VISITS;
+}
 
 function isIOSSafari() {
   const ua = navigator.userAgent;
@@ -31,6 +46,11 @@ export default function PWAInstallBanner() {
     if (typeof window === 'undefined') return;
     if (localStorage.getItem(DISMISSED_KEY)) return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
+    try {
+      if (!shouldOffer()) return;
+    } catch {
+      return; // 저장소 차단 환경 → 배너 생략
+    }
 
     if (isIOSSafari()) {
       // iOS는 beforeinstallprompt 미지원 — 수동 안내 배너
@@ -97,7 +117,7 @@ export default function PWAInstallBanner() {
                     {t('홈 화면에 추가하기 🎸')}
                   </p>
                   <p
-                    className="text-[11px] text-[#0A0A0A]/60 font-medium mt-1 leading-relaxed"
+                    className="text-[12px] text-[#0A0A0A]/60 font-medium mt-1 leading-relaxed"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
                     {t('아래 공유 버튼을 탭한 후')}<br />
@@ -107,11 +127,11 @@ export default function PWAInstallBanner() {
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center gap-1 bg-[#FFF8F0] border-[2px] border-[#0A0A0A] rounded-[8px] px-2 py-1">
                       <Share className="w-3 h-3 text-[#0A0A0A]" />
-                      <span className="text-[10px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('공유')}</span>
+                      <span className="text-[12px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('공유')}</span>
                     </div>
-                    <span className="text-[10px] text-[#0A0A0A]/40 font-bold">→</span>
+                    <span className="text-[12px] text-[#0A0A0A]/40 font-bold">→</span>
                     <div className="bg-[#FF3D77] border-[2px] border-[#0A0A0A] rounded-[8px] px-2 py-1">
-                      <span className="text-[10px] font-bold text-white" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('홈 화면에 추가')}</span>
+                      <span className="text-[12px] font-bold text-white" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('홈 화면에 추가')}</span>
                     </div>
                   </div>
                 </div>
@@ -128,7 +148,7 @@ export default function PWAInstallBanner() {
               <div className="flex justify-center mt-3">
                 <div className="flex flex-col items-center gap-0.5">
                   <div className="w-4 h-4 text-[#FF3D77] font-black text-[18px] leading-none">↓</div>
-                  <span className="text-[10px] text-[#0A0A0A]/40 font-medium" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('화면 하단 공유 버튼')}</span>
+                  <span className="text-[12px] text-[#0A0A0A]/40 font-medium" style={{ fontFamily: 'Pretendard, sans-serif' }}>{t('화면 하단 공유 버튼')}</span>
                 </div>
               </div>
             </div>
@@ -152,7 +172,7 @@ export default function PWAInstallBanner() {
                   {t('홈 화면에 추가하기 🎸')}
                 </p>
                 <p
-                  className="text-[11px] text-[#0A0A0A]/50 font-bold mt-0.5"
+                  className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
                   {t('앱처럼 빠르게 연습실을 찾아요')}

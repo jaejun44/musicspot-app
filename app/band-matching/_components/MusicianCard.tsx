@@ -103,7 +103,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
           <div className="flex items-center gap-1.5 flex-wrap">
             {isExample && (
               <span
-                className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+                className="px-1.5 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[12px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
                 style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
               >
                 {t('이용예시')}
@@ -117,7 +117,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
             </p>
           </div>
           <p
-            className="text-[11px] text-[#0A0A0A]/50 font-bold mt-0.5"
+            className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             📍 {musician.location}
@@ -128,13 +128,13 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
       {/* 뱃지 행 */}
       <div className="flex flex-wrap gap-1.5">
         <span
-          className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[11px] font-bold rounded-[6px]"
+          className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {t(musician.position)}
         </span>
         <span
-          className="px-2 py-0.5 border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[6px]"
+          className="px-2 py-0.5 border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
           style={{ backgroundColor: LEVEL_COLOR[musician.level] + '33', fontFamily: 'Pretendard, sans-serif' }}
         >
           {t(musician.level)}
@@ -142,7 +142,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
         {musician.genre.map((g) => (
           <span
             key={g}
-            className="px-2 py-0.5 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[11px] font-bold rounded-[6px]"
+            className="px-2 py-0.5 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[12px] font-bold rounded-[6px]"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {g}
@@ -161,7 +161,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
       {/* 구인 메시지 */}
       <div className="bg-[#FFF8F0] rounded-[10px] px-3 py-2">
         <p
-          className="text-[11px] text-[#0A0A0A]/50 font-bold"
+          className="text-[12px] text-[#0A0A0A]/50 font-bold"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           💬 {musician.lookingFor}
