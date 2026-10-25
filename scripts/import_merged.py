@@ -22,6 +22,7 @@ import argparse
 import pandas as pd
 from dotenv import load_dotenv
 from supabase import create_client
+from studio_rules import classify_room_type, parse_hourly_price
 
 
 load_dotenv(".env.local")
@@ -59,23 +60,8 @@ def split_photos(image_url: str, image_urls: str) -> list[str]:
 
 
 def classify_room(row: dict) -> str | None:
-    """price_info 기반 room_type 분류: T=시간당결제, M=월결제"""
-    price = str(row.get("price_info") or "")
-    src = str(row.get("source") or "")
-
-    # 스페이스클라우드는 전부 시간당 결제
-    if src == "spacecloud":
-        return "T"
-
-    # 뮬: price_info에 시간당 키워드 있으면 T
-    if "시간" in price or "시간당" in price or "/h" in price.lower():
-        return "T"
-
-    # 뮬: 월 키워드 있으면 M
-    if "월" in price:
-        return "M"
-
-    return None
+    """price_info 기반 room_type 분류 (규칙: studio_rules.classify_room_type)"""
+    return classify_room_type(row.get("source"), row.get("price_info"))
 
 
 def detect_drum(row: dict) -> bool:
@@ -138,11 +124,13 @@ def load_merged(path: str) -> pd.DataFrame:
     # 부가 분류
     df["room_type"] = df.apply(classify_room, axis=1)
     df["has_drum"] = df.apply(detect_drum, axis=1)
+    # 앱의 가격순 정렬·가격 필터가 이 칸을 쓴다 (원문 '시간당 N원'에서)
+    df["price_per_hour"] = df["price_info"].map(parse_hourly_price)
 
     # studios 스키마에 없는 중간 컬럼은 제거
     cols_keep = ["name", "category", "options", "region", "address", "phone",
                  "price_info", "capacity", "rating", "hours", "source_url",
-                 "source", "photos", "room_type", "has_drum"]
+                 "source", "photos", "room_type", "has_drum", "price_per_hour"]
     return df[[c for c in cols_keep if c in df.columns]]
 
 
