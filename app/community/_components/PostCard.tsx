@@ -129,7 +129,7 @@ export default function PostCard({
           </span>
           {post.tags.includes('이용예시') && (
             <span
-              className="px-2 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
+              className="px-2 py-0.5 bg-[#F5FF4F] text-[#0A0A0A] text-[12px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A]"
               style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '1px 1px 0 #0A0A0A' }}
             >
               {t('이용예시')}
@@ -138,7 +138,7 @@ export default function PostCard({
         </div>
         <div className="flex items-center gap-2">
           <span
-            className="text-[11px] text-[#0A0A0A]/30 font-bold"
+            className="text-[12px] text-[#0A0A0A]/30 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {post.createdAt}
@@ -189,14 +189,14 @@ export default function PostCard({
                         <div className="flex gap-2">
                           <button
                             onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setConfirmDelete(false); onDelete?.(); }}
-                            className="flex-1 py-1.5 bg-[#FF3D77] text-white text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]"
+                            className="flex-1 py-1.5 bg-[#FF3D77] text-white text-[12px] font-bold rounded-[8px] border border-[#0A0A0A]"
                             style={{ fontFamily: 'Pretendard, sans-serif' }}
                           >
                             {t('삭제')}
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
-                            className="flex-1 py-1.5 bg-white text-[#0A0A0A] text-[11px] font-bold rounded-[8px] border border-[#0A0A0A]/30"
+                            className="flex-1 py-1.5 bg-white text-[#0A0A0A] text-[12px] font-bold rounded-[8px] border border-[#0A0A0A]/30"
                             style={{ fontFamily: 'Pretendard, sans-serif' }}
                           >
                             {t('취소')}
@@ -243,7 +243,7 @@ export default function PostCard({
         <button
           onClick={handleTranslate}
           disabled={translating}
-          className="self-start text-[11px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50"
+          className="self-start text-[12px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {translating
@@ -261,7 +261,7 @@ export default function PostCard({
         {post.tags.map((tag) => (
           <span
             key={tag}
-            className="px-2 py-0.5 bg-[#FFF8F0] border-[1px] border-[#0A0A0A]/20 text-[#0A0A0A]/50 text-[11px] font-bold rounded-[6px]"
+            className="px-2 py-0.5 bg-[#FFF8F0] border-[1px] border-[#0A0A0A]/20 text-[#0A0A0A]/50 text-[12px] font-bold rounded-[6px]"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             #{tag}

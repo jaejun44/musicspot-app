@@ -300,7 +300,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
               <div className="flex-1 min-w-0">
                 <span
                   className={[
-                    'inline-block px-2 py-0.5 rounded-[8px] border-[2px] border-[#0A0A0A] text-[11px] font-bold mb-2',
+                    'inline-block px-2 py-0.5 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold mb-2',
                     localIsOpen ? 'bg-[#41C66B] text-white' : 'bg-[#0A0A0A]/10 text-[#0A0A0A]/50',
                   ].join(' ')}
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -362,7 +362,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   </div>
                 )}
                 <p
-                  className="text-[11px] font-bold text-[#0A0A0A]/60"
+                  className="text-[12px] font-bold text-[#0A0A0A]/60"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
                   {t('총')} <span className="text-[#FF3D77]">{t('{count}마디', { count: liveTrackCount })}</span> {t('이어짐')}
@@ -374,20 +374,20 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
 
             <div className="flex flex-wrap gap-2">
               <span
-                className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[11px] font-bold rounded-[6px]"
+                className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
                 ♩ {project.bpm} BPM
               </span>
               <span
-                className="px-2 py-0.5 text-[#0A0A0A] text-[11px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A] bg-[#FF3D77]/10"
+                className="px-2 py-0.5 text-[#0A0A0A] text-[12px] font-bold rounded-[6px] border-[2px] border-[#0A0A0A] bg-[#FF3D77]/10"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
                 🎼 {project.key_signature}
               </span>
               {project.genre && (
                 <span
-                  className="px-2 py-0.5 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[11px] font-bold rounded-[6px]"
+                  className="px-2 py-0.5 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[12px] font-bold rounded-[6px]"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
                   {project.genre}
@@ -408,7 +408,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 <button
                   onClick={handleToggleOpen}
                   className={[
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold transition-colors',
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[12px] font-bold transition-colors',
                     localIsOpen ? 'bg-[#F5FF4F] text-[#0A0A0A]' : 'bg-[#41C66B] text-white',
                   ].join(' ')}
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
@@ -418,7 +418,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 {onEdit && (
                   <button
                     onClick={() => onEdit(project)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold bg-white hover:bg-[#FFF8F0] transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[12px] font-bold bg-white hover:bg-[#FFF8F0] transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
                     <Pencil className="w-3 h-3" /> {t('수정')}
@@ -431,7 +431,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                         onDelete(project.id);
                       }
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[11px] font-bold bg-white text-[#FF3D77] hover:bg-[#FF3D77]/10 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[12px] font-bold bg-white text-[#FF3D77] hover:bg-[#FF3D77]/10 transition-colors"
                     style={{ fontFamily: 'Pretendard, sans-serif' }}
                   >
                     <Trash2 className="w-3 h-3" /> {t('삭제')}
@@ -516,7 +516,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                               </div>
                               {track.instrument && (
                                 <span
-                                  className="text-[10px] font-bold text-[#0A0A0A]/50"
+                                  className="text-[12px] font-bold text-[#0A0A0A]/50"
                                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                                 >
                                   {track.instrument}
@@ -526,7 +526,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
 
                             <div className="flex items-center gap-1.5 flex-shrink-0">
                               <span
-                                className="text-[10px] text-[#0A0A0A]/30 font-bold"
+                                className="text-[12px] text-[#0A0A0A]/30 font-bold"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
                                 {t('{order}번째 주자', { order: track.track_order })}
@@ -557,7 +557,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                           <div className="flex items-center gap-1.5 px-2 py-1 bg-[#FF3D77]/5 rounded-[8px] border-[1px] border-[#FF3D77]/20">
                             <Video className="w-3 h-3 text-[#FF3D77]" />
                             <span
-                              className="text-[10px] font-bold text-[#FF3D77]"
+                              className="text-[12px] font-bold text-[#FF3D77]"
                               style={{ fontFamily: 'Pretendard, sans-serif' }}
                             >
                               {t('YouTube 백킹 트랙')}
@@ -636,7 +636,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                             </div>
                             {track.instrument && (
                               <span
-                                className="text-[10px] font-bold text-[#0A0A0A]/50"
+                                className="text-[12px] font-bold text-[#0A0A0A]/50"
                                 style={{ fontFamily: 'Pretendard, sans-serif' }}
                               >
                                 {track.instrument}
@@ -645,7 +645,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                           </div>
 
                           <span
-                            className="text-[10px] text-[#0A0A0A]/30 font-bold flex-shrink-0"
+                            className="text-[12px] text-[#0A0A0A]/30 font-bold flex-shrink-0"
                             style={{ fontFamily: 'Pretendard, sans-serif' }}
                           >
                             {t('{order}번째 주자', { order: track.track_order })}

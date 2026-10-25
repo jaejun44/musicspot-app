@@ -292,7 +292,7 @@ export default function OnboardingModal({ user, onComplete, onClose }: Props) {
               style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
             />
             <p
-              className="text-right text-[11px] text-[#0A0A0A]/30 mt-1 font-bold"
+              className="text-right text-[12px] text-[#0A0A0A]/30 mt-1 font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               {lookingFor.length}/150

@@ -116,7 +116,7 @@ export default function LeaderboardThrowers() {
               >
                 {r.thrown}
               </span>
-              <span className="text-[11px] font-bold text-[#0A0A0A]/40 shrink-0" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+              <span className="text-[12px] font-bold text-[#0A0A0A]/40 shrink-0" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                 {t('던짐')}
               </span>
             </Link>

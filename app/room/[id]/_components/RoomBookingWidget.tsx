@@ -117,7 +117,7 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
         </motion.button>
         {bookingUrl && (
           <p
-            className="text-[11px] text-[#0A0A0A]/40 font-bold text-center mt-2"
+            className="text-[12px] text-[#0A0A0A]/40 font-bold text-center mt-2"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             업체의 외부 페이지로 이동합니다.

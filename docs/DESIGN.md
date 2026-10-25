@@ -32,6 +32,8 @@ Tailwind 토큰: `comic-pink`, `comic-yellow`, `comic-blue`, `comic-green`, `com
 ## 폰트
 - 헤드라인: `font-bungee` (Bungee) — 숫자, 타이틀, 로고
 - 본문: `font-pretendard` (Pretendard Variable)
+- 최소 글자 크기 **12px** (사용자 화면. `app/admin` 제외). 10~11px는 모바일에서 안 읽힌다 — 2026-10-25 일괄 상향
+- Bungee엔 한글 글리프가 없다 → 한글 제목에 Bungee를 쓰면 Pretendard로 떨어지므로 `fontWeight: 900`을 함께 준다
 
 ## 테두리 & 그림자 (핵심)
 ```

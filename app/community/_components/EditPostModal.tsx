@@ -146,7 +146,7 @@ export default function EditPostModal({ user, post, onClose, onSuccess }: Props)
                 className="w-full px-4 py-3 bg-white border-[2px] border-[#0A0A0A] rounded-[14px] text-[14px] font-bold text-[#0A0A0A] outline-none placeholder:text-[#0A0A0A]/30 focus:border-[#FF3D77] resize-none"
                 style={{ fontFamily: 'Pretendard, sans-serif', boxShadow: '2px 2px 0 #0A0A0A' }}
               />
-              <p className="text-right text-[11px] text-[#0A0A0A]/30 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+              <p className="text-right text-[12px] text-[#0A0A0A]/30 mt-1 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                 {body.length}/1000
               </p>
             </div>

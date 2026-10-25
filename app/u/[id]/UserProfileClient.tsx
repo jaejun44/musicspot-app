@@ -342,7 +342,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                   <p className="text-[16px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
                     {followerCount}
                   </p>
-                  <p className="text-[10px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                  <p className="text-[12px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                     {t('팔로워')}
                   </p>
                 </div>
@@ -350,7 +350,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                   <p className="text-[16px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Bungee, sans-serif' }}>
                     {followingCount}
                   </p>
-                  <p className="text-[10px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                  <p className="text-[12px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                     {t('팔로잉')}
                   </p>
                 </div>
@@ -379,7 +379,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                       <p className="text-[22px] font-bold text-[#0A0A0A] leading-none" style={{ fontFamily: 'Bungee, sans-serif' }}>
                         {s.value}
                       </p>
-                      <p className="text-[10px] text-[#0A0A0A]/50 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                      <p className="text-[12px] text-[#0A0A0A]/50 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                         {t(s.label)}
                       </p>
                     </div>
@@ -392,7 +392,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                     {honorTitles.map((ht) => (
                       <span
                         key={ht.id}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold rounded-[10px]"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[10px]"
                         style={{ boxShadow: '2px 2px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
                       >
                         {formatTitleLabel(ht)}
@@ -441,7 +441,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
             {profile.instruments.map((inst) => (
               <span
                 key={inst}
-                className="px-2.5 py-1 bg-[#0A0A0A] text-white text-[11px] font-bold rounded-[8px]"
+                className="px-2.5 py-1 bg-[#0A0A0A] text-white text-[12px] font-bold rounded-[8px]"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
                 {POSITION_EMOJIS[inst] ?? '🎶'} {t(inst)}
@@ -450,7 +450,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
             {profile.genres.map((g) => (
               <span
                 key={g}
-                className="px-2.5 py-1 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[11px] font-bold rounded-[8px]"
+                className="px-2.5 py-1 bg-[#FFF8F0] border-[2px] border-[#0A0A0A]/20 text-[#0A0A0A]/60 text-[12px] font-bold rounded-[8px]"
                 style={{ fontFamily: 'Pretendard, sans-serif' }}
               >
                 {g === '기타' ? (isJapanMode ? 'その他' : g) : t(g)}
@@ -581,14 +581,14 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {track.instrument && (
-                          <span className="text-[10px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                          <span className="text-[12px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                             {t(track.instrument)}
                           </span>
                         )}
                         {track.stem_projects && (
                           <>
-                            <span className="text-[10px] text-[#0A0A0A]/30">•</span>
-                            <span className="text-[10px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                            <span className="text-[12px] text-[#0A0A0A]/30">•</span>
+                            <span className="text-[12px] font-bold text-[#0A0A0A]/60" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                               ♩{track.stem_projects.bpm} BPM · {track.stem_projects.key_signature}
                             </span>
                           </>
@@ -597,7 +597,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                     </div>
 
                     {/* 날짜 */}
-                    <span className="text-[10px] text-[#0A0A0A]/30 font-bold flex-shrink-0" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                    <span className="text-[12px] text-[#0A0A0A]/30 font-bold flex-shrink-0" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       {track.created_at.slice(0, 10)}
                     </span>
                   </motion.div>
@@ -650,13 +650,13 @@ function ProfilePostItem({ post, index }: { post: Post; index: number }) {
     >
       <div className="flex items-center gap-2 mb-2">
         <span
-          className="px-2 py-0.5 bg-[#4FC3F7]/20 border-[2px] border-[#4FC3F7] text-[#0A0A0A] text-[10px] font-bold rounded-[6px]"
+          className="px-2 py-0.5 bg-[#4FC3F7]/20 border-[2px] border-[#4FC3F7] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {t(CATEGORY_LABELS[post.category] ?? post.category)}
         </span>
         {flag && <span className="text-[12px] leading-none">{flag}</span>}
-        <span className="text-[10px] text-[#0A0A0A]/30 font-bold ml-auto" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+        <span className="text-[12px] text-[#0A0A0A]/30 font-bold ml-auto" style={{ fontFamily: 'Pretendard, sans-serif' }}>
           {post.created_at.slice(0, 10)}
         </span>
       </div>
@@ -670,11 +670,11 @@ function ProfilePostItem({ post, index }: { post: Post; index: number }) {
       <p className="text-[12px] text-[#0A0A0A]/60 font-bold line-clamp-2 leading-relaxed" style={{ fontFamily: 'Pretendard, sans-serif' }}>
         {tr.text(1)}
       </p>
-      <TranslateButton state={tr} className="mt-1.5 self-start block text-[11px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
+      <TranslateButton state={tr} className="mt-1.5 self-start block text-[12px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
       {post.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {post.tags.map((tag) => (
-            <span key={tag} className="text-[10px] text-[#FF3D77] font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+            <span key={tag} className="text-[12px] text-[#FF3D77] font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
               #{tag}
             </span>
           ))}

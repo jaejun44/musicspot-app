@@ -337,7 +337,7 @@ export default function LoginClient() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.85 }}
-          className="text-[11px] text-[#0A0A0A]/30 font-bold mt-6 text-center"
+          className="text-[12px] text-[#0A0A0A]/30 font-bold mt-6 text-center"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {t('로그인 시 이용약관 및 개인정보 처리방침에 동의하게 됩니다.')}

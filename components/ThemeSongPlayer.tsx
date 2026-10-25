@@ -105,7 +105,7 @@ export default function ThemeSongPlayer() {
       {/* 현재 곡 정보 바 */}
       <div className="flex items-center gap-3 px-5 py-3">
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] text-[#FF3D77] font-bold tracking-widest mb-1" style={{ fontFamily: 'Bungee, sans-serif' }}>
+          <p className="text-[12px] text-[#FF3D77] font-bold tracking-widest mb-1" style={{ fontFamily: 'Bungee, sans-serif' }}>
             OFFICIAL THEME
           </p>
           <p className="text-white text-[15px] font-bold leading-tight truncate" style={{ fontFamily: 'Bungee, sans-serif' }}>
@@ -116,7 +116,7 @@ export default function ThemeSongPlayer() {
           <div className="w-[80px] h-[3px] bg-white/10 rounded-full overflow-hidden">
             <div className="h-full bg-[#FF3D77] rounded-full transition-all duration-300" style={{ width: `${progress * 100}%` }} />
           </div>
-          <span className={`text-[10px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`} style={{ fontFamily: 'Bungee, sans-serif' }}>
+          <span className={`text-[12px] font-bold ${playing ? 'text-[#FF3D77]' : 'text-white/30'}`} style={{ fontFamily: 'Bungee, sans-serif' }}>
             {playing ? '▶ ON AIR' : '■ READY'}
           </span>
         </div>
@@ -131,7 +131,7 @@ export default function ThemeSongPlayer() {
             className={`w-full flex items-center gap-3 px-5 py-[10px] text-left transition-colors cursor-pointer ${i === currentTrack ? 'bg-white/5' : 'hover:bg-white/5'}`}
           >
             <span
-              className={`text-[10px] font-bold w-4 flex-shrink-0 ${i === currentTrack ? 'text-[#FF3D77]' : 'text-white/30'}`}
+              className={`text-[12px] font-bold w-4 flex-shrink-0 ${i === currentTrack ? 'text-[#FF3D77]' : 'text-white/30'}`}
               style={{ fontFamily: 'Bungee, sans-serif' }}
             >
               {i === currentTrack && playing ? '▶' : `0${i + 1}`}

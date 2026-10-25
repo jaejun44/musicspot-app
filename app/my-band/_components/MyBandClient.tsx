@@ -322,7 +322,7 @@ export default function MyBandClient() {
                       </h2>
                       {band.my_role === 'leader' && (
                         <span
-                          className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] rounded-[8px] text-[10px] font-bold flex-shrink-0"
+                          className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] rounded-[8px] text-[12px] font-bold flex-shrink-0"
                           style={{ fontFamily: 'Pretendard, sans-serif' }}
                         >
                           {t('리더')}

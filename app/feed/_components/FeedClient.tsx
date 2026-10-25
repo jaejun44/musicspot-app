@@ -360,7 +360,7 @@ export default function FeedClient() {
         {!feedLoading && user && hasFollows && items.length > 0 && (
           <div className="mb-4">
             <span
-              className="inline-block bg-[#FFF8F0]/90 rounded-[10px] border-[2px] border-[#0A0A0A]/30 px-3 py-1 text-[11px] text-[#0A0A0A] font-bold"
+              className="inline-block bg-[#FFF8F0]/90 rounded-[10px] border-[2px] border-[#0A0A0A]/30 px-3 py-1 text-[12px] text-[#0A0A0A] font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               {t('{followingCount}명 팔로우 중 · {count}개의 활동', { followingCount, count: items.length })}
@@ -423,7 +423,7 @@ function AuthorRow({ item }: { item: FeedItem }) {
         <span className="text-[13px] leading-none">{countryFlag(item.country, item.language)}</span>
       )}
       <span
-        className="text-[11px] text-[#0A0A0A]/30 font-bold ml-auto"
+        className="text-[12px] text-[#0A0A0A]/30 font-bold ml-auto"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
         {timeAgo(item.created_at)}
@@ -442,7 +442,7 @@ function PostCard({ item }: { item: FeedPost }) {
     >
       <AuthorRow item={item} />
       <span
-        className="inline-block px-2 py-0.5 bg-[#4FC3F7]/20 border-[1.5px] border-[#4FC3F7] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] mb-2.5"
+        className="inline-block px-2 py-0.5 bg-[#4FC3F7]/20 border-[1.5px] border-[#4FC3F7] text-[#0A0A0A] text-[12px] font-bold rounded-[6px] mb-2.5"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
         ✍️ {t(CATEGORY_LABELS[item.category] ?? item.category)}
@@ -459,13 +459,13 @@ function PostCard({ item }: { item: FeedPost }) {
       >
         {tr.text(1)}
       </p>
-      <TranslateButton state={tr} className="mt-1.5 self-start block text-[11px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
+      <TranslateButton state={tr} className="mt-1.5 self-start block text-[12px] font-bold text-[#4FC3F7] hover:text-[#FF3D77] transition-colors disabled:opacity-50" />
       {item.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2.5">
           {item.tags.map((tag) => (
             <span
               key={tag}
-              className="text-[10px] text-[#FF3D77] font-bold"
+              className="text-[12px] text-[#FF3D77] font-bold"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
               #{tag}
@@ -494,7 +494,7 @@ function TrackCard({
     >
       <AuthorRow item={item} />
       <span
-        className="inline-block px-2 py-0.5 bg-[#F5FF4F] border-[1.5px] border-[#0A0A0A] text-[#0A0A0A] text-[10px] font-bold rounded-[6px] mb-3"
+        className="inline-block px-2 py-0.5 bg-[#F5FF4F] border-[1.5px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px] mb-3"
         style={{ fontFamily: 'Pretendard, sans-serif' }}
       >
         {t('🎸 8마디 트랙 업로드')}
@@ -523,7 +523,7 @@ function TrackCard({
             {item.project_title}
           </p>
           <p
-            className="text-[11px] text-[#0A0A0A]/50 font-bold mt-0.5"
+            className="text-[12px] text-[#0A0A0A]/50 font-bold mt-0.5"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             ♩{item.project_bpm} BPM · {item.project_key}
@@ -531,7 +531,7 @@ function TrackCard({
         </div>
         {item.instrument && (
           <span
-            className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[10px] font-bold rounded-[6px] flex-shrink-0"
+            className="px-2 py-0.5 bg-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px] flex-shrink-0"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {item.instrument}

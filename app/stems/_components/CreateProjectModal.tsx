@@ -127,7 +127,7 @@ export default function CreateProjectModal({ user, editProject, onClose, onSucce
               </h2>
               {!isEdit && (
                 <p
-                  className="text-[11px] font-bold text-[#0A0A0A]/40 mt-0.5"
+                  className="text-[12px] font-bold text-[#0A0A0A]/40 mt-0.5"
                   style={{ fontFamily: 'Pretendard, sans-serif' }}
                 >
                   {step === 1 ? t('STEP 1 / 2 — 프로젝트 정보') : t('STEP 2 / 2 — 첫 트랙')}

@@ -68,7 +68,7 @@ export default function ActivityGrass({ data, days = 119, isSelf = false }: Acti
         {isEmpty && isSelf && (
           <Link
             href="/stems"
-            className="text-[11px] font-bold text-[#FF3D77] shrink-0"
+            className="text-[12px] font-bold text-[#FF3D77] shrink-0"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {t('오늘 첫 칸을 채워보세요 →')}

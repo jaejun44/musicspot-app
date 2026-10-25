@@ -172,7 +172,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                     <p className="text-[14px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       {musician.name}
                     </p>
-                    <p className="text-[11px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                    <p className="text-[12px] text-[#0A0A0A]/50 font-bold" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       {t(musician.position)} · {musician.location}
                     </p>
                   </div>
@@ -191,7 +191,7 @@ export default function ChatModal({ musician, user, onClose }: Props) {
                     <p className="text-[13px] font-bold text-[#0A0A0A]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       {t('내 프로필이에요!')}
                     </p>
-                    <p className="text-[11px] text-[#0A0A0A]/40 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                    <p className="text-[12px] text-[#0A0A0A]/40 font-bold mt-1" style={{ fontFamily: 'Pretendard, sans-serif' }}>
                       {t('다른 뮤지션에게 메시지를 보내보세요')}
                     </p>
                   </div>

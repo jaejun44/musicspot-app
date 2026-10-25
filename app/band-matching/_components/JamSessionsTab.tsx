@@ -266,7 +266,7 @@ export default function JamSessionsTab({ user, onMessage }: Props) {
                       <p className="text-[16px] font-bold text-[#0A0A0A] break-words" style={FONT}>{s.title}</p>
                     </div>
                     <span
-                      className={`px-2 py-0.5 rounded-[8px] border-[2px] border-[#0A0A0A] text-[11px] font-bold flex-shrink-0 ${isFull ? 'bg-[#0A0A0A]/10 text-[#0A0A0A]/50' : 'bg-[#F5FF4F] text-[#0A0A0A]'}`}
+                      className={`px-2 py-0.5 rounded-[8px] border-[2px] border-[#0A0A0A] text-[12px] font-bold flex-shrink-0 ${isFull ? 'bg-[#0A0A0A]/10 text-[#0A0A0A]/50' : 'bg-[#F5FF4F] text-[#0A0A0A]'}`}
                       style={FONT}
                     >
                       {t('{count}/{capacity}명', { count, capacity: s.capacity })}
@@ -280,7 +280,7 @@ export default function JamSessionsTab({ user, onMessage }: Props) {
                   {s.instruments_wanted.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {s.instruments_wanted.map((inst) => (
-                        <span key={inst} className="px-2 py-0.5 bg-[#4FC3F7]/20 rounded-[8px] border-[1px] border-[#0A0A0A]/20 text-[11px] font-bold text-[#0A0A0A]" style={FONT}>
+                        <span key={inst} className="px-2 py-0.5 bg-[#4FC3F7]/20 rounded-[8px] border-[1px] border-[#0A0A0A]/20 text-[12px] font-bold text-[#0A0A0A]" style={FONT}>
                           {POSITION_EMOJIS[inst] ?? '🎶'} {t(inst)} {t('구해요')}
                         </span>
                       ))}

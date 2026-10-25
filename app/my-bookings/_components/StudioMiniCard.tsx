@@ -34,7 +34,7 @@ export default function StudioMiniCard({ studio, index }: Props) {
         )}
         {studio.room_type && studio.room_type !== 'both' && (
           <span
-            className="absolute top-2 left-2 px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[10px] font-bold rounded-[6px]"
+            className="absolute top-2 left-2 px-2 py-0.5 bg-[#FF3D77] border-[2px] border-[#0A0A0A] text-white text-[12px] font-bold rounded-[6px]"
             style={{ boxShadow: '1px 1px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
           >
             {studio.room_type}룸
@@ -50,7 +50,7 @@ export default function StudioMiniCard({ studio, index }: Props) {
           {studio.name}
         </p>
         <p
-          className="text-[11px] text-[#0A0A0A]/50 mt-0.5 line-clamp-1"
+          className="text-[12px] text-[#0A0A0A]/50 mt-0.5 line-clamp-1"
           style={{ fontFamily: 'Pretendard, sans-serif' }}
         >
           {studio.address ?? studio.region ?? ''}
@@ -64,7 +64,7 @@ export default function StudioMiniCard({ studio, index }: Props) {
           </p>
         ) : studio.price_info ? (
           <p
-            className="text-[11px] text-[#0A0A0A]/40 mt-1 font-bold"
+            className="text-[12px] text-[#0A0A0A]/40 mt-1 font-bold"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {studio.price_info}

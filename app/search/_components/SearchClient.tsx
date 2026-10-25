@@ -66,7 +66,7 @@ export default function SearchClient() {
         <div className="flex items-center gap-2">
           <Link
             href="/room/new"
-            className="px-2.5 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] bg-white text-[11px] font-bold text-[#0A0A0A]/70"
+            className="px-2.5 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] bg-white text-[12px] font-bold text-[#0A0A0A]/70"
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             + 내 연습실 등록
@@ -170,7 +170,7 @@ export default function SearchClient() {
                 </Link>
                 <button
                   onClick={() => setSelectedStudio(null)}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#0A0A0A] text-white text-[11px] flex items-center justify-center"
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#0A0A0A] text-white text-[12px] flex items-center justify-center"
                 >
                   ✕
                 </button>

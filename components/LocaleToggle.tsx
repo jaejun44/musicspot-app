@@ -29,7 +29,7 @@ export default function LocaleToggle({ className = '' }: { className?: string })
             track('locale_switch', { from: locale, to: opt.value });
             setLocaleAndReload(opt.value);
           }}
-          className={`px-2.5 py-1.5 text-[11px] font-bold transition-colors ${
+          className={`px-2.5 py-1.5 text-[12px] font-bold transition-colors ${
             locale === opt.value
               ? 'bg-[#0A0A0A] text-white cursor-default'
               : 'text-[#0A0A0A]/60 hover:bg-[#F5FF4F]'
