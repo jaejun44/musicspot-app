@@ -451,3 +451,12 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - `RoomCard`의 `rotationIndex` prop 삭제(호출부 2곳 정리)
 - 유지: 홈 히어로·PowerFeatures·FinalCTA·퀴즈·로고·HOT 배지 기울기(장식)
 - 검색 카드: 가격 문구(`price_info`)가 길면 평점 배지가 두 줄로 접히던 기존 문제 수정 — 배지 한 줄 고정, 가격은 오른쪽 정렬·단어 단위 줄바꿈
+
+### 3단계 — 모바일 하단 탭바 (헤더는 기존 유지가 사용자 결정)
+- `components/BottomTabBar.tsx`를 `app/layout.tsx`에 한 번 마운트. md 미만에서만 보임
+- 탭: 연습실·밴드찾기·8마디·커뮤니티·마이. 일본 모드는 연습실 대신 피드, 마이는 공개 프로필(비로그인은 로그인)
+- 보이는 곳: `/` `/search` `/region/*` `/band-matching` `/stems` `/community` `/feed` `/my-band` `/my-bookings`. 상세·로그인 등은 숨김(연습실 상세는 문의 바 우선)
+- 다른 하단 고정 요소는 CSS 변수로 탭바 위로 비켜 섬: `--tabbar-h`(탭바 높이, 탭바 있을 때만) / `--bottom-safe`(탭바 없을 때만 아이폰 홈 바 여백). `:root:has([data-bottom-tab-bar])`로 켜져 JS 없이 첫 화면부터 맞음
+  - 대상: 밴드찾기 프로필 바, 잼 방 열기 바, 내 밴드 바, 커뮤니티·8마디 글쓰기 버튼, PWA 배너
+- `viewport-fit=cover` 추가(`app/layout.tsx` `viewport`) — 없으면 아이폰 safe-area 값이 0
+- 이벤트 `nav_tab_click {tab}`

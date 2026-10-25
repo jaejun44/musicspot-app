@@ -214,4 +214,6 @@ export const BAND_JA: Record<string, string> = {
   '{m}분 전': '{m}分前',
   '{h}시간 전': '{h}時間前',
   '{d}일 전': '{d}日前',
+  // 모바일 하단 탭바 (BottomTabBar)
+  '주요 메뉴': 'メインメニュー',
 };

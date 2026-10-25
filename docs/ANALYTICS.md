@@ -131,7 +131,7 @@ track('challenge_upload_complete', {
 
 ### 공통 UX
 
-`locale_switch` · `pwa_install_prompt` · `share_click` · `report_submit` · `feedback_submit`
+`locale_switch` · `nav_tab_click` · `pwa_install_prompt` · `share_click` · `report_submit` · `feedback_submit`
 
 ---
 

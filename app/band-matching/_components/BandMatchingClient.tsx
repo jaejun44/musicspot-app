@@ -328,7 +328,7 @@ export default function BandMatchingClient() {
       </div>
 
       {/* 프로필 등록/관리 배너 */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+      <div className="fixed left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-3" style={{ bottom: 'var(--tabbar-h)', paddingBottom: 'calc(12px + var(--bottom-safe))' }}>
         <div className="max-w-2xl mx-auto">
           {user && myProfile?.is_public ? (
             <div className="flex gap-2">
