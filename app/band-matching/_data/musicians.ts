@@ -6,7 +6,6 @@ export interface Musician {
   position: Position;
   genre: string[];
   location: string;
-  level: '입문' | '중급' | '고급';
   bio: string;
   lookingFor: string;
   emoji: string;

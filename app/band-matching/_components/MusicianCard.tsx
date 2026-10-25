@@ -8,12 +8,6 @@ import { trackBandContact, track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 
-const LEVEL_COLOR: Record<Musician['level'], string> = {
-  입문: '#41C66B',
-  중급: '#4FC3F7',
-  고급: '#FF3D77',
-};
-
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface Props {
@@ -132,12 +126,6 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
         >
           {t(musician.position)}
         </span>
-        <span
-          className="px-2 py-0.5 border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
-          style={{ backgroundColor: LEVEL_COLOR[musician.level] + '33', fontFamily: 'Pretendard, sans-serif' }}
-        >
-          {t(musician.level)}
-        </span>
         {musician.genre.map((g) => (
           <span
             key={g}
@@ -149,13 +137,15 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
         ))}
       </div>
 
-      {/* 소개 */}
-      <p
-        className="text-[12px] text-[#0A0A0A]/60 font-bold leading-relaxed"
-        style={{ fontFamily: 'Pretendard, sans-serif' }}
-      >
-        {musician.bio}
-      </p>
+      {/* 소개 — 비었거나 구인 메시지와 같으면 생략(같은 말 반복 방지) */}
+      {musician.bio && musician.bio !== musician.lookingFor && (
+        <p
+          className="text-[12px] text-[#0A0A0A]/60 font-bold leading-relaxed"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          {musician.bio}
+        </p>
+      )}
 
       {/* 구인 메시지 */}
       <div className="bg-[#FFF8F0] rounded-[10px] px-3 py-2">

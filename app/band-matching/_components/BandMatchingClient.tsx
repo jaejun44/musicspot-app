@@ -39,8 +39,7 @@ function profileToMusician(p: {
     position: pos,
     genre: p.genres,
     location: p.region ?? tGlobal('미정'),
-    level: '중급',
-    bio: p.bio ?? (p.purposes.join(', ') || tGlobal('밴드 멤버를 찾고 있어요 🎶')),
+    bio: p.bio ?? '',
     lookingFor: p.looking_for || p.purposes.join(', ') || tGlobal('함께 연주할 분 구해요'),
     emoji: POSITION_EMOJIS[pos] ?? '🎶',
     color: CARD_COLORS[idx % CARD_COLORS.length],
@@ -327,15 +326,15 @@ export default function BandMatchingClient() {
         )}
       </div>
 
-      {/* 프로필 등록/관리 배너 */}
-      <div className="fixed left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-3" style={{ bottom: 'var(--tabbar-h)', paddingBottom: 'calc(12px + var(--bottom-safe))' }}>
+      {/* 프로필 등록/관리 배너 — 하단 탭바 위에 붙으므로 얇게 */}
+      <div className="fixed left-0 right-0 z-40 bg-[#FFF8F0] border-t-[3px] border-[#0A0A0A] px-4 pt-2" style={{ bottom: 'var(--tabbar-h)', paddingBottom: 'calc(8px + var(--bottom-safe))' }}>
         <div className="max-w-2xl mx-auto">
           {user && myProfile?.is_public ? (
             <div className="flex gap-2">
               <motion.button
                 whileTap={{ scale: 0.96, y: 2 }}
                 onClick={handleProfileRegister}
-                className="flex-1 py-4 bg-[#4FC3F7] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
+                className="flex-1 py-2.5 bg-[#4FC3F7] rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A] font-bold text-[14px]"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
                 {t('✏️ 프로필 수정')}
@@ -343,7 +342,7 @@ export default function BandMatchingClient() {
               <motion.button
                 whileTap={{ scale: 0.96, y: 2 }}
                 onClick={handleCancelProfile}
-                className="flex-1 py-4 bg-white rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A]/60 font-bold text-[14px]"
+                className="flex-1 py-2.5 bg-white rounded-[16px] border-[3px] border-[#0A0A0A] text-[#0A0A0A]/60 font-bold text-[14px]"
                 style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
               >
                 {t('❌ 밴드찾기 취소')}
@@ -353,7 +352,7 @@ export default function BandMatchingClient() {
             <motion.button
               whileTap={{ scale: 0.96, y: 2 }}
               onClick={handleProfileRegister}
-              className="w-full py-4 bg-[#242447] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px]"
+              className="w-full py-2.5 bg-[#242447] rounded-[16px] border-[3px] border-[#0A0A0A] text-white font-bold text-[15px]"
               style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}
             >
               {t('🎵 내 프로필 등록하기')}
