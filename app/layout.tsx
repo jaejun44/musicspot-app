@@ -45,6 +45,8 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'vNBz8abwMAI7rha-at3lGL10sJDZxFVS6-dIbg2vgME',
+    // 네이버 서치어드바이저 소유확인 (https://www.musicspotfest.com, 2026-10-26)
+    other: { 'naver-site-verification': '470659daf9354f685766921a55b1fc9c613f14e8' },
   },
 };
 
