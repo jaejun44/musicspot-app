@@ -527,3 +527,10 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   → **공개 993 → 799곳(전부 spacecloud), 797곳이 사진 2장 이상(평균 7.6장)**. 서울 지역 페이지는 이태원 외 모두 8곳 이상 유지
 - 수집 경로 정비: `crawling/run_all.sh`는 최신화 미리보기/`APPLY=1` 반영만(월 1회 권장, crawling/은 git 밖). `import_merged.py`의 `--reset`(studios 전체 삭제) 제거, 이미 있는 `source_url`은 건너뜀
 - 하지 않은 것: 사진을 우리 Storage로 복사(저작권·용량, mule은 차단 우회 — 사용자 동의). 새 연습실 찾기(spacecloud 검색·API는 robots 차단 — 사장님 등록·제보 장기 과제). 상세 화면 갤러리는 이미 여러 장 지원해 앱 코드 변경 없음
+
+## 2026-10-26 — 비공개 연습실 주소로 들어오면 근처 연습실 안내
+- 배경: 최근 90일 연습실 상세 방문 1,613세션 중 365세션(23%)이 이번에 비공개한 곳(mule 월대여 글·폐업 spacecloud). 들어오면 "연습실을 찾을 수 없어요"만 보이고, 응답은 200이라 빈 페이지가 검색 색인에 남음
+- `app/room/[id]/page.tsx`: 공개 목록에 없으면 id로 다시 조회 → 비공개면 `UnavailableRoom`(안내 + 가까운 공개 연습실 6곳 + 가장 가까운 지역 페이지·검색 버튼), 없는 id는 진짜 404, 조회 실패(uuid 아님 등)는 예전처럼 클라이언트 처리(ISR에 404가 굳지 않게). 공개 아닌 경우 메타 `noindex, follow`
+- `lib/nearby-rooms.ts`: 같은 쓰임(월 대여 → M·both) 먼저 가까운 순, 모자라면 나머지. 약 3km 상자에서 3곳 미만이면 약 10km. 지역은 기준점 3km 안 가장 가까운 곳. 테스트 `tests/nearby-rooms.cjs`
+- 이벤트 `room_unavailable_view` / `room_unavailable_click` (`docs/ANALYTICS.md`)
+- 확인: 로컬 비공개(mule·폐업)·공개·없는 id 각각 200+noindex+안내 / 200 그대로 / 404. 390px 화면 가로 넘침 없음. tsc·build·테스트 35/35
