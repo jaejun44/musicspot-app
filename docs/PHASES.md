@@ -534,3 +534,8 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - `lib/nearby-rooms.ts`: 같은 쓰임(월 대여 → M·both) 먼저 가까운 순, 모자라면 나머지. 약 3km 상자에서 3곳 미만이면 약 10km. 지역은 기준점 3km 안 가장 가까운 곳. 테스트 `tests/nearby-rooms.cjs`
 - 이벤트 `room_unavailable_view` / `room_unavailable_click` (`docs/ANALYTICS.md`)
 - 확인: 로컬 비공개(mule·폐업)·공개·없는 id 각각 200+noindex+안내 / 200 그대로 / 404. 390px 화면 가로 넘침 없음. tsc·build·테스트 35/35
+
+## 2026-10-26 — 월 대여 연습실이 없으면 T룸/M룸 칩 숨김
+- mule 116곳 비공개 후 공개 799곳이 전부 T라 검색 'M룸' 칩은 0곳, 'T룸'은 눌러도 그대로였음(비공개 결정 때 놓친 부작용)
+- `hooks/useHasMonthlyRooms.ts`: 공개 M·both 수를 head count로 확인 → `FilterChips`는 있을 때만 T룸/M룸 표시. 예전 링크(`?room_type=M`)로 켜진 칩은 끌 수 있게 남김. 월 대여 연습실이 다시 생기면 자동으로 보임
+- 확인: 로컬 기본 화면 칩 '전체·드럼·가격순·서울 전체…', `?room_type=M` 진입 시 M룸 칩 유지. build·테스트 35/35

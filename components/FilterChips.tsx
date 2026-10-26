@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { StudioFilters } from '@/types/studio';
 import { trackFilterApply } from '@/lib/analytics';
 import { useT } from '@/lib/i18n';
+import { useHasMonthlyRooms } from '@/hooks/useHasMonthlyRooms';
 
 interface FilterChipsProps {
   filters: StudioFilters;
@@ -67,9 +68,14 @@ function toggle(chip: ChipKey, current: StudioFilters): StudioFilters {
 
 export default function FilterChips({ filters, onChange }: FilterChipsProps) {
   const t = useT();
+  // 월 대여 연습실이 없으면 T룸/M룸은 고를 게 없다(전부 T). 예전 링크로 켜진 칩은 끌 수 있게 남긴다
+  const hasMonthly = useHasMonthlyRooms();
+  const chips = CHIPS.filter(
+    (chip) => hasMonthly || (chip.key !== 'T' && chip.key !== 'M') || isActive(chip.key, filters),
+  );
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      {CHIPS.map((chip) => {
+      {chips.map((chip) => {
         const active = isActive(chip.key, filters);
         return (
           <motion.button
