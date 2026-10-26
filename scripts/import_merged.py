@@ -6,10 +6,13 @@ crawling/merge_filtered.py 가 만든 통합 CSV(= 사진 + 위치 + 가격이 �
 
 사용법:
   pip3 install pandas supabase python-dotenv
-  python3 scripts/import_merged.py                           # 2000개까지 추가
-  python3 scripts/import_merged.py --reset                   # 전체 삭제 후 재적재
+  python3 scripts/import_merged.py                           # 2000개까지, DB에 없는 source_url만 추가
   python3 scripts/import_merged.py --limit 500               # 상한 변경
   python3 scripts/import_merged.py --csv ../crawling/rooms_merged.csv
+
+이미 있는 연습실(같은 source_url)은 건드리지 않는다 — 기존 곳의 최신화는
+scripts/refresh_spacecloud.py. (예전 --reset 전체 삭제는 네이버·카카오 링크, 좌표,
+신고 기록 연결까지 지워서 2026-10-26 제거)
 
 기본 입력 파일:
   - data/rooms_merged.csv  (없으면 ../crawling/rooms_merged.csv 자동 탐색)
@@ -136,14 +139,14 @@ def load_merged(path: str) -> pd.DataFrame:
 
 # ------------------------- DB 작업 -------------------------
 
-def delete_all_studios():
-    print("=== 기존 데이터 삭제 ===")
-    try:
-        supabase.table("studios").delete().gte("created_at", "1970-01-01").execute()
-        print("  기존 데이터 전체 삭제 완료")
-    except Exception as e:
-        print(f"  [에러] 삭제 실패: {e}")
-        sys.exit(1)
+def existing_source_urls() -> set[str]:
+    urls, offset = set(), 0
+    while True:
+        res = supabase.table("studios").select("source_url").range(offset, offset + 999).execute()
+        urls.update(r["source_url"] for r in res.data if r.get("source_url"))
+        if len(res.data) < 1000:
+            return urls
+        offset += 1000
 
 
 # ---------------------------- main ----------------------------
@@ -154,8 +157,6 @@ def main():
                         help="입력 CSV 경로 (기본: data/rooms_merged.csv 또는 ../crawling/rooms_merged.csv)")
     parser.add_argument("--limit", type=int, default=2000,
                         help="최대 업로드 개수 (기본: 2000)")
-    parser.add_argument("--reset", action="store_true",
-                        help="기존 studios 전체 삭제 후 재적재")
     parser.add_argument("--batch", type=int, default=100,
                         help="insert 배치 크기 (기본: 100)")
     parser.add_argument("--publish", action="store_true",
@@ -182,6 +183,12 @@ def main():
     before = len(records)
     records = [r for r in records if has_required(r)]
     print(f"[*] 필수필드 검증: {before} → {len(records)}건")
+
+    # 4.5 이미 있는 연습실은 건너뜀 (중복 행 방지)
+    known = existing_source_urls()
+    before = len(records)
+    records = [r for r in records if r.get("source_url") not in known]
+    print(f"[*] 이미 있는 곳 제외: {before} → {len(records)}건")
 
     # 5. 상한 적용
     if args.limit and len(records) > args.limit:
@@ -214,11 +221,7 @@ def main():
         print("[!] 업로드할 데이터 없음 — 종료")
         return
 
-    # 7. reset 모드
-    if args.reset:
-        delete_all_studios()
-
-    # 8. 배치 insert
+    # 7. 배치 insert
     print("\n=== Supabase 적재 ===")
     inserted = 0
     failed = 0
