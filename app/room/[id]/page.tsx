@@ -1,9 +1,15 @@
 import { Suspense } from 'react';
 import { cache } from 'react';
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { localeAlternates } from '@/lib/seo';
+import { REGIONS } from '@/lib/regions';
+import { pickNearbyRooms, nearestRegion } from '@/lib/nearby-rooms';
+import type { Studio } from '@/types/studio';
+import Navigation from '@/components/Navigation';
 import RoomDetailClient from './_components/RoomDetailClient';
+import UnavailableRoom from './_components/UnavailableRoom';
 
 interface Props {
   params: { id: string };
@@ -40,13 +46,55 @@ const getStudio = cache(async (id: string) => {
   return data;
 });
 
+/**
+ * 공개 목록에 없는 id의 상태. 'hidden' = 비공개(폐업·모집 끝난 광고)라 근처 대안을 보여줌,
+ * 'missing' = 그런 연습실이 없음(진짜 404), 'unknown' = 조회 실패(예전처럼 클라이언트가 처리)
+ */
+type HiddenStudio = Pick<Studio, 'id' | 'name' | 'lat' | 'lng' | 'room_type'>;
+const getHiddenStudio = cache(
+  async (id: string): Promise<{ state: 'hidden'; studio: HiddenStudio } | { state: 'missing' | 'unknown' }> => {
+    const { data, error } = await supabase
+      .from('studios')
+      .select('id, name, lat, lng, room_type, is_published')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) return { state: 'unknown' }; // uuid 형식 아님 등 — ISR에 404가 굳지 않게 판단 보류
+    if (!data) return { state: 'missing' };
+    if (data.is_published) return { state: 'unknown' }; // 그사이 공개됨
+    return { state: 'hidden', studio: data as HiddenStudio };
+  },
+);
+
+/** 비공개 연습실 근처의 공개 연습실. 약 3km 상자에서 3곳이 안 되면 약 10km로 넓힌다 */
+async function fetchNearbyRooms(origin: HiddenStudio) {
+  if (origin.lat == null || origin.lng == null) return [];
+  const center = { lat: origin.lat, lng: origin.lng, room_type: origin.room_type ?? null };
+  for (const box of [0.03, 0.1]) {
+    // 상자 안 공개 연습실은 1,000곳보다 훨씬 적어 한 번의 range로 충분
+    const { data } = await supabase
+      .from('studios')
+      .select('*')
+      .eq('is_published', true)
+      .gte('lat', center.lat - box)
+      .lte('lat', center.lat + box)
+      .gte('lng', center.lng - box * 1.25)
+      .lte('lng', center.lng + box * 1.25)
+      .range(0, 999);
+    const rooms = pickNearbyRooms(center, (data ?? []) as Studio[]);
+    if (rooms.length >= 3 || box === 0.1) return rooms;
+  }
+  return [];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getStudio(params.id);
 
   if (!data) {
+    // 비공개·없는 연습실은 검색 결과에서 빠지게 (링크는 따라가도 됨)
     return {
-      title: '연습실 | Music Spot',
+      title: '연습실 정보 없음 | Music Spot',
       description: '뮤지션을 위한 합주/연습실 플랫폼',
+      robots: { index: false, follow: true },
     };
   }
 
@@ -90,6 +138,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function RoomDetailPage({ params }: Props) {
   const data = await getStudio(params.id);
+
+  if (!data) {
+    const hidden = await getHiddenStudio(params.id);
+    if (hidden.state === 'missing') notFound();
+    if (hidden.state === 'hidden') {
+      const { studio } = hidden;
+      const rooms = await fetchNearbyRooms(studio);
+      const region =
+        studio.lat != null && studio.lng != null ? nearestRegion(studio.lat, studio.lng, REGIONS) : null;
+      return (
+        <>
+          <Navigation />
+          <UnavailableRoom
+            studioId={studio.id}
+            name={studio.name}
+            rooms={rooms}
+            region={region && { slug: region.slug, label: region.label }}
+          />
+        </>
+      );
+    }
+  }
 
   const jsonLd = data
     ? {

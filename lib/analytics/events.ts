@@ -46,6 +46,10 @@ export type EventSchema = {
   booking_complete: { studio_id: string; studio_name: string; value?: number };
   /** 연습실 상세의 "실시간 예약" 클릭 → /booking/s/:id. 외부 링크(booking_attempt)와 분리 */
   booking_realtime_click: { studio_id: string; studio_name: string };
+  /** 비공개(폐업·광고 종료) 연습실 주소로 들어옴 — 근처 대안을 몇 곳 보여줬는지 */
+  room_unavailable_view: { studio_id: string; nearby_count: number };
+  /** 비공개 연습실 화면에서 대안 연습실·지역 페이지로 이동 */
+  room_unavailable_click: { studio_id: string; to: 'studio' | 'region' | 'search'; to_studio_id?: string };
 
   // ── 8마디 챌린지 (Stage 1~4 관통 OS — 최우선 계측) ──────────
   /** 챌린지 목록 진입. 로그인 여부는 공통 속성 is_logged_in을 볼 것 */
