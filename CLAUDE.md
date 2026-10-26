@@ -103,7 +103,7 @@ while (true) {
 ## Supabase 주요 테이블
 
 ```
-studios              연습실 (1,165개)
+studios              연습실 (공개 799곳, 전부 spacecloud · 2026-10-26. 최신화: scripts/refresh_spacecloud.py)
 bookings             예약
 user_profiles        밴드매칭 프로필
 direct_messages      1:1 채팅 (Realtime)
