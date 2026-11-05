@@ -298,6 +298,19 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 - `Authorization: Bearer {CRON_SECRET}` 헤더 검증
 - `CRON_SECRET` 환경변수 Vercel 추가
 - `vercel.json`: `"0 15 * * 0"` (일요일 15:00 UTC = 월요일 00:00 KST)
+- ⚠️ 2026-11-06부터 이 함수는 `service_role`만 실행 가능(`supabase/11_security_hardening.sql`) → 라우트에서 반드시 `createAdminClient()`(서비스 키)로 호출. anon 클라이언트로 부르면 401
+
+### 재방문 루프 후속 (2026-11-06 출시분)
+- **지표 확인 (11-13 무렵, 출시 1주 뒤)**: `docs/ANALYTICS.md` "재방문 측정"(D7 잔존, 목표 20%) · "투표 링크 재진입" 쿼리. QA는 `utm_campaign=codex_qa`, QA 투표 `5845fd1a`·`ad15dff2` 제외
+  - 세션당 상세 조회(1.07 → ?), `compare_click`/`compare_view`, `vote_create` 수, 투표 링크당 멤버 유입
+- **사용자 확인 필요(에이전트는 로그인 불가)**: 결정된 투표 → "우리 밴드로 저장", `/my-band/[id]` 일정 추가(schedule_date→date 수정분), 투표 카카오톡 공유(`vote_share`)
+- 투표 화면에서 만든 사람 토큰(`ms_vote_tokens`)은 기기 저장이라 다른 기기에서는 결정 불가 — 문의가 생기면 로그인 사용자 연결 검토
+
+### 보류: 보안 3건 — 가입자 50명 넘으면 (2026-11-06 결정, 당시 12명)
+- 운영 `ADMIN_PASSWORD` 20자 이상 무작위로 교체(사용자가 Vercel에서 직접)
+- 관리자 로그인(`adminLogin`) 시도 제한
+- `/api/translate` 호출 제한 — 로그인 요구 vs Vercel WAF IP 제한 중 그때 결정
+- 낮음: `increment_pass_count`·`increment_share_count` 누구나 호출(카운터 부풀리기, 근본 해결은 트리거로 이동)
 
 ### 보류: 챌린지 폼(form) 옵션 — 12마디 블루스 (2026-08-08 결정)
 "메인 컨셉을 8마디 → 12마디(블루스)로 리네임" 안을 검토했고 **8마디 유지**로 결론.
@@ -701,4 +714,23 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - 원인: 반환형 `TABLE(awarded_user_id, title_key)`의 `title_key`가 PL/pgSQL 변수가 되어 `RETURNING ... title_key` 컬럼과 충돌. 인자 이름 오류 때문에 그동안 여기까지 실행된 적이 없었음
   - `supabase/12_award_titles_fix.sql`: `#variable_conflict use_column` 한 줄 추가(사용자 승인 후 운영 적용). 본문·`search_path=public`·실행 권한(service_role만) 유지 확인
   - 로컬 Postgres 18: 기존 본문 오류 재현 → 수정본은 KR 상위만 시상, 같은 시즌 재실행 0명
+
+## 2026-11-06 — 하루 정리 (PR #25 ~ #31)
+| PR | 내용 | DB |
+|----|------|----|
+| #25 | 재방문 측정용 영구 익명 ID `anon_id`(`ms_aid`) → `user_events.props` | — |
+| #26 | Phase A: 홈·검색 "최근 본 / 찜한 연습실" 스트립 | — |
+| #27 | Phase B: 상세 "근처 비슷한 연습실" 비교 + 후보 담기(`ms_candidates`, 최대 5) | — |
+| #28 | Phase C: `/vote/[id]` 후보 투표(로그인 없이 투표, 만든 사람만 결정, 카카오 공유·OG) | `10_votes.sql` 적용 |
+| #29 | Phase D: 밴드 일정 저장·다음 합주 투표 잇기·스트립 "진행 중인 투표" + `/my-band` 일정 컬럼 버그 | — |
+| #30 | 보안: 위험 RPC 2개 공개 실행 차단, `user_events` 전체 읽기 제거, 칭호 발급 인자 오류 | `11_security_hardening.sql` 적용 |
+| #31 | 시즌 시상 함수 `title_key` 모호성 오류(관리자 화면에서 시상 동작 확인) | `12_award_titles_fix.sql` 적용 |
+
+- 흐름: 연습실 검색자 → 상세에서 비교·후보 → 단톡방 투표 링크 → 결정 → 상세 문의·예약 / 밴드 일정 → 다음 합주 때 옛 링크·홈 스트립으로 재방문. 8마디는 기존 `challenge_nudge`로 연결(새로 만들지 않음)
+- 검증 방식: 매 PR tsc·테스트(35 → 44개)·build, 로컬 390/1440px 브라우저 확인, 분석은 `utm_campaign=codex_qa` 표시, DB 변경은 로컬 Postgres 18에서 먼저 검증 → 승인 → 적용 → 권한 재확인
+- 운영에 남긴 QA 데이터(사용자 결정: 지우지 않음): 투표 2건·응답 2건, `codex_qa` 이벤트
+- 알게 된 것
+  - 공개 테이블 42개 모두 RLS on(CLAUDE.md의 "RLS 대부분 비활성화"는 옛 정보 → 수정)
+  - `fix/db-security-hardening` 이름 브랜치는 GitHub가 `fatal error in commit_refs`로 계속 거부(장애·규칙·이름 충돌 없음). 이름을 바꾸니 해결 → `docs/TROUBLESHOOTING.md`
+- 다음: 위 "진행 중 / 다음 작업"의 "재방문 루프 후속" · "보류: 보안 3건"
 
