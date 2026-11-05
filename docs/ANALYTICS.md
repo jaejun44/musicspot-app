@@ -128,6 +128,13 @@ track('challenge_upload_complete', {
 - `return_strip_view` / `return_strip_click` (2026-11-06 추가): 홈·검색 상단 "최근 본 / 찜한 연습실" 스트립(`components/ReturnStrip.tsx`). `kind: recent | favorite`. view는 목록이 있을 때 kind별로 화면당 1회(`count` = 보인 카드 수), click은 `studio_id`. 처음 온 사람에게는 안 보이므로 view 세션 = 재방문 세션의 근사치다. 클릭률 = click 세션 / view 세션
 - `compare_view` / `compare_click` (2026-11-06 추가): 연습실 상세 위치 아래 "근처 비슷한 연습실" 비교 블록(`RoomCompare.tsx`, 최대 3곳). view는 `studio_id`(보고 있는 곳)·`count`, click은 `studio_id`(이동한 곳). 상세→상세 이동률 = click 세션 / view 세션. 세션당 상세 조회의 직접 원인 지표
 - `candidate_toggle` (2026-11-06 추가): 합주 후보 담기/해제(`CandidateToggle.tsx`·후보 시트 빼기). `on`·`count`(바뀐 뒤 후보 수, 최대 5). 가득 차서 거부된 시도는 보내지 않는다. 후보 2곳 이상 세션 = Phase C 투표 링크의 잠재 분모
+- `vote_create` · `vote_share` · `vote_view` · `vote_submit` · `vote_decide` · `vote_to_contact` (2026-11-06 추가): 합주 후보 투표(`/vote/[id]`). 모두 `vote_id`를 담는다
+  - `vote_create {vote_id, count}`: 후보 시트(`VoteCreatePanel.tsx`)에서 링크 생성
+  - `vote_share {vote_id, channel: kakao|copy}`: 만든 사람 화면 공유
+  - `vote_view {vote_id, is_creator}`: is_creator=false = 단톡방 링크로 들어온 멤버
+  - `vote_submit {vote_id, is_update}` / `vote_decide {vote_id, studio_id}` / `vote_to_contact {vote_id, studio_id}`(결정 화면 → 상세)
+  - **투표 링크 1개당 유입** = `vote_view`(is_creator=false)의 distinct anon_id / `vote_create` 수
+  - 응답자 구분은 분석에 안 실리는 기기 키(`ms_vk`)라 이벤트의 anon_id와 다르다. 재방문 집계는 이벤트의 anon_id로
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
   호출부가 없다. 이름 변경 금지 규칙에 따라 정의는 남긴다. 실시간 예약 결제가 붙으면 다시 쓴다.
 

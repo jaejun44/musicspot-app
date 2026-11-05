@@ -1,5 +1,5 @@
 export type ShareSource = 'kakao' | 'instagram' | 'twitter' | 'facebook' | 'link';
-export type ShareCampaign = 'challenge' | 'post' | 'profile' | 'studio' | 'landing';
+export type ShareCampaign = 'challenge' | 'post' | 'profile' | 'studio' | 'landing' | 'vote';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
