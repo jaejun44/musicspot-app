@@ -38,7 +38,7 @@ const getStudio = cache(async (id: string) => {
   const { data } = await supabase
     .from('studios')
     .select(
-      'id, name, address, phone, lat, lng, price_per_hour, price_info, photos, hours, region, review_avg, review_count'
+      'id, name, address, phone, lat, lng, room_type, price_per_hour, price_info, photos, hours, region, review_avg, review_count'
     )
     .eq('id', id)
     .eq('is_published', true)
@@ -65,8 +65,8 @@ const getHiddenStudio = cache(
   },
 );
 
-/** 비공개 연습실 근처의 공개 연습실. 약 3km 상자에서 3곳이 안 되면 약 10km로 넓힌다 */
-async function fetchNearbyRooms(origin: HiddenStudio) {
+/** 기준 연습실 근처의 공개 연습실(기준 자신은 뺀다). 약 3km 상자에서 3곳이 안 되면 약 10km로 넓힌다 */
+async function fetchNearbyRooms(origin: Pick<Studio, 'id' | 'lat' | 'lng' | 'room_type'>) {
   if (origin.lat == null || origin.lng == null) return [];
   const center = { lat: origin.lat, lng: origin.lng, room_type: origin.room_type ?? null };
   for (const box of [0.03, 0.1]) {
@@ -80,7 +80,8 @@ async function fetchNearbyRooms(origin: HiddenStudio) {
       .gte('lng', center.lng - box * 1.25)
       .lte('lng', center.lng + box * 1.25)
       .range(0, 999);
-    const rooms = pickNearbyRooms(center, (data ?? []) as Studio[]);
+    const others = ((data ?? []) as Studio[]).filter((s) => s.id !== origin.id);
+    const rooms = pickNearbyRooms(center, others);
     if (rooms.length >= 3 || box === 0.1) return rooms;
   }
   return [];
@@ -161,6 +162,9 @@ export default async function RoomDetailPage({ params }: Props) {
     }
   }
 
+  // 상세 "근처 비슷한 연습실" 비교 블록 (ISR로 같이 캐시)
+  const nearby = data ? (await fetchNearbyRooms(data)).slice(0, 3) : [];
+
   const jsonLd = data
     ? {
         '@context': 'https://schema.org',
@@ -218,7 +222,7 @@ export default async function RoomDetailPage({ params }: Props) {
           </div>
         }
       >
-        <RoomDetailClient />
+        <RoomDetailClient nearby={nearby} />
       </Suspense>
     </>
   );

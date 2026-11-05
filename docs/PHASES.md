@@ -566,3 +566,37 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - `npm run lint`는 ESLint 설정이 없어 설정 질문에서 멈춤(이번 변경과 무관, 설정 추가는 보류)
   - 지표: 스트립 클릭률, 세션당 상세 조회 변화
 
+## 2026-11-06 — 재방문 루프 Phase B: 상세에서 비교하고 후보 담기
+- 배경: 상세에서 다른 연습실로 가는 길이 없었음(세션당 상세 1.07개). 멤버와 정할 곳을 모아 둘 방법도 없었음
+- 수정 (DB 변경 없음):
+  - 비교 블록 `app/room/[id]/_components/RoomCompare.tsx`
+    - 위치 섹션 아래에 "근처 비슷한 연습실" 3곳: 썸네일·이름·요금(`studioPriceLabel`)·도보 분·드럼 여부
+    - 데이터는 서버에서 만듦. `page.tsx` `fetchNearbyRooms`를 공개 연습실에도 쓰고 자기 자신은 뺌. ISR과 같이 캐시됨. `getStudio`에 `room_type` 추가
+  - 후보 저장 `lib/candidates.ts`
+    - localStorage `ms_candidates`, 최대 5곳, 비로그인 가능
+    - 순수 함수 `toggleCandidate`·`parseCandidates`. 테스트 `tests/candidates.cjs`
+    - 같은 탭 동기화는 `ms:candidates` 이벤트. 상태는 `hooks/useCandidates.ts`
+  - 후보 토글 `CandidateToggle.tsx`: 정보 카드(공유·찜 옆)와 비교 행마다. 가득 차면 "최대 5곳"
+  - 후보 바 `CandidateBar.tsx`
+    - 1곳 이상이면 "후보 N곳 · 멤버랑 정하기 →"
+    - 누르면 후보 시트(목록·빼기)가 열림. 비공개된 후보는 시트를 열 때 자동으로 빠짐
+  - 하단 위치는 `--contact-bar-h` 규칙을 따름
+    - `globals.css`에서 `:root:has([data-room-contact-bar])`이면 76px
+    - 후보 바는 `calc(var(--contact-bar-h) + var(--tabbar-h) + var(--bottom-safe))` 높이에 섬
+    - `RoomContactBar`에는 속성만 추가. 위치·동작은 그대로
+- 이벤트: `compare_view {studio_id, count}`, `compare_click {studio_id}`, `candidate_toggle {studio_id, on, count}` (`docs/ANALYTICS.md`)
+- 확인(로컬, GA·Amplitude·page_views 차단 + `utm_campaign=codex_qa`):
+  - 비교 3행 표시, 행 클릭 → 다른 상세로 이동
+  - 담기 2곳 → 바 "후보 2곳". 새로고침 후에도 유지
+  - 5곳이 찬 상태에서 담기 → "최대 5곳", 목록 그대로
+  - 시트에서 빼기 2 → 1, 비공개 ID는 자동 제거
+  - 390px: 후보 바 아래 끝 768 = 문의 바 위 끝 768로 겹치지 않음. 맨 아래 "정보가 틀린가요?"(638)가 후보 바(708)에 가리지 않음
+  - 390·1440px `scrollWidth == innerWidth`
+  - `user_events`에 3개 이벤트가 `anon_id`와 함께 적재됨
+  - tsc 0, 테스트 38/38, build 성공
+- 남은 것:
+  - 실기기(아이폰 홈 바 여백) 미확인
+  - 바·시트는 상세에만 있음. 홈·검색 노출은 Phase D에서 판단
+  - 투표 링크(Phase C, DB 변경)
+  - 빌드 때 상세 프리렌더 500곳마다 근처 조회가 1~2번 늘어남
+

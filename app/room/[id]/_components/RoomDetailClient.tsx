@@ -18,6 +18,9 @@ import RoomBookingWidget from './RoomBookingWidget';
 import RoomContactBar from './RoomContactBar';
 import ReviewSection from './ReviewSection';
 import JamEntryCard from '@/components/JamEntryCard';
+import type { NearbyRoom } from '@/lib/nearby-rooms';
+import RoomCompare from './RoomCompare';
+import CandidateBar from './CandidateBar';
 
 const TAG_PREVIEW = 8;
 
@@ -33,7 +36,7 @@ function dedupeTags(tags: string[], exclude: string[] = []): string[] {
   });
 }
 
-export default function RoomDetailClient() {
+export default function RoomDetailClient({ nearby }: { nearby: NearbyRoom[] }) {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
@@ -285,6 +288,9 @@ export default function RoomDetailClient() {
           </div>
         )}
 
+        {/* 근처 비슷한 연습실 비교 + 후보 담기 — 위치 바로 아래 */}
+        <RoomCompare studioId={studio.id} rooms={nearby} />
+
         {/* 온라인 잼 입구 — 예약·위치 확인 뒤, 리뷰 위 */}
         <JamEntryCard from="room" />
 
@@ -321,6 +327,9 @@ export default function RoomDetailClient() {
           onClose={() => setShowReport(false)}
         />
       )}
+
+      {/* 후보 바 — 문의 바 위 */}
+      <CandidateBar />
 
       {/* 하단 고정 연락 버튼 */}
       <RoomContactBar studio={studio} />
