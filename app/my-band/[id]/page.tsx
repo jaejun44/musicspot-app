@@ -30,7 +30,7 @@ interface Member {
 interface Schedule {
   id: string;
   title: string;
-  schedule_date: string;
+  date: string;
   start_time: string | null;
   end_time: string | null;
   location: string | null;
@@ -83,7 +83,7 @@ function AddScheduleModal({
       .insert({
         band_id: bandId,
         title: title.trim(),
-        schedule_date: date,
+        date: date,
         start_time: startTime || null,
         end_time: endTime || null,
         location: location.trim() || null,
@@ -252,7 +252,7 @@ export default function BandDetailPage() {
     const [bandRes, memberRes, scheduleRes] = await Promise.all([
       supabase.from('bands').select('*').eq('id', bandId).single(),
       supabase.from('band_members').select('*').eq('band_id', bandId).order('joined_at'),
-      supabase.from('band_schedules').select('*').eq('band_id', bandId).order('schedule_date'),
+      supabase.from('band_schedules').select('*').eq('band_id', bandId).order('date'),
     ]);
     if (bandRes.data) setBand(bandRes.data);
     if (memberRes.data) {
@@ -267,7 +267,7 @@ export default function BandDetailPage() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   /* Calendar helpers */
-  const scheduleDateSet = new Set(schedules.map((s) => s.schedule_date));
+  const scheduleDateSet = new Set(schedules.map((s) => s.date));
   const daysInMonth = getDaysInMonth(calYear, calMonth);
   const firstDay = getFirstDayOfWeek(calYear, calMonth);
   const calPad = Array(firstDay).fill(null);
@@ -276,11 +276,11 @@ export default function BandDetailPage() {
     `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
   const selectedDateSchedules = selectedDate
-    ? schedules.filter((s) => s.schedule_date === selectedDate)
+    ? schedules.filter((s) => s.date === selectedDate)
     : [];
 
   const upcomingSchedules = schedules
-    .filter((s) => s.schedule_date >= today)
+    .filter((s) => s.date >= today)
     .slice(0, 10);
 
   function prevMonth() {
@@ -605,7 +605,7 @@ export default function BandDetailPage() {
             prefillDate={addPrefillDate}
             onClose={() => { setShowAddSchedule(false); setAddPrefillDate(undefined); }}
             onAdded={(s) => {
-              setSchedules((prev) => [...prev, s].sort((a, b) => a.schedule_date.localeCompare(b.schedule_date)));
+              setSchedules((prev) => [...prev, s].sort((a, b) => a.date.localeCompare(b.date)));
               setShowAddSchedule(false);
               setAddPrefillDate(undefined);
             }}
@@ -639,7 +639,7 @@ function ScheduleCard({
         <div className="flex-1 min-w-0">
           {showDate && (
             <p className="text-[12px] font-bold text-[#FF3D77] mb-0.5" style={{ fontFamily: 'Pretendard, sans-serif' }}>
-              {s.schedule_date}
+              {s.date}
             </p>
           )}
           <p className="text-[15px] font-bold text-[#0A0A0A] truncate" style={{ fontFamily: 'Pretendard, sans-serif' }}>

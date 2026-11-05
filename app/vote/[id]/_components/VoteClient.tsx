@@ -17,6 +17,7 @@ import {
   getCreatorToken,
   getVote,
   getVoterKey,
+  rememberMyVote,
   submitVoteResponse,
   tallyVote,
   type SubmitResult,
@@ -25,6 +26,8 @@ import {
 } from '@/lib/votes';
 import type { Studio } from '@/types/studio';
 import VoteShare from './VoteShare';
+import VoteSaveToBand from './VoteSaveToBand';
+import VoteCreatePanel from '@/app/room/[id]/_components/VoteCreatePanel';
 
 type VoteStudio = Pick<Studio, 'id' | 'name' | 'photos' | 'price_info' | 'price_per_hour' | 'has_drum' | 'address' | 'is_published'>;
 
@@ -56,6 +59,7 @@ export default function VoteClient({ voteId }: { voteId: string }) {
   const [pickSlots, setPickSlots] = useState<VoteSlot[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  const [showNext, setShowNext] = useState(false);
   const viewed = useRef(false);
 
   const load = useCallback(async () => {
@@ -119,6 +123,7 @@ export default function VoteClient({ voteId }: { voteId: string }) {
       });
       if (result === 'saved') {
         track('vote_submit', { vote_id: vote.id, is_update: isUpdate });
+        rememberMyVote(vote.id);
         setNotice({ kind: 'ok', text: isUpdate ? '투표를 고쳤어요.' : '투표했어요! 결과는 아래에서 같이 봐요.' });
         await load();
       } else {
@@ -243,6 +248,35 @@ export default function VoteClient({ voteId }: { voteId: string }) {
           >
             문의·예약하러 가기 →
           </Link>
+        </div>
+      )}
+
+      {decided && <VoteSaveToBand vote={vote} tally={tally} studio={decided} />}
+
+      {/* 다음 합주도 같은 후보로 — 새 투표를 이 투표에 잇는다(단톡방의 이 링크가 다음 방문의 입구) */}
+      {closed && !vote.next_vote_id && (
+        <div className={card} style={cardShadow}>
+          {showNext ? (
+            <>
+              <p className="text-[15px] font-bold text-[#0A0A0A]">🔁 다음 합주도 여기서 정하기</p>
+              <VoteCreatePanel
+                studioIds={vote.studio_ids.filter((id) => studios.get(id)?.is_published)}
+                parentVoteId={vote.id}
+              />
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowNext(true)}
+              className="w-full flex items-center justify-between gap-2 text-left"
+            >
+              <span>
+                <span className="block text-[15px] font-bold text-[#0A0A0A]">🔁 다음 합주도 여기서 정하기</span>
+                <span className="block text-[12px] text-[#0A0A0A]/50 mt-0.5">같은 후보로 새 투표를 열어요</span>
+              </span>
+              <span aria-hidden className="text-[18px] font-bold">→</span>
+            </button>
+          )}
         </div>
       )}
 

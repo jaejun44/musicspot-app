@@ -25,7 +25,7 @@ export type UploadSource = 'file' | 'record' | 'youtube' | 'jam';
 export type JamSource = 'dm' | 'session';
 
 /** 홈·검색 상단 재방문 스트립의 목록 종류 */
-export type ReturnStripKind = 'recent' | 'favorite';
+export type ReturnStripKind = 'recent' | 'favorite' | 'vote';
 
 /** 모바일 하단 탭바의 탭. feed는 일본 모드(연습실 탭 대신)에서만 */
 export type NavTab = 'studio' | 'band' | 'stems' | 'community' | 'feed' | 'my';
@@ -55,8 +55,8 @@ export type EventSchema = {
   room_unavailable_click: { studio_id: string; to: 'studio' | 'region' | 'search'; to_studio_id?: string };
   /** 홈·검색 상단 "최근 본 / 찜한 연습실" 스트립 노출. 목록이 있을 때만(처음 온 사람은 안 보임) */
   return_strip_view: { count: number; kind: ReturnStripKind };
-  /** 스트립 카드 클릭 → 상세 */
-  return_strip_click: { kind: ReturnStripKind; studio_id: string };
+  /** 스트립 카드 클릭 → 상세(recent·favorite: studio_id) 또는 투표(vote: vote_id) */
+  return_strip_click: { kind: ReturnStripKind; studio_id?: string; vote_id?: string };
   /** 연습실 상세 "근처 비슷한 연습실" 비교 블록 노출 (count = 보인 곳 수) */
   compare_view: { studio_id: string; count: number };
   /** 비교 블록에서 다른 연습실로 이동. studio_id = 이동한 곳 */
@@ -64,7 +64,7 @@ export type EventSchema = {
   /** 후보 담기/해제 (on = 담음, count = 바뀐 뒤 후보 수). 가득 차서 거부된 시도는 안 보낸다 */
   candidate_toggle: { studio_id: string; on: boolean; count: number };
   /** 후보 투표 링크 생성 (count = 후보 연습실 수). vote_id로 링크 1개당 유입(vote_view)을 묶는다 */
-  vote_create: { vote_id: string; count: number };
+  vote_create: { vote_id: string; count: number; is_followup?: boolean };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */
@@ -75,6 +75,8 @@ export type EventSchema = {
   vote_decide: { vote_id: string; studio_id: string };
   /** 결정된 투표에서 상세(문의·실시간 예약)로 이동 */
   vote_to_contact: { vote_id: string; studio_id: string };
+  /** 결정된 투표를 내 밴드 합주 일정으로 저장 (로그인). is_new_band = 이때 밴드를 새로 만듦 */
+  vote_band_save: { vote_id: string; is_new_band: boolean };
 
   // ── 8마디 챌린지 (Stage 1~4 관통 OS — 최우선 계측) ──────────
   /** 챌린지 목록 진입. 로그인 여부는 공통 속성 is_logged_in을 볼 것 */

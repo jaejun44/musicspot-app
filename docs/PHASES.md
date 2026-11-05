@@ -646,3 +646,37 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
     - `user_events`를 authenticated 누구나 전부 읽음
     - `reset_weekly_challenge_scores`·`award_season_titles` 등 SECURITY DEFINER 함수를 anon이 실행 가능(advisor 경고)
 
+## 2026-11-06 — 재방문 루프 Phase D: 결정을 다음 방문으로 잇기
+- 배경: 투표로 정한 뒤 끝나 버리면 다음 합주 때 다시 네이버를 연다. 결정 기록을 밴드 일정에 남기고, 단톡방에 있는 링크와 홈에서 다음 투표로 이어지게 함
+- DB 변경 없음
+  - `votes.parent_vote_id`와 RPC 인자는 Phase C에 미리 넣어 둠
+  - 밴드 저장은 기존 RLS로 가능: bands·본인 band_members·소속 밴드 일정 insert
+- 수정
+  - `VoteSaveToBand.tsx`: 결정된 투표에 "우리 밴드 합주 일정으로 저장"
+    - 비로그인이면 `/login?returnTo=/vote/[id]`
+    - 내 밴드 고르기 또는 새 밴드 만들기(`MyBandClient`와 같은 방식, leader 행 추가)
+    - 날짜·시간대는 최다 득표로 채움(`topKey`). 시간대 → 시작 시각은 `SLOT_START_TIME`
+    - 일정 내용: 제목 `합주 · 연습실명`, 장소, 메모에 투표 링크
+  - "다음 합주도 여기서 정하기": 결정·마감된 투표에서 같은 후보로 새 투표(`VoteCreatePanel`에 `parentVoteId`)
+    - 옛 링크에는 "다음 합주 투표가 새로 열렸어요 →"(`next_vote_id`)
+  - 홈·검색 스트립에 kind `vote` "진행 중인 투표"
+    - 대상: 내가 만들었거나 투표한 투표(localStorage `ms_my_votes`, 최근 5개 RPC 조회) 중 마감·결정 전이고 다음 투표로 넘어가지 않은 것
+    - 있으면 기본 탭
+  - **기존 버그 수정**(사용자 승인): `/my-band/[id]`가 `band_schedules.schedule_date`로 읽고 썼는데 DB 컬럼은 `date`
+    - 그래서 일정 추가가 항상 실패했음(운영 일정 0건)
+    - 코드를 `date`로 맞춤(`types/database.types.ts`도 `date`). 다른 사용처 없음(전체 검색)
+- 이벤트: `vote_band_save {vote_id, is_new_band}`, `vote_create.is_followup`, `return_strip_* kind=vote`(click에 `vote_id`). 재진입 쿼리는 `docs/ANALYTICS.md` "투표 링크 재진입"
+- 확인(로컬 → 운영 DB, 분석 차단 + `utm_campaign=codex_qa`)
+  - 결정된 투표: 비로그인이면 "로그인하고 저장하기" 링크(returnTo 포함)
+  - "다음 합주도 여기서 정하기" → 날짜 1개 → 새 투표(`ad15dff2`, `is_followup=true`)
+  - 옛 투표: 새 투표 안내 배너가 뜨고 잇기 버튼은 숨김
+  - 멤버 세션: 단톡방 옛 링크(utm kakao) → 배너 → 새 투표 → 투표
+    - 홈 스트립 "진행 중인 투표 · 결과 보기 →" → 같은 투표로 재진입
+  - 이벤트: 같은 anon_id의 `vote_view` 3회 중 1회가 `return_strip_click(kind=vote)` 직후
+  - 390·1440px 가로 넘침 없음. tsc 0, 테스트 44/44, build 성공
+    - 첫 빌드에서 `/region` 조회 statement timeout 1회. 재빌드는 정상(이번 변경 무관, 일시적)
+- 남은 것
+  - **밴드 저장·`/my-band` 일정 수정은 브라우저 미확인**(로그인 필요 — 에이전트는 로그인 불가). 미리보기에서 로그인 후 확인 필요
+  - "다른 날" 재진입은 시간이 지나야 집계됨(쿼리 준비)
+  - QA 투표 2건(`5845fd1a`, `ad15dff2`)과 응답 2건이 운영에 남음. 삭제는 승인 필요
+

@@ -15,7 +15,7 @@ function loadLib(file) {
   return exports;
 }
 
-const { tallyVote, formatVoteDate, upcomingDates } = loadLib('votes');
+const { tallyVote, formatVoteDate, upcomingDates, topKey, addMyVote } = loadLib('votes');
 
 const vote = (responses) => ({ studio_ids: ['a', 'b', 'c'], date_options: ['2026-11-07', '2026-11-08'], responses });
 const r = (studios, dates = [], slots = []) => ({ picked_studio_ids: studios, picked_dates: dates, picked_slots: slots });
@@ -46,4 +46,15 @@ test('다가오는 날짜: 한국 시간 기준 오늘부터', () => {
   assert.deepEqual([...upcomingDates(new Date('2026-11-06T16:00:00Z'), 3)], ['2026-11-07', '2026-11-08', '2026-11-09']);
   // UTC 11-06 14:00 = KST 11-06 23:00 → 11-06부터
   assert.equal(upcomingDates(new Date('2026-11-06T14:00:00Z'), 1)[0], '2026-11-06');
+});
+
+test('최다 항목: 동점이면 순서 앞쪽, 0표뿐이면 null', () => {
+  assert.equal(topKey({ a: 1, b: 2, c: 2 }, ['a', 'b', 'c']), 'b');
+  assert.equal(topKey({ a: 0, b: 0 }, ['a', 'b']), null);
+  assert.equal(topKey({}, []), null);
+});
+
+test('내 투표 목록: 최근 것이 앞, 중복 제거, 최대 개수', () => {
+  assert.deepEqual([...addMyVote(['x', 'y'], 'y')], ['y', 'x']);
+  assert.deepEqual([...addMyVote(['1', '2', '3'], '4', 3)], ['4', '1', '2']);
 });
