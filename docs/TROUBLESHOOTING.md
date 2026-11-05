@@ -2,7 +2,7 @@
 
 > 막히면 여기 먼저 확인. 새 트러블슈팅 발견 시 이 파일에 추가.
 
-- **Supabase 1,000행 제한**: `.limit()` 금지, 배치 range 필수 (CLAUDE.md "데이터 패턴" 참조)
+- **Supabase 1,000행 제한**: `.limit()` 금지, 배치 range 필수 (`docs/DATA_ACCESS.md` 참조)
 - **useSearchParams**: Suspense 래핑 없으면 빌드 에러
 - **Kakao SDK onLoad**: layout.tsx 인라인 Script로만 초기화
 - **kakao 타입 충돌**: `types/kakao.d.ts` 통합
