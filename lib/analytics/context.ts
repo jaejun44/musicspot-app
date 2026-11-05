@@ -23,6 +23,26 @@ export function getSessionId(): string {
   return sid;
 }
 
+// ─── 영구 익명 방문자 ID (재방문 측정용) ─────────────────────────
+// ms_sid는 탭을 닫으면 사라져 "다시 온 사람"을 구분할 수 없다.
+// ms_aid는 localStorage에 남아 같은 브라우저의 재방문을 묶는다.
+// 저장소가 막힌 환경(시크릿 모드 등)에서는 null — 재방문 집계에서 빠질 뿐 서비스엔 영향 없음.
+const ANON_ID_KEY = 'ms_aid';
+
+export function getAnonId(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    let aid = window.localStorage.getItem(ANON_ID_KEY);
+    if (!aid) {
+      aid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      window.localStorage.setItem(ANON_ID_KEY, aid);
+    }
+    return aid;
+  } catch {
+    return null;
+  }
+}
+
 // ─── 로그인 상태 캐시 ────────────────────────────────────────────
 // 공통 속성을 만들 때마다 await 할 수 없으므로, AmplitudeProvider가
 // auth 상태 변화 때 여기에 밀어넣은 값을 동기적으로 읽는다.
