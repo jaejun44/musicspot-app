@@ -130,7 +130,8 @@ Storage: stems       오디오 (30MB, MP3/WAV/OGG/M4A/FLAC)
 | UI·디자인·Figma 구현 | `docs/DESIGN.md` — 색상·폰트·그림자·Framer·Figma 변환 |
 | 제품·전략 제약 전체 | `docs/RULES.md` — 금지/필수, 한일 설계 컬럼 |
 | 에러·빌드 막힘 | `docs/TROUBLESHOOTING.md` — 알려진 이슈, Next.js 패턴 |
-| 진행 중/다음 작업 | `docs/PHASES.md` — Phase 로그, 1순위 Cron, 장기 대기 |
+| 진행 중/다음 작업 | `docs/PHASES.md` — 맨 위 "현재 상태" 요약 → 진행 중 / 다음 작업·보류 → 날짜별 작업 로그 |
+| 에이전트 인수인계 | `docs/HANDOFF.md` — Claude Code ↔ Claude Cowork 작업 기록·요청 (시작·마무리 때 필수) |
 | 전략·깔때기·8마디 OS | `docs/STRATEGY.md` |
 | 화면 정의 | `docs/SCREENS.md` |
 | 이벤트 트래킹 | `docs/ANALYTICS.md` |
@@ -144,7 +145,8 @@ CLAUDE.md 과거 버전: `git log --follow -- CLAUDE.md` → `git show <커밋>:
 ## 작업 방식
 
 1. 이 파일 먼저 읽어 컨텍스트 파악
-2. 작업 유형에 맞는 `docs/` 문서만 추가 Read
-3. Figma 화면 기준으로 구현
-4. 완료 후 `docs/PHASES.md` 진행 로그 업데이트
-5. 새 트러블슈팅 → `docs/TROUBLESHOOTING.md`에 추가
+2. **`docs/HANDOFF.md` 맨 위 항목 + `docs/PHASES.md` "현재 상태" 확인** — Claude Cowork가 남긴 작업·요청(`상태: 열림`)이 있으면 먼저 이어받는다. `git status`로 커밋 안 된 변경도 확인(지우지 말고 HANDOFF와 대조)
+3. 작업 유형에 맞는 `docs/` 문서만 추가 Read
+4. Figma 화면 기준으로 구현
+5. 완료 후 `docs/PHASES.md` 진행 로그 + "현재 상태" 업데이트, `docs/HANDOFF.md`에 항목 추가
+6. 새 트러블슈팅 → `docs/TROUBLESHOOTING.md`에 추가
