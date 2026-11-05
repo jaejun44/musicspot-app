@@ -24,16 +24,19 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_KEY!
   );
 
+  // 인자 이름은 DB 함수 정의(p_season_year, p_season_quarter)와 같아야 한다 — 다르면 PostgREST가 함수를 못 찾는다(404)
   const { data, error } = await supabaseAdmin.rpc('award_season_titles', {
-    p_year: year,
-    p_quarter: quarter,
+    p_season_year: year,
+    p_season_quarter: quarter,
     p_country: country,
     p_top_n: top_n,
   });
 
   if (error) {
+    console.error('[award-titles] rpc 실패', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, awarded: data });
+  // 함수는 새로 부여된 (awarded_user_id, title_key) 행을 돌려준다 → 관리자 화면은 인원 수를 보여 준다
+  return NextResponse.json({ ok: true, awarded: Array.isArray(data) ? data.length : 0 });
 }
