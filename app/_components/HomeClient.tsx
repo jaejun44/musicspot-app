@@ -11,6 +11,7 @@ import FinalCTA from '@/components/FinalCTA';
 import SiteFooter from '@/components/SiteFooter';
 import ThemeSongPlayer from '@/components/ThemeSongPlayer';
 import WelcomeSheet from '@/components/WelcomeSheet';
+import ReturnStrip from '@/components/ReturnStrip';
 import { useIsJapanMode } from '@/lib/i18n';
 
 export default function HomeClient() {
@@ -35,6 +36,8 @@ export default function HomeClient() {
     >
       <Navigation />
       <DecorativeElements scrollY={scrollY} />
+      {/* 다시 온 사람: 최근 본·찜한 연습실을 히어로 위에 (처음 온 사람은 안 보임) */}
+      {!isJapanMode && <ReturnStrip />}
       <HeroSection />
       {!isJapanMode && (
         <>
