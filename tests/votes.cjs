@@ -11,11 +11,11 @@ function loadLib(file) {
   const source = ts.transpileModule(fs.readFileSync(path.join('lib', `${file}.ts`), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
   }).outputText;
-  vm.runInNewContext(source, { exports, require: () => ({}), Date });
+  vm.runInNewContext(source, { exports, require: () => ({}), Date, URLSearchParams, encodeURIComponent });
   return exports;
 }
 
-const { tallyVote, formatVoteDate, upcomingDates, topKey, addMyVote } = loadLib('votes');
+const { tallyVote, formatVoteDate, upcomingDates, topKey, addMyVote, parseAdminHash, buildAdminLink } = loadLib('votes');
 
 const vote = (responses) => ({ studio_ids: ['a', 'b', 'c'], date_options: ['2026-11-07', '2026-11-08'], responses });
 const r = (studios, dates = [], slots = []) => ({ picked_studio_ids: studios, picked_dates: dates, picked_slots: slots });
@@ -57,4 +57,22 @@ test('최다 항목: 동점이면 순서 앞쪽, 0표뿐이면 null', () => {
 test('내 투표 목록: 최근 것이 앞, 중복 제거, 최대 개수', () => {
   assert.deepEqual([...addMyVote(['x', 'y'], 'y')], ['y', 'x']);
   assert.deepEqual([...addMyVote(['1', '2', '3'], '4', 3)], ['4', '1', '2']);
+});
+
+test('관리 링크 해시: #k=토큰만 읽는다', () => {
+  assert.equal(parseAdminHash('#k=abc'), 'abc');
+  assert.equal(parseAdminHash('k=abc'), 'abc');
+  assert.equal(parseAdminHash(''), null);
+  assert.equal(parseAdminHash('#'), null);
+  assert.equal(parseAdminHash('#k='), null);
+  assert.equal(parseAdminHash('#x=abc'), null);
+  assert.equal(parseAdminHash('#reviews'), null);
+});
+
+test('관리 링크: 해시에만 토큰, 특수문자는 인코딩 왕복', () => {
+  const link = buildAdminLink('https://www.musicspotfest.com', 'v1', 'a+b/c=d&e f#g');
+  assert.ok(link.startsWith('https://www.musicspotfest.com/vote/v1#k='));
+  assert.ok(!link.includes('?'));
+  assert.equal(parseAdminHash(new URL(link).hash), 'a+b/c=d&e f#g');
+  assert.equal(parseAdminHash(new URL(buildAdminLink('https://x.test', 'v', 'deadbeef')).hash), 'deadbeef');
 });

@@ -89,6 +89,23 @@ export function addMyVote(list: string[], id: string, max = 10): string[] {
   return [id, ...list.filter((v) => v !== id)].slice(0, max);
 }
 
+/**
+ * 관리 링크 해시(`#k=<token>`)에서 만든 사람 토큰을 꺼낸다. 없거나 비었으면 null.
+ * 토큰은 해시에만 둔다 — 해시는 서버 요청·Referer·호스팅 로그에 실리지 않는다.
+ * (app/vote/[id]/page.tsx의 인라인 스크립트도 같은 규칙으로 읽는다)
+ */
+export function parseAdminHash(hash: string): string | null {
+  const raw = hash.startsWith('#') ? hash.slice(1) : hash;
+  if (!raw) return null;
+  const token = new URLSearchParams(raw).get('k');
+  return token ? token : null;
+}
+
+/** 다른 기기에서 결정할 수 있는 만든 사람용 링크. UTM을 붙이지 않는다(멤버 공유 링크와 구분) */
+export function buildAdminLink(origin: string, voteId: string, token: string): string {
+  return `${origin}/vote/${voteId}#k=${encodeURIComponent(token)}`;
+}
+
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 /** 'YYYY-MM-DD' → '11/8(토)'. 시간대 영향 없이 날짜 글자만 읽는다 */
@@ -160,7 +177,7 @@ export function getCreatorToken(voteId: string): string | null {
   return readTokens()[voteId] ?? null;
 }
 
-function saveCreatorToken(voteId: string, token: string): boolean {
+export function saveCreatorToken(voteId: string, token: string): boolean {
   try {
     localStorage.setItem(TOKENS_KEY, JSON.stringify({ ...readTokens(), [voteId]: token }));
     return true;

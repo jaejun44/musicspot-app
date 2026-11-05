@@ -17,7 +17,9 @@ import {
   getCreatorToken,
   getVote,
   getVoterKey,
+  parseAdminHash,
   rememberMyVote,
+  saveCreatorToken,
   submitVoteResponse,
   tallyVote,
   type SubmitResult,
@@ -26,6 +28,7 @@ import {
 } from '@/lib/votes';
 import type { Studio } from '@/types/studio';
 import VoteShare from './VoteShare';
+import VoteAdminLink from './VoteAdminLink';
 import VoteSaveToBand from './VoteSaveToBand';
 import VoteCreatePanel from '@/app/room/[id]/_components/VoteCreatePanel';
 
@@ -44,6 +47,19 @@ const SUBMIT_MESSAGE: Record<Exclude<SubmitResult, 'saved'>, string> = {
 const card = 'bg-white rounded-[20px] border-[3px] border-[#0A0A0A] p-5';
 const cardShadow = { boxShadow: '6px 6px 0 #0A0A0A' };
 
+/**
+ * 관리 링크(#k=)로 들어온 토큰. page.tsx 인라인 스크립트가 HTML 파싱 중 window에 꺼내 두고 해시를 지운다.
+ * 클라이언트 이동처럼 그 스크립트가 안 돈 경우를 위해 여기서도 해시를 읽고 지운다.
+ */
+function takeAdminToken(): string | null {
+  const w = window as Window & { __msVoteAdminToken?: string };
+  const fromScript = w.__msVoteAdminToken ?? null;
+  delete w.__msVoteAdminToken;
+  const fromHash = parseAdminHash(window.location.hash);
+  if (fromHash) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+  return fromScript ?? fromHash;
+}
+
 function toggleIn<T>(list: T[], v: T): T[] {
   return list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 }
@@ -61,6 +77,9 @@ export default function VoteClient({ voteId }: { voteId: string }) {
   const [notice, setNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [showNext, setShowNext] = useState(false);
   const viewed = useRef(false);
+  /** undefined = 아직 안 읽음, null = 관리 링크 아님(또는 처리 끝) */
+  const adminToken = useRef<string | null | undefined>(undefined);
+  const adminOpenTracked = useRef(false);
 
   const load = useCallback(async () => {
     if (!UUID_RE.test(voteId)) {
@@ -68,7 +87,25 @@ export default function VoteClient({ voteId }: { voteId: string }) {
       return;
     }
     try {
-      const v = await getVote(voteId, getVoterKey(), getCreatorToken(voteId));
+      if (adminToken.current === undefined) adminToken.current = takeAdminToken();
+      const pending = adminToken.current;
+      const voterKey = getVoterKey();
+      let v = await getVote(voteId, voterKey, pending ?? getCreatorToken(voteId));
+      if (pending) {
+        // 맞는 토큰만 이 기기에 저장. 틀리면 저장하지 않고 멤버 화면 그대로(이미 가진 토큰이 있으면 그것으로)
+        const valid = !!v?.is_creator;
+        if (valid) {
+          saveCreatorToken(voteId, pending);
+        } else {
+          const prev = getCreatorToken(voteId);
+          if (v && prev && prev !== pending) v = await getVote(voteId, voterKey, prev);
+        }
+        if (v && !adminOpenTracked.current) {
+          adminOpenTracked.current = true;
+          track('vote_admin_link_open', { vote_id: voteId, valid });
+        }
+        adminToken.current = null;
+      }
       setVote(v);
       if (!v) return;
       const { data, error } = await supabase
@@ -287,6 +324,9 @@ export default function VoteClient({ voteId }: { voteId: string }) {
           studioNames={vote.studio_ids.map((id) => studios.get(id)?.name).filter(Boolean) as string[]}
         />
       )}
+
+      {/* 만든 사람에게만 — 결정 후에도(다음 투표를 이어 가려면 필요) */}
+      {vote.is_creator && <VoteAdminLink voteId={vote.id} />}
 
       {/* 후보 연습실 */}
       <section className={card} style={cardShadow}>

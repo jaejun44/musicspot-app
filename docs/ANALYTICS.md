@@ -136,6 +136,7 @@ track('challenge_upload_complete', {
   - **투표 링크 1개당 유입** = `vote_view`(is_creator=false)의 distinct anon_id / `vote_create` 수
   - 응답자 구분은 분석에 안 실리는 기기 키(`ms_vk`)라 이벤트의 anon_id와 다르다. 재방문 집계는 이벤트의 anon_id로
 - `vote_band_save {vote_id, is_new_band}` (2026-11-06 추가): 결정된 투표 → 내 밴드 합주 일정 저장(로그인, `VoteSaveToBand.tsx`)
+- `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
   호출부가 없다. 이름 변경 금지 규칙에 따라 정의는 남긴다. 실시간 예약 결제가 붙으면 다시 쓴다.

@@ -77,6 +77,10 @@ export type EventSchema = {
   vote_to_contact: { vote_id: string; studio_id: string };
   /** 결정된 투표를 내 밴드 합주 일정으로 저장 (로그인). is_new_band = 이때 밴드를 새로 만듦 */
   vote_band_save: { vote_id: string; is_new_band: boolean };
+  /** 만든 사람이 자기 관리 링크(다른 기기에서 결정용)를 보냄/복사. 토큰 값은 절대 싣지 않는다 */
+  vote_admin_link_copy: { vote_id: string; method: 'kakao' | 'copy' };
+  /** 관리 링크(#k=)로 들어옴. valid=false = 토큰이 틀려 멤버 화면으로 보여 줌 */
+  vote_admin_link_open: { vote_id: string; valid: boolean };
 
   // ── 8마디 챌린지 (Stage 1~4 관통 OS — 최우선 계측) ──────────
   /** 챌린지 목록 진입. 로그인 여부는 공통 속성 is_logged_in을 볼 것 */

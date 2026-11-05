@@ -715,6 +715,21 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - `supabase/12_award_titles_fix.sql`: `#variable_conflict use_column` 한 줄 추가(사용자 승인 후 운영 적용). 본문·`search_path=public`·실행 권한(service_role만) 유지 확인
   - 로컬 Postgres 18: 기존 본문 오류 재현 → 수정본은 KR 상위만 시상, 같은 시즌 재실행 0명
 
+## 2026-11-06 — 투표 관리 링크: 다른 기기에서도 결정 (DB 변경 없음)
+- 배경: 만든 사람 토큰(`ms_vote_tokens`)이 만든 기기에만 있어 PC에서 만들고 휴대폰(단톡방)에서 결정할 수 없었음
+- 링크 `/vote/<id>#k=<creator_token>` — 토큰은 해시에만(서버·리퍼러로 안 감), 쿼리·경로 금지, UTM 없음
+  - `app/vote/[id]/page.tsx`: 하이드레이션 전 인라인 스크립트가 해시 토큰을 꺼내고 `history.replaceState`로 즉시 지움(GA·Amplitude 자동 수집 전)
+  - `VoteClient.tsx`: 꺼낸 토큰으로 `get_vote` → `is_creator`면 `saveCreatorToken`, 아니면 저장하지 않고 멤버 화면(오류 표시 없음). 기기에 이미 있던 유효 토큰은 유지
+  - `VoteAdminLink.tsx`: 만든 사람에게만 "🔑 내 관리 링크"(결정 전후·다음 투표 모두) — [나에게 카톡 보내기](SDK, 실패 시 복사) · [링크 복사]
+  - `lib/votes.ts`: `parseAdminHash` · `buildAdminLink` (테스트 `tests/votes.cjs`)
+- 이벤트: `vote_admin_link_copy {vote_id, method}` · `vote_admin_link_open {vote_id, valid}` — 토큰 값은 이벤트·콘솔에 없음
+- 확인(로컬 → 운영 DB, `codex_qa`, GA·Amplitude·page_views 차단): QA 투표 `966f9741`
+  - 새 프로필에서 관리 링크 → 결정 버튼, 주소창 `#k=` 사라짐, 새로고침 후에도 만든 사람 화면
+  - 멤버 링크 → 결정 버튼·관리 블록 없음 / 토큰 1글자 변경 → 멤버 화면, `valid=false`, 오류 없음
+  - 운영 `user_events` QA 9행: page·referrer·props에 `k=`·긴 hex 0건
+  - tsc 0, 테스트 46/46, build 성공, 390·1440px 가로 넘침 없음
+- 남은 것: 실제 휴대폰 카카오톡 "나와의 채팅" 전송은 사용자 확인 필요
+
 ## 2026-11-06 — 하루 정리 (PR #25 ~ #31)
 | PR | 내용 | DB |
 |----|------|----|
