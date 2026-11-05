@@ -18,6 +18,7 @@ import {
   getCommonProps,
   getCurrentPage,
   getSessionId,
+  getAnonId,
   getAnalyticsUserId,
 } from './context';
 
@@ -104,7 +105,8 @@ async function logEvent(eventType: string, props: AnyProps) {
       search_query: searchQuery ?? null,
       country: typeof props.country === 'string' ? props.country : null,
       language: typeof props.locale === 'string' ? props.locale : null,
-      props,
+      // anon_id: 재방문 측정용 영구 익명 ID (docs/ANALYTICS.md "재방문 측정")
+      props: { ...props, anon_id: getAnonId() },
     });
   } catch (e) {
     // 트래킹 실패가 서비스에 영향을 주면 안 된다 → 조용히 무시

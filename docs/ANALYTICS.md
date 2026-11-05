@@ -196,3 +196,32 @@ group by 1 order by 2 desc;
 - 인플루언서: `utm_content={influencer_id}`
 - 모든 공유 버튼 자동 삽입 (`lib/share-utm.ts`, `KakaoShareButton` 참조)
 - 모든 이벤트에 자동 첨부. 내부 이동에도 sessionStorage로 유지하며 새 UTM 링크 진입 시 이전 캠페인 전체를 교체한다. 저장소가 차단되면 현재 URL 값만 사용한다.
+
+---
+
+## 재방문 측정 (2026-11-05 추가)
+
+`session_id`(`ms_sid`)는 sessionStorage라 탭을 닫으면 사라진다 → 비로그인 재방문을 구분할 수 없었다.
+`user_events.props.anon_id`(`ms_aid`, localStorage)를 모든 이벤트에 붙인다. 마이그레이션 없음(jsonb).
+- 시크릿 모드·저장소 차단이면 `anon_id = null` → 재방문 집계에서 제외(과소 집계 방향).
+- 같은 사람이라도 기기·브라우저가 다르면 다른 사람으로 잡힌다. 로그인 유저는 `user_id`를 우선.
+- 2026-11-05 이전 데이터에는 anon_id가 없다. 재방문 지표는 이 날짜 이후 코호트만 본다.
+
+### 주간 재방문율 (첫 방문 주 기준, 7일 안에 다른 날 다시 온 비율)
+```sql
+with v as (
+  select coalesce(user_id::text, props->>'anon_id') vid,
+         date(created_at at time zone 'Asia/Seoul') d
+  from user_events
+  where created_at >= '2026-11-05' and (user_id is not null or props->>'anon_id' is not null)
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 세션의 약 40%가 봇(2026-10 기준)
+  group by 1, 2
+), f as (select vid, min(d) first_d from v group by 1)
+select date_trunc('week', f.first_d)::date cohort_week,
+       count(*) visitors,
+       count(*) filter (where exists (
+         select 1 from v where v.vid = f.vid and v.d > f.first_d and v.d <= f.first_d + 7)) returned_d7,
+       round(100.0 * count(*) filter (where exists (
+         select 1 from v where v.vid = f.vid and v.d > f.first_d and v.d <= f.first_d + 7)) / count(*), 1) d7_pct
+from f group by 1 order by 1;
+```

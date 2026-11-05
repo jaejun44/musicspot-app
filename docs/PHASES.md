@@ -539,3 +539,8 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - mule 116곳 비공개 후 공개 799곳이 전부 T라 검색 'M룸' 칩은 0곳, 'T룸'은 눌러도 그대로였음(비공개 결정 때 놓친 부작용)
 - `hooks/useHasMonthlyRooms.ts`: 공개 M·both 수를 head count로 확인 → `FilterChips`는 있을 때만 T룸/M룸 표시. 예전 링크(`?room_type=M`)로 켜진 칩은 끌 수 있게 남김. 월 대여 연습실이 다시 생기면 자동으로 보임
 - 확인: 로컬 기본 화면 칩 '전체·드럼·가격순·서울 전체…', `?room_type=M` 진입 시 M룸 칩 유지. build·테스트 35/35
+
+## 2026-11-05 — 재방문 측정: 영구 익명 ID(anon_id)
+- 문제: `ms_sid`가 sessionStorage라 비로그인 재방문이 전부 신규로 잡힘. 운영 DB 기준 최근 30일 studio_view 768세션, 재방문 판정 불가.
+- 수정: `lib/analytics/context.ts` `getAnonId()`(localStorage `ms_aid`) → `logEvent`가 `props.anon_id`로 적재. 스키마 변경 없음.
+- 집계 쿼리: `docs/ANALYTICS.md` "재방문 측정". 11-05 이후 코호트만 유효.
