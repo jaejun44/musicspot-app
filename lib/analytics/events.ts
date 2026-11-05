@@ -57,6 +57,12 @@ export type EventSchema = {
   return_strip_view: { count: number; kind: ReturnStripKind };
   /** 스트립 카드 클릭 → 상세 */
   return_strip_click: { kind: ReturnStripKind; studio_id: string };
+  /** 연습실 상세 "근처 비슷한 연습실" 비교 블록 노출 (count = 보인 곳 수) */
+  compare_view: { studio_id: string; count: number };
+  /** 비교 블록에서 다른 연습실로 이동. studio_id = 이동한 곳 */
+  compare_click: { studio_id: string };
+  /** 후보 담기/해제 (on = 담음, count = 바뀐 뒤 후보 수). 가득 차서 거부된 시도는 안 보낸다 */
+  candidate_toggle: { studio_id: string; on: boolean; count: number };
 
   // ── 8마디 챌린지 (Stage 1~4 관통 OS — 최우선 계측) ──────────
   /** 챌린지 목록 진입. 로그인 여부는 공통 속성 is_logged_in을 볼 것 */

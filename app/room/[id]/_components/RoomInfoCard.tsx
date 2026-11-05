@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Studio } from '@/types/studio';
 import { useFavorites } from '@/hooks/useFavorites';
 import { studioPriceLabel } from '@/lib/studio-price';
+import CandidateToggle from './CandidateToggle';
 
 interface RoomInfoCardProps {
   studio: Studio;
@@ -39,6 +40,9 @@ export default function RoomInfoCard({ studio, onShare }: RoomInfoCardProps) {
         </h1>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* 합주 후보 담기 */}
+          <CandidateToggle studioId={studio.id} />
+
           {/* 공유 */}
           <motion.button
             onClick={onShare}

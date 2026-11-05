@@ -21,6 +21,15 @@
   --bottom-safe: env(safe-area-inset-bottom);
 }
 
+/* 연습실 상세 하단 문의 바(RoomContactBar)가 있을 때 그 높이(아이폰 홈 바 여백 제외 — 그건 --bottom-safe로 더한다).
+   후보 바(CandidateBar)가 이만큼 비켜 선다 */
+:root {
+  --contact-bar-h: 0px;
+}
+:root:has([data-room-contact-bar]) {
+  --contact-bar-h: 76px;
+}
+
 @media (max-width: 767.98px) {
   :root:has([data-bottom-tab-bar]) {
     --tabbar-h: calc(63px + env(safe-area-inset-bottom)); /* 탭 60px + 위 테두리 3px */
