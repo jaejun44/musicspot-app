@@ -6,6 +6,7 @@ import SearchHeader from './SearchHeader';
 import RoomList from './RoomList';
 import RoomMapView from './RoomMapView';
 import ViewToggle from './ViewToggle';
+import ReturnStrip from '@/components/ReturnStrip';
 import Navigation from '@/components/Navigation';
 import { Studio } from '@/types/studio';
 import Link from 'next/link';
@@ -74,6 +75,9 @@ export default function SearchClient() {
           <ViewToggle view={view} onChange={setView} />
         </div>
       </div>
+
+      {/* 최근 본·찜한 연습실 (목록 보기에서만) */}
+      {view === 'list' && <ReturnStrip />}
 
       {/* 첫 진입 '내 주변' 유도 배너 */}
       {showNearbyPrompt && (

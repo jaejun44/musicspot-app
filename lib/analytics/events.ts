@@ -24,6 +24,9 @@ export type UploadSource = 'file' | 'record' | 'youtube' | 'jam';
 /** 온라인 잼 방 정보가 열린 곳 */
 export type JamSource = 'dm' | 'session';
 
+/** 홈·검색 상단 재방문 스트립의 목록 종류 */
+export type ReturnStripKind = 'recent' | 'favorite';
+
 /** 모바일 하단 탭바의 탭. feed는 일본 모드(연습실 탭 대신)에서만 */
 export type NavTab = 'studio' | 'band' | 'stems' | 'community' | 'feed' | 'my';
 
@@ -50,6 +53,10 @@ export type EventSchema = {
   room_unavailable_view: { studio_id: string; nearby_count: number };
   /** 비공개 연습실 화면에서 대안 연습실·지역 페이지로 이동 */
   room_unavailable_click: { studio_id: string; to: 'studio' | 'region' | 'search'; to_studio_id?: string };
+  /** 홈·검색 상단 "최근 본 / 찜한 연습실" 스트립 노출. 목록이 있을 때만(처음 온 사람은 안 보임) */
+  return_strip_view: { count: number; kind: ReturnStripKind };
+  /** 스트립 카드 클릭 → 상세 */
+  return_strip_click: { kind: ReturnStripKind; studio_id: string };
 
   // ── 8마디 챌린지 (Stage 1~4 관통 OS — 최우선 계측) ──────────
   /** 챌린지 목록 진입. 로그인 여부는 공통 속성 is_logged_in을 볼 것 */

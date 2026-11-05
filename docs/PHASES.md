@@ -544,3 +544,25 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - 문제: `ms_sid`가 sessionStorage라 비로그인 재방문이 전부 신규로 잡힘. 운영 DB 기준 최근 30일 studio_view 768세션, 재방문 판정 불가.
 - 수정: `lib/analytics/context.ts` `getAnonId()`(localStorage `ms_aid`) → `logEvent`가 `props.anon_id`로 적재. 스키마 변경 없음.
 - 집계 쿼리: `docs/ANALYTICS.md` "재방문 측정". 11-05 이후 코호트만 유효.
+
+## 2026-11-06 — 재방문 루프 Phase A: 최근 본·찜한 연습실을 첫 화면에
+- 배경: 연습실 상세를 본 세션 366개, 세션당 상세 1.07개. 최근 본·찜은 있었지만 `/my-bookings` 탭 안에만 있어서, 다시 온 사람은 검색부터 다시 해야 했음
+- 수정: `components/ReturnStrip.tsx`
+  - 홈(히어로 위, 일본 모드 숨김)과 `/search`(목록 보기일 때만, 뷰 토글 바 아래)에 넣음
+  - 최근 본·찜한 연습실을 각각 최대 6개, 가로 스크롤로 보여 줌. 둘 다 있으면 칩으로 전환하고 기본은 최근 본
+  - 카드는 `StudioMiniCard` 재사용. 공개 연습실만 조회해서 비공개로 바뀐 ID는 빠짐
+  - 목록이 0개면 아무것도 그리지 않음. DB 변경 없음
+- 이벤트: `return_strip_view {count, kind}`, `return_strip_click {kind, studio_id}` (`docs/ANALYTICS.md`)
+- 확인(로컬, GA·Amplitude·page_views 차단 + `utm_campaign=codex_qa`):
+  - 첫 방문: 스트립 없음
+  - 상세 2곳을 본 뒤 홈: 클릭 없이 스트립이 보임. localStorage에 넣은 비공개 ID 1개는 걸러짐(3 → 2장)
+  - 찜 칩 전환, 카드 클릭 → 상세 이동 확인
+  - 390px·1440px 홈·검색: `scrollWidth == innerWidth`. 390px 검색에서 스트립 아래 끝 약 600px, 탭바 위 끝 781px로 겹치지 않음
+  - 일본 모드 홈: 스트립 없음
+  - `user_events`에 view·click이 `props.anon_id`와 함께 적재됨(`event_type` 컬럼)
+  - `npx tsc --noEmit` 0, 테스트 35/35, `npm run build` 성공
+- 남은 것:
+  - 실기기 미확인
+  - `npm run lint`는 ESLint 설정이 없어 설정 질문에서 멈춤(이번 변경과 무관, 설정 추가는 보류)
+  - 지표: 스트립 클릭률, 세션당 상세 조회 변화
+
