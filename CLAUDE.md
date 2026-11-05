@@ -39,7 +39,7 @@
 |--------|------|
 | 프레임워크 | Next.js 14 (App Router) + TypeScript |
 | 스타일 | Tailwind CSS / Framer Motion (`^12`) |
-| DB/백엔드 | Supabase (PostgreSQL, RLS 대부분 비활성화) |
+| DB/백엔드 | Supabase (PostgreSQL, 공개 테이블 전부 RLS on — 2026-11-06 확인) |
 | 지도/공유 | Kakao Maps + REST(지오코딩) / Kakao JS SDK |
 | 분석 | GA4 + Amplitude(Analytics·Session Replay) + Supabase `user_events` (`lib/analytics.ts`) |
 | 배포 | Vercel (main 브랜치 자동) |
@@ -109,12 +109,13 @@ user_profiles        밴드매칭 프로필
 direct_messages      1:1 채팅 (Realtime)
 bands / band_members / band_schedules    밴드 스케줄러
 studio_reviews       연습실 리뷰
-posts / post_likes / post_comments       커뮤니티 (RLS disabled)
+posts / post_likes / post_comments       커뮤니티
 notifications        실시간 알림 (RLS enabled, Realtime)
 stem_projects / stem_tracks              8마디 챌린지
 user_titles / user_challenge_score / challenge_pass_chain   명예 시스템
 user_mutual_responses    밴드 매칭 신호
 user_follows / user_events / studio_reports / studio_requests / page_views / feedbacks
+votes / vote_responses / vote_secrets    합주 후보 투표 /vote/[id] (정책 0개 — RPC 4개로만 접근, supabase/10_votes.sql)
 Storage: stems       오디오 (30MB, MP3/WAV/OGG/M4A/FLAC)
 ```
 
