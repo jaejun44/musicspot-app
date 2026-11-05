@@ -680,3 +680,21 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - "다른 날" 재진입은 시간이 지나야 집계됨(쿼리 준비)
   - QA 투표 2건(`5845fd1a`, `ad15dff2`)과 응답 2건이 운영에 남음. 삭제는 승인 필요
 
+## 2026-11-06 — 보안 점검 후속: 위험 함수 권한·이벤트 읽기·칭호 발급 버그 (운영 DB 반영)
+- 점검(읽기 전용): 비밀값 5개 클라이언트 번들 0건, public 42개 테이블 RLS on, 공개 쓰기는 폼·분석 INSERT만, DM·알림·예약·등록 신청 비공개
+- 수정 `supabase/11_security_hardening.sql` (사용자 승인 후 `apply_migration`)
+  - `award_season_titles`: anon 키로 `/rest/v1/rpc` 직접 호출하면 누구나 칭호 발급 가능했음 → anon·authenticated 실행 권한 제거(service_role 유지)
+  - `reset_weekly_challenge_scores`: 누구나 전체 weekly_score 0으로 만들 수 있었음 → 같은 조치(호출처·크론 없음)
+  - `user_events`: 로그인한 누구나 전 사용자 행동 로그를 읽던 정책 `authenticated can read events` 삭제(INSERT 정책 유지, 관리자 KPI는 서비스 키)
+- 기존 버그: `app/api/admin/award-titles`가 `p_year`/`p_quarter`로 호출 → 실제 인자는 `p_season_year`/`p_season_quarter`라 PostgREST 404, 칭호 발급이 항상 실패(운영 칭호 0건)
+  - 인자 이름 수정. 관리자 화면은 `awarded`를 숫자로 기대해서, 응답도 부여 인원 수로 바꿈
+- 확인
+  - anon RPC 두 함수 → 401 `permission denied`. service_role 실행 권한 true
+  - 예전 인자 이름 → 404(함수 못 찾음), 새 이름 → 함수를 찾음(anon은 권한에서 401)
+  - tsc 0, 테스트 44/44, build 성공
+- 남은 것
+  - 운영 `ADMIN_PASSWORD` 교체(로컬 값은 6자): 사용자가 직접
+  - 관리자 로그인 시도 제한
+  - `/api/translate` 호출 제한(로그인 요구 또는 Vercel WAF) — 방식 결정 필요
+  - 관리자 화면에서 실제 칭호 발급은 미확인(관리자 로그인 필요)
+
