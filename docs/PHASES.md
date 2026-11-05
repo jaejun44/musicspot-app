@@ -278,6 +278,13 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 
 ## 진행 중 / 다음 작업
 
+### 재방문 루프 후속 (2026-11-06 출시분)
+- **지표 확인 (11-13 무렵, 출시 1주 뒤)**: `docs/ANALYTICS.md` "재방문 측정"(D7 잔존, 목표 20%) · "투표 링크 재진입" 쿼리. QA는 `utm_campaign=codex_qa`, QA 투표 `5845fd1a`·`ad15dff2` 제외
+  - 세션당 상세 조회(1.07 → ?), `compare_click`/`compare_view`, `vote_create` 수, 투표 링크당 멤버 유입
+- **사용자 확인 필요(에이전트는 로그인 불가)**: 결정된 투표 → "우리 밴드로 저장", `/my-band/[id]` 일정 추가(schedule_date→date 수정분), 투표 카카오톡 공유(`vote_share`)
+- 투표 관리 링크(PR #33): 만든 사람이 `/vote/<id>#k=…` 링크로 다른 기기(휴대폰)에서도 결정. QA 투표 `966f9741`도 지표에서 제외. 실제 카카오톡 "나와의 채팅" 전송은 사용자 확인 필요
+- 지표 판단은 11-13 수치만이 아니라, 실제 합주팀 3팀에게 투표 링크를 직접 쓰게 한 결과를 함께 본다(`docs/GROWTH_CHECKPOINT_2026-09-09.md` 3팀 모집안).
+
 ### 일본어 i18n — 잔여 검증 (구현은 완료)
 2026-07-03 인수인계 문서(`HANDOFF_i18n_일본어_*.txt`, 2026-07-09 정리하며 삭제)의 잔여 작업을 재확인한 결과, t() 적용은 전부 끝났다.
 `lib/ensemble-audio.ts` / `lib/metronome.ts`는 미적용으로 남아 있었으나 **한국어가 전부 주석이고 사용자 노출 문자열이 없어 작업 대상이 아님**을 확인했다.
@@ -292,25 +299,19 @@ ProjectDetailModal.tsx  tracks를 section별로 그룹핑(orderedSectionUrls/lay
 
 ⚠️ `app/layout.tsx`가 `headers()`의 `x-locale`을 읽어 전체 동적 렌더링이 됨. ISR/SSG가 필요해지면 경로 기반 `/ja` 방식으로 전환할 것.
 
-### 1순위: 주간 점수 리셋 Cron
+### 보류: 보안 3건 — 가입자 50명 넘으면 (2026-11-06 결정, 당시 12명)
+- **즉시(사용자 작업)**: 운영 `ADMIN_PASSWORD` 20자 이상 무작위로 교체(Vercel에서 직접) — 시즌 시상이 이제 실제로 동작하고 칭호는 회수 불가라 50명 기준 보류에서 제외.
+- 관리자 로그인(`adminLogin`) 시도 제한
+- `/api/translate` 호출 제한 — 로그인 요구 vs Vercel WAF IP 제한 중 그때 결정
+- 낮음: `increment_pass_count`·`increment_share_count` 누구나 호출(카운터 부풀리기, 근본 해결은 트리거로 이동)
+
+### 보류: 주간 점수 리셋 Cron (8마디 트랙 0건 — 활동이 생기면)
 - `app/api/cron/reset-weekly-scores/route.ts` — Vercel Cron
 - 매주 월요일 00:00 KST `reset_weekly_challenge_scores()` 호출
 - `Authorization: Bearer {CRON_SECRET}` 헤더 검증
 - `CRON_SECRET` 환경변수 Vercel 추가
 - `vercel.json`: `"0 15 * * 0"` (일요일 15:00 UTC = 월요일 00:00 KST)
 - ⚠️ 2026-11-06부터 이 함수는 `service_role`만 실행 가능(`supabase/11_security_hardening.sql`) → 라우트에서 반드시 `createAdminClient()`(서비스 키)로 호출. anon 클라이언트로 부르면 401
-
-### 재방문 루프 후속 (2026-11-06 출시분)
-- **지표 확인 (11-13 무렵, 출시 1주 뒤)**: `docs/ANALYTICS.md` "재방문 측정"(D7 잔존, 목표 20%) · "투표 링크 재진입" 쿼리. QA는 `utm_campaign=codex_qa`, QA 투표 `5845fd1a`·`ad15dff2` 제외
-  - 세션당 상세 조회(1.07 → ?), `compare_click`/`compare_view`, `vote_create` 수, 투표 링크당 멤버 유입
-- **사용자 확인 필요(에이전트는 로그인 불가)**: 결정된 투표 → "우리 밴드로 저장", `/my-band/[id]` 일정 추가(schedule_date→date 수정분), 투표 카카오톡 공유(`vote_share`)
-- 투표 화면에서 만든 사람 토큰(`ms_vote_tokens`)은 기기 저장이라 다른 기기에서는 결정 불가 — 문의가 생기면 로그인 사용자 연결 검토
-
-### 보류: 보안 3건 — 가입자 50명 넘으면 (2026-11-06 결정, 당시 12명)
-- 운영 `ADMIN_PASSWORD` 20자 이상 무작위로 교체(사용자가 Vercel에서 직접)
-- 관리자 로그인(`adminLogin`) 시도 제한
-- `/api/translate` 호출 제한 — 로그인 요구 vs Vercel WAF IP 제한 중 그때 결정
-- 낮음: `increment_pass_count`·`increment_share_count` 누구나 호출(카운터 부풀리기, 근본 해결은 트리거로 이동)
 
 ### 보류: 챌린지 폼(form) 옵션 — 12마디 블루스 (2026-08-08 결정)
 "메인 컨셉을 8마디 → 12마디(블루스)로 리네임" 안을 검토했고 **8마디 유지**로 결론.
@@ -554,7 +555,7 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - 확인: 로컬 기본 화면 칩 '전체·드럼·가격순·서울 전체…', `?room_type=M` 진입 시 M룸 칩 유지. build·테스트 35/35
 
 ## 2026-11-05 — 재방문 측정: 영구 익명 ID(anon_id)
-- 문제: `ms_sid`가 sessionStorage라 비로그인 재방문이 전부 신규로 잡힘. 운영 DB 기준 최근 30일 studio_view 768세션, 재방문 판정 불가.
+- 문제: `ms_sid`가 sessionStorage라 비로그인 재방문이 전부 신규로 잡힘. 운영 DB 기준 최근 30일 studio_view 봇 UA 제외 366세션(봇 포함 768), 재방문 판정 불가.
 - 수정: `lib/analytics/context.ts` `getAnonId()`(localStorage `ms_aid`) → `logEvent`가 `props.anon_id`로 적재. 스키마 변경 없음.
 - 집계 쿼리: `docs/ANALYTICS.md` "재방문 측정". 11-05 이후 코호트만 유효.
 
@@ -730,7 +731,7 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - tsc 0, 테스트 46/46, build 성공, 390·1440px 가로 넘침 없음
 - 남은 것: 실제 휴대폰 카카오톡 "나와의 채팅" 전송은 사용자 확인 필요
 
-## 2026-11-06 — 하루 정리 (PR #25 ~ #31)
+## 2026-11-06 — 하루 정리 (PR #25 ~ #34)
 | PR | 내용 | DB |
 |----|------|----|
 | #25 | 재방문 측정용 영구 익명 ID `anon_id`(`ms_aid`) → `user_events.props` | — |
@@ -740,6 +741,9 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 | #29 | Phase D: 밴드 일정 저장·다음 합주 투표 잇기·스트립 "진행 중인 투표" + `/my-band` 일정 컬럼 버그 | — |
 | #30 | 보안: 위험 RPC 2개 공개 실행 차단, `user_events` 전체 읽기 제거, 칭호 발급 인자 오류 | `11_security_hardening.sql` 적용 |
 | #31 | 시즌 시상 함수 `title_key` 모호성 오류(관리자 화면에서 시상 동작 확인) | `12_award_titles_fix.sql` 적용 |
+| #32 | 문서: 하루 정리·TROUBLESHOOTING | — |
+| #33 | 투표 관리 링크 `/vote/<id>#k=…`: 다른 기기에서도 결정(토큰은 해시에만, 즉시 제거) | — |
+| #34 | 문서: PHASES 수치 정정(봇 제외 366세션)·우선순위 정리(재방문 후속 맨 위, Cron 보류, ADMIN_PASSWORD 즉시) | — |
 
 - 흐름: 연습실 검색자 → 상세에서 비교·후보 → 단톡방 투표 링크 → 결정 → 상세 문의·예약 / 밴드 일정 → 다음 합주 때 옛 링크·홈 스트립으로 재방문. 8마디는 기존 `challenge_nudge`로 연결(새로 만들지 않음)
 - 검증 방식: 매 PR tsc·테스트(35 → 44개)·build, 로컬 390/1440px 브라우저 확인, 분석은 `utm_campaign=codex_qa` 표시, DB 변경은 로컬 Postgres 18에서 먼저 검증 → 승인 → 적용 → 권한 재확인
@@ -747,5 +751,5 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - 알게 된 것
   - 공개 테이블 42개 모두 RLS on(CLAUDE.md의 "RLS 대부분 비활성화"는 옛 정보 → 수정)
   - `fix/db-security-hardening` 이름 브랜치는 GitHub가 `fatal error in commit_refs`로 계속 거부(장애·규칙·이름 충돌 없음). 이름을 바꾸니 해결 → `docs/TROUBLESHOOTING.md`
-- 다음: 위 "진행 중 / 다음 작업"의 "재방문 루프 후속" · "보류: 보안 3건"
+- 다음: 위 "진행 중 / 다음 작업"의 "재방문 루프 후속"(11-13 지표 + 합주팀 3팀) · `ADMIN_PASSWORD` 교체(사용자)
 
