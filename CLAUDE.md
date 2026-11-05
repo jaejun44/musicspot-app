@@ -145,8 +145,8 @@ CLAUDE.md 과거 버전: `git log --follow -- CLAUDE.md` → `git show <커밋>:
 ## 작업 방식
 
 1. 이 파일 먼저 읽어 컨텍스트 파악
-2. **`docs/HANDOFF.md` 맨 위 항목 + `docs/PHASES.md` "현재 상태" 확인** — Claude Cowork가 남긴 작업·요청(`상태: 열림`)이 있으면 먼저 이어받는다. `git status`로 커밋 안 된 변경도 확인(지우지 말고 HANDOFF와 대조)
+2. **`docs/HANDOFF.md`(짧음, 통째로) + `docs/PHASES.md` 첫 `---`까지("현재 상태", ~30줄 — PHASES 전체 Read 금지)** — Cowork가 남긴 요청(`상태: 열림`)이 있으면 먼저 이어받는다. `git status`로 커밋 안 된 변경도 확인(지우지 말고 HANDOFF와 대조)
 3. 작업 유형에 맞는 `docs/` 문서만 추가 Read
 4. Figma 화면 기준으로 구현
-5. 완료 후 `docs/PHASES.md` 진행 로그 + "현재 상태" 업데이트, `docs/HANDOFF.md`에 항목 추가
+5. 완료 후 `docs/PHASES.md` 날짜 로그 + "현재 상태" 업데이트, `docs/HANDOFF.md`에 항목 추가(규칙은 HANDOFF 안)
 6. 새 트러블슈팅 → `docs/TROUBLESHOOTING.md`에 추가
