@@ -10,10 +10,12 @@ import { MAX_DATE_OPTIONS, createVote, formatVoteDate, upcomingDates } from '@/l
 
 interface Props {
   studioIds: string[];
+  /** "다음 합주도 여기서 정하기": 이전 투표에서 이어 만든다(옛 링크가 새 투표로 안내) */
+  parentVoteId?: string;
 }
 
-/** 후보 시트 아래: 날짜 후보(선택)를 고르고 투표 링크를 만든다 → /vote/[id] */
-export default function VoteCreatePanel({ studioIds }: Props) {
+/** 날짜 후보(선택)를 고르고 투표 링크를 만든다 → /vote/[id]. 후보 시트와 결정된 투표 화면에서 쓴다 */
+export default function VoteCreatePanel({ studioIds, parentVoteId }: Props) {
   const router = useRouter();
   const days = useMemo(() => upcomingDates(new Date(), 14), []);
   const [dates, setDates] = useState<string[]>([]);
@@ -35,8 +37,8 @@ export default function VoteCreatePanel({ studioIds }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const id = await createVote({ anonId, studioIds, dates, country: getClientCountry() ?? 'KR' });
-      track('vote_create', { vote_id: id, count: studioIds.length });
+      const id = await createVote({ anonId, studioIds, dates, country: getClientCountry() ?? 'KR', parentVoteId });
+      track('vote_create', { vote_id: id, count: studioIds.length, is_followup: !!parentVoteId });
       router.push(`/vote/${id}`);
     } catch (e) {
       console.error('[VoteCreatePanel] 투표 생성 실패', e);
@@ -83,10 +85,16 @@ export default function VoteCreatePanel({ studioIds }: Props) {
         className="mt-3 w-full py-3 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[15px] font-bold disabled:opacity-60"
         style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
       >
-        {busy ? '만드는 중…' : `🗳️ 후보 ${studioIds.length}곳으로 투표 링크 만들기`}
+        {busy
+          ? '만드는 중…'
+          : parentVoteId
+            ? `🔁 같은 후보 ${studioIds.length}곳으로 새 투표 만들기`
+            : `🗳️ 후보 ${studioIds.length}곳으로 투표 링크 만들기`}
       </motion.button>
       <p className="mt-2 text-[12px] text-[#0A0A0A]/50 text-center">
-        링크를 밴드 단톡방에 올리면 멤버가 로그인 없이 투표해요.
+        {parentVoteId
+          ? '단톡방에 있던 이 링크로 들어온 멤버도 새 투표로 안내돼요.'
+          : '링크를 밴드 단톡방에 올리면 멤버가 로그인 없이 투표해요.'}
       </p>
     </div>
   );

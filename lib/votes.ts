@@ -17,6 +17,14 @@ export const VOTE_SLOTS: { key: VoteSlot; label: string }[] = [
 
 export const MAX_DATE_OPTIONS = 7;
 
+/** 밴드 일정으로 저장할 때 시간대 → 시작 시각(band_schedules.start_time) */
+export const SLOT_START_TIME: Record<VoteSlot, string> = {
+  morning: '10:00',
+  afternoon: '14:00',
+  evening: '18:00',
+  night: '21:00',
+};
+
 export interface VoteResponse {
   nickname: string;
   picked_studio_ids: string[];
@@ -67,6 +75,20 @@ export function tallyVote(vote: Pick<Vote, 'studio_ids' | 'date_options' | 'resp
   return { studios, dates, slots, leaders };
 }
 
+/** 표가 가장 많은 항목(동점이면 order 앞쪽). 아무도 안 골랐으면 null */
+export function topKey(counts: Record<string, number>, order: string[]): string | null {
+  let best: string | null = null;
+  for (const key of order) {
+    if ((counts[key] ?? 0) > 0 && (best === null || counts[key] > counts[best])) best = key;
+  }
+  return best;
+}
+
+/** 내 투표 목록에 추가(최근 것이 앞, 중복 제거, 최대 max) */
+export function addMyVote(list: string[], id: string, max = 10): string[] {
+  return [id, ...list.filter((v) => v !== id)].slice(0, max);
+}
+
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 /** 'YYYY-MM-DD' → '11/8(토)'. 시간대 영향 없이 날짜 글자만 읽는다 */
@@ -87,6 +109,27 @@ export function upcomingDates(now: Date, days = 14): string[] {
 
 const VOTER_KEY = 'ms_vk';
 const TOKENS_KEY = 'ms_vote_tokens';
+/** 내가 만들었거나 투표한 투표 id (홈 스트립 "진행 중인 투표") */
+const MY_VOTES_KEY = 'ms_my_votes';
+
+export function getMyVoteIds(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(MY_VOTES_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function rememberMyVote(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(MY_VOTES_KEY, JSON.stringify(addMyVote(getMyVoteIds(), id)));
+  } catch (e) {
+    console.warn('[votes] 내 투표 목록 저장 실패 — 홈 스트립에 안 보일 수 있음', e);
+  }
+}
 
 /** 이 기기의 투표 키. 저장소가 막혔으면 null(투표 불가 안내) */
 export function getVoterKey(): string | null {
@@ -154,6 +197,7 @@ export async function createVote(input: {
   if (!saveCreatorToken(id, creator_token)) {
     console.warn('[votes] 만든 사람 토큰 저장 실패 — 이 기기에서 결정 버튼이 안 보일 수 있음');
   }
+  rememberMyVote(id);
   return id;
 }
 

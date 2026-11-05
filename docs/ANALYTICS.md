@@ -135,6 +135,8 @@ track('challenge_upload_complete', {
   - `vote_submit {vote_id, is_update}` / `vote_decide {vote_id, studio_id}` / `vote_to_contact {vote_id, studio_id}`(결정 화면 → 상세)
   - **투표 링크 1개당 유입** = `vote_view`(is_creator=false)의 distinct anon_id / `vote_create` 수
   - 응답자 구분은 분석에 안 실리는 기기 키(`ms_vk`)라 이벤트의 anon_id와 다르다. 재방문 집계는 이벤트의 anon_id로
+- `vote_band_save {vote_id, is_new_band}` (2026-11-06 추가): 결정된 투표 → 내 밴드 합주 일정 저장(로그인, `VoteSaveToBand.tsx`)
+- `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
   호출부가 없다. 이름 변경 금지 규칙에 따라 정의는 남긴다. 실시간 예약 결제가 붙으면 다시 쓴다.
 
@@ -235,3 +237,20 @@ select date_trunc('week', f.first_d)::date cohort_week,
          select 1 from v where v.vid = f.vid and v.d > f.first_d and v.d <= f.first_d + 7)) / count(*), 1) d7_pct
 from f group by 1 order by 1;
 ```
+
+### 투표 링크 재진입 (2026-11-06 추가, 재방문 루프 Phase D 판정)
+같은 anon_id가 같은 투표를 **다른 날(KST)** 다시 연 경우 = 단톡방 링크·홈 스트립이 다음 방문의 입구가 된 것.
+```sql
+with v as (
+  select props->>'anon_id' anon, props->>'vote_id' vote_id,
+         (created_at at time zone 'Asia/Seoul')::date kst_day
+  from user_events
+  where event_type = 'vote_view' and props->>'anon_id' is not null
+    and coalesce(props->>'utm_campaign', '') <> 'codex_qa'          -- QA 제외
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 봇 제외(위 재방문 쿼리와 같은 기준)
+)
+select count(*) filter (where days >= 2) reentered, count(*) viewers
+from (select anon, vote_id, count(distinct kst_day) days from v group by 1, 2) t;
+```
+- 다음 투표로 이어진 경우(옛 링크 → 새 투표)는 `votes.parent_vote_id`로 묶어서 본다
+
