@@ -214,6 +214,7 @@ with v as (
          date(created_at at time zone 'Asia/Seoul') d
   from user_events
   where created_at >= '2026-11-05' and (user_id is not null or props->>'anon_id' is not null)
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 세션의 약 40%가 봇(2026-10 기준)
   group by 1, 2
 ), f as (select vid, min(d) first_d from v group by 1)
 select date_trunc('week', f.first_d)::date cohort_week,
