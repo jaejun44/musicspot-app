@@ -11,7 +11,7 @@
 
 1. **응답은 한국어로**
 2. **파일 변경 전 반드시 Read 먼저**
-3. **컨텍스트 절약**: 큰 파일은 offset/limit 100줄씩, Bash 출력은 head/tail/grep으로 자르기. MCP 호출은 ⬇️ "MCP 응답 다이어트" 규칙 준수
+3. **컨텍스트 절약**: 큰 파일은 offset/limit 100줄씩, Bash 출력은 head/tail/grep으로 자르기. MCP 호출은 ⬇️ "데이터 접근 철칙" 준수
 4. **기존 패턴 존중** — MVP, 과도한 추상화 금지
 5. **작업 유형별 참조 문서를 그때 Read** (아래 "참조 문서" 인덱스). 본 파일은 항상 필요한 핵심만 담음.
 
@@ -59,44 +59,12 @@ BOOKING_ADMIN_API_TOKEN     # 예약 서버 관리자 키(사장님 초대 링�
 
 ---
 
-## MCP 응답 다이어트 (컨텍스트 절약 핵심)
+## 데이터 접근 철칙 (위반 시 조용히 틀림 — 상세·예시 `docs/DATA_ACCESS.md`)
 
-**원칙: 기본은 작게, 필요하면 키운다.** "무조건 작게"가 아니라 "목적에 맞는 만큼". 탐색·파악은 가볍게, 분석·디버깅에 진짜 데이터가 필요하면 목적을 밝히고 범위를 넓힌다.
-
-### Supabase MCP
-- **스키마 파악**: `list_tables`로 전체 스키마 통째 받지 말 것 (수만 토큰). 특정 테이블 구조만 필요하면 `execute_sql`로 `information_schema.columns` 한정 조회.
-- **데이터 조회**: `SELECT *` 금지. 필요한 컬럼만 + `LIMIT` 기본. 샘플은 `LIMIT 5~10`으로 시작.
-- **예외**: 디버깅·분석에 더 필요하면 → 목적 한 줄 밝히고 범위 확대 (질에 필요한 데이터는 받는다).
-- ⚠️ "데이터 패턴 > 1,000행 우회"는 앱 런타임 코드용. MCP 탐색 조회와 혼동 금지.
-
-### Vercel MCP
-- `list_deployments`: 최신 1~3개만 (`limit` 활용). `get_logs`/`get_runtime_logs`: 라인·시간 범위 제한, 전체 덤프 금지. `list_projects`: 식별 후 재호출 금지.
-
-### 공통
-- 같은 결과 같은 세션에서 반복 호출 금지 (재사용). 큰 응답 예상 시 count/구조 먼저 → 필요 범위만 본조회.
-
----
-
-## 데이터 패턴
-
-### Supabase 1,000행 제한 우회 (필수 — 앱 런타임 코드)
-```typescript
-const all: Studio[] = [];
-let offset = 0;
-while (true) {
-  const { data } = await supabase
-    .from('studios').select('*')
-    .eq('is_published', true)
-    .range(offset, offset + 999);
-  if (!data || data.length === 0) break;
-  all.push(...data);
-  if (data.length < 1000) break;
-  offset += 1000;
-}
-```
-- GPS 검색: 전체 fetch → 프론트 거리 정렬 (`lib/sort.ts`)
-- 텍스트 검색: `.order('data_quality_score', { ascending: false })`
-- ⚠️ `.limit()` 금지, 배치 range 필수
+- **앱 코드 Supabase 조회**: `.limit()` 금지 → `range` 1,000행 배치 + 정렬 끝에 `.order('id')` + `error`는 throw (예: `lib/region-rooms.ts`). 1,000행 넘으면 오류 없이 잘림
+- **Supabase MCP**: `list_tables` 통째·`SELECT *` 금지 → 필요한 컬럼 + `LIMIT`, 스키마는 `information_schema.columns`로 한정
+- **Vercel MCP**: `list_deployments`는 1~3개, 로그는 범위 제한, 같은 호출 반복 금지
+- ⏩ **Supabase 조회 코드를 쓰거나 MCP로 조회·분석하기 전에 `docs/DATA_ACCESS.md` Read**
 
 ---
 
@@ -129,6 +97,7 @@ Storage: stems       오디오 (30MB, MP3/WAV/OGG/M4A/FLAC)
 |----------|------|
 | UI·디자인·Figma 구현 | `docs/DESIGN.md` — 색상·폰트·그림자·Framer·Figma 변환 |
 | 제품·전략 제약 전체 | `docs/RULES.md` — 금지/필수, 한일 설계 컬럼 |
+| Supabase 조회 코드·MCP 조회 | `docs/DATA_ACCESS.md` — 1,000행 배치 예시, MCP 응답 다이어트 상세 |
 | 에러·빌드 막힘 | `docs/TROUBLESHOOTING.md` — 알려진 이슈, Next.js 패턴 |
 | 진행 중/다음 작업 | `docs/PHASES.md` — 맨 위 "현재 상태" 요약 → 진행 중 / 다음 작업·보류 → 날짜별 작업 로그 |
 | 에이전트 인수인계 | `docs/HANDOFF.md` — Claude Code ↔ Claude Cowork 작업 기록·요청 (시작·마무리 때 필수) |

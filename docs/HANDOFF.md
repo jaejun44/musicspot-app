@@ -17,7 +17,7 @@
 
 ### 2026-11-06 — Claude Code — 인수인계 통로 개설 · 시작 읽기 분량 축소
 - 한 일: 이 파일 신설(PR #37), PHASES 맨 위 "현재 상태" 요약, CLAUDE.md 시작·마무리 규칙. 이후 시작 때 읽는 범위를 PHASES 첫 `---`까지·이 파일로 제한, 중복 규칙 정리
-- 바뀐 파일: `docs/HANDOFF.md` · `docs/PHASES.md` · `CLAUDE.md` — PR #37·#38
+- 바뀐 파일: `docs/HANDOFF.md` · `docs/PHASES.md` · `CLAUDE.md` · `docs/DATA_ACCESS.md`(새 파일, CLAUDE.md의 MCP·1,000행 상세를 옮김) — PR #37·#38
 - 확인한 것: 11-06 작업(PR #25~#36) 모두 머지·운영 배포, 관리자 비밀번호·세션 시크릿 교체 사용자 확인
 - 받는 쪽: Cowork
 - 요청: 위 "규칙"대로 작업 시작·끝에 이 파일을 쓴다. 첫 작업 때 이 항목을 `상태: 처리됨 (날짜, Cowork)`로 바꿔 읽었다는 표시를 남긴다
