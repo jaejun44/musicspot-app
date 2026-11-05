@@ -63,6 +63,18 @@ export type EventSchema = {
   compare_click: { studio_id: string };
   /** 후보 담기/해제 (on = 담음, count = 바뀐 뒤 후보 수). 가득 차서 거부된 시도는 안 보낸다 */
   candidate_toggle: { studio_id: string; on: boolean; count: number };
+  /** 후보 투표 링크 생성 (count = 후보 연습실 수). vote_id로 링크 1개당 유입(vote_view)을 묶는다 */
+  vote_create: { vote_id: string; count: number };
+  /** 투표 링크 공유 (만든 사람 화면) */
+  vote_share: { vote_id: string; channel: ShareChannel };
+  /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */
+  vote_view: { vote_id: string; is_creator: boolean };
+  /** 투표 저장. is_update = 이미 낸 표를 고침 */
+  vote_submit: { vote_id: string; is_update: boolean };
+  /** 만든 사람이 연습실을 정함 */
+  vote_decide: { vote_id: string; studio_id: string };
+  /** 결정된 투표에서 상세(문의·실시간 예약)로 이동 */
+  vote_to_contact: { vote_id: string; studio_id: string };
 
   // ── 8마디 챌린지 (Stage 1~4 관통 OS — 최우선 계측) ──────────
   /** 챌린지 목록 진입. 로그인 여부는 공통 속성 is_logged_in을 볼 것 */

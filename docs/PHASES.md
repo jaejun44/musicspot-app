@@ -600,3 +600,49 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - 투표 링크(Phase C, DB 변경)
   - 빌드 때 상세 프리렌더 500곳마다 근처 조회가 1~2번 늘어남
 
+## 2026-11-06 — 재방문 루프 Phase C: 후보 투표 링크 (운영 DB 반영)
+- 배경: 웹은 푸시를 못 보냄 → 밴드 단톡방에 우리 링크(후보 투표)를 심어 단톡방이 알림 역할을 하게 함
+- DB `supabase/10_votes.sql` (사용자 승인 후 `apply_migration`, 기존 테이블 변경 없음)
+  - 테이블: `votes`(+`parent_vote_id`, Phase D용) · `vote_responses` · `vote_secrets`(만든 사람 토큰의 sha256)
+  - 직접 접근 차단: 세 테이블 모두 RLS on, 정책 0개, anon/authenticated 권한 REVOKE
+  - 읽기·쓰기는 SECURITY DEFINER RPC 4개(`search_path` 고정)로만: `create_vote` / `get_vote` / `submit_vote_response` / `decide_vote`
+  - 제한
+    - 생성: 같은 anon 1시간 10개, 전체 1시간 300개
+    - 응답: 투표당 50명, 닉네임 1~20자
+    - 선택값: 후보·날짜 밖 선택은 버림. 시간대 4종
+    - 기간: 만료 14일, 날짜 후보 60일 안 최대 7개. 결정·만료 후 응답 거부
+  - 로컬 Postgres 18에서 2회 실행·권한·제한 검증 후 운영 적용
+- 수정
+  - `lib/votes.ts`: 타입·RPC 래퍼·순수 함수(`tallyVote`·`formatVoteDate`·`upcomingDates`). 테스트 `tests/votes.cjs`
+  - 응답자 키는 anon_id가 아니라 기기 전용 `ms_vk`
+    - 이유: `user_events`를 authenticated가 전부 읽을 수 있어(기존 정책) anon_id가 남에게 보임
+    - 만든 사람 토큰은 `ms_vote_tokens`에 보관
+  - 후보 시트에 `VoteCreatePanel`: 날짜 후보(14일 중 최대 7개, 선택) + "투표 링크 만들기" → `/vote/[id]`
+  - `/vote/[id]`
+    - `page.tsx`: noindex·nofollow, force-dynamic
+    - `opengraph-image.tsx`: "다음 합주 어디서? 후보 N곳 투표"
+    - `VoteClient.tsx`: 연습실·날짜·시간대 투표와 집계. 닉네임 입력·목록에 `SR_MASK_CLASS`
+    - 만든 사람만 결정 → 상세로 이동
+    - 결정 화면: "문의·예약하러 가기". `next_vote_id`가 있으면 새 투표 안내
+  - `VoteShare.tsx`: 카카오톡 공유(SDK, `#FFD600` 허용 지점에 추가) + 링크 복사. UTM campaign `vote`(`ShareCampaign`에 추가)
+  - `/vote`를 `JA_BLOCKED_PREFIXES`에 추가(ko 전용)
+- 이벤트: `vote_create` · `vote_share` · `vote_view` · `vote_submit` · `vote_decide` · `vote_to_contact` (`docs/ANALYTICS.md`)
+- 확인(로컬 → 운영 DB, GA·Amplitude·page_views 차단 + `utm_campaign=codex_qa`)
+  - 만든 사람: 상세 후보 2곳 + 날짜 2개 → 투표 생성 → 공유 카드·결정 버튼 보임
+  - 멤버(별도 브라우저 세션, 로그인·토큰 없음): 공유·결정 버튼 없음. 닉네임+연습실·날짜·시간대 투표 → "투표 고치기"로 바뀜, 집계 1표
+  - 만든 사람 결정 → 그 상세로 이동. 멤버 화면은 결정 배너·폼 숨김, "문의·예약하러 가기" → 상세
+  - 차단
+    - anon REST로 세 테이블 GET·POST → 401 `permission denied`
+    - 일본어 쿠키 → 307 홈
+    - 잘못된 id → "투표를 찾을 수 없어요"
+  - 화면·메타: OG 이미지 200(한글 정상), 390·1440px 가로 넘침 없음
+  - 이벤트: 5종이 anon_id와 함께 적재
+  - tsc 0, 테스트 42/42, build 성공
+- 남은 것
+  - `vote_share` 미확인: 카카오 SDK는 운영 도메인 등록이 필요하고, 결정 후라 공유 카드가 숨겨짐 → 미리보기 배포에서 확인
+  - 운영 `votes`에 QA 투표 1건(`5845fd1a-…`, 응답 1건) 남음. 삭제는 승인 필요
+  - Phase D: 밴드로 저장, 다음 합주 투표 잇기(`parent_vote_id` 준비됨), 홈 스트립 "진행 중인 투표"
+  - 발견(기존, 이번 범위 밖)
+    - `user_events`를 authenticated 누구나 전부 읽음
+    - `reset_weekly_challenge_scores`·`award_season_titles` 등 SECURITY DEFINER 함수를 anon이 실행 가능(advisor 경고)
+

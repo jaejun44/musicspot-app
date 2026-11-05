@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { setCandidates } from '@/lib/candidates';
 import { studioPriceLabel } from '@/lib/studio-price';
 import { Studio } from '@/types/studio';
+import VoteCreatePanel from './VoteCreatePanel';
 
 /**
  * 후보가 1곳 이상이면 뜨는 하단 바 + 후보 목록 시트.
@@ -126,6 +127,8 @@ export default function CandidateBar() {
                 );
               })}
             </ul>
+
+            {studios.length > 0 && <VoteCreatePanel studioIds={studios.map((s) => s.id)} />}
           </motion.div>
         </div>
       )}
