@@ -697,4 +697,8 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - 관리자 로그인 시도 제한
   - `/api/translate` 호출 제한(로그인 요구 또는 Vercel WAF) — 방식 결정 필요
   - 관리자 화면에서 실제 칭호 발급은 미확인(관리자 로그인 필요)
+- 후속(같은 날): 관리자 화면 시즌 시상이 `column reference "title_key" is ambiguous`로 실패
+  - 원인: 반환형 `TABLE(awarded_user_id, title_key)`의 `title_key`가 PL/pgSQL 변수가 되어 `RETURNING ... title_key` 컬럼과 충돌. 인자 이름 오류 때문에 그동안 여기까지 실행된 적이 없었음
+  - `supabase/12_award_titles_fix.sql`: `#variable_conflict use_column` 한 줄 추가(사용자 승인 후 운영 적용). 본문·`search_path=public`·실행 권한(service_role만) 유지 확인
+  - 로컬 Postgres 18: 기존 본문 오류 재현 → 수정본은 KR 상위만 시상, 같은 시즌 재실행 0명
 
