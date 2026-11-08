@@ -9,6 +9,7 @@
 
 **지금 운영에 있는 핵심 흐름 (재방문 루프, 11-06 출시)**
 연습실 검색 → 상세에서 근처 비교·후보 담기 또는 **"📣 멤버한테 물어보기"(문의 카드·이름 옆·문의하고 돌아왔을 때 1회 넛지, 11-08)** → `/vote/[id]` 단톡방 투표(로그인 없음) → 만든 사람이 결정(다른 기기는 관리 링크 `#k=`) → 상세 문의·예약 / 밴드 일정 저장 → 다음 합주 때 옛 투표 링크·**캘린더 하루 전 알림의 메모 링크(11-08)**·"최근 본·찜·진행 중인 투표" 스트립(홈·검색 + **지역·상세 착지 페이지, 11-08**)으로 재방문
+(PR 열림, 11-08) 결정된 투표·상세 요금 줄 "🧮 합주비 계산" → `/split/[id]` 정산 링크(1인당 금액·[냈어요] 체크, 로그인·송금 없음) → "다음 합주 정하기"로 새 투표(이전 투표에 이어짐)
 
 **기준 수치 (11-05~06, 운영 DB)**
 - 공개 연습실 799곳(전부 spacecloud) · 가입자 12명
@@ -20,7 +21,7 @@
 **다음 할 일**
 | 언제 | 무엇 | 누가 |
 |---|---|---|
-| 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`) | 에이전트 쿼리 → 사용자 판단 |
+| 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`, 머지되면 `split_*`) | 에이전트 쿼리 → 사용자 판단 |
 | 결정 대기 | Cowork 전환 전략 ②~⑤(가입 시점·카카오톡 채널 알림·3팀 시딩·네이버/ChatGPT 유입) — `docs/HANDOFF.md` 11-08 항목. 카카오톡 채널 보유 여부 답 필요 | 사용자 |
 | 수시 | 휴대폰 카톡 "나와의 채팅"으로 관리 링크 → 결정 버튼, "우리 밴드로 저장"(로그인), 투표 카카오 공유 | 사용자(에이전트는 로그인·카톡 불가) |
 | 11월 말 | 연습실 월간 최신화 `crawling/run_all.sh` → 미리보기 승인 → `APPLY=1` | 에이전트 → 사용자 승인 |
@@ -28,7 +29,7 @@
 
 **보류 (조건이 오면 꺼냄)**: 관리자 로그인 시도 제한·`/api/translate` 호출 제한(가입자 50명 넘으면) · 주간 점수 리셋 Cron(8마디 트랙 활동이 생기면) · 12마디 블루스 폼 · 실결제·`/partner`(B2B 계약 후)
 
-**QA 데이터**: `utm_campaign=codex_qa` 표시, 집계 때 QA 투표 `5845fd1a`·`ad15dff2`·`966f9741`·`e5ed78eb`·`437a2814`·`d6fe1ed5`·`afca2396` 제외(지우지 않음). 이벤트 확인은 Supabase `user_events`
+**QA 데이터**: `utm_campaign=codex_qa` 표시, 집계 때 QA 투표 `5845fd1a`·`ad15dff2`·`966f9741`·`e5ed78eb`·`437a2814`·`d6fe1ed5`·`afca2396`·`f197f24d`, QA 정산 `dfb7f039` 제외(지우지 않음). 이벤트 확인은 Supabase `user_events`
 **작업 규칙**: `docs/HANDOFF.md` "규칙"(전체는 `CLAUDE.md`·`docs/RULES.md`). 작업을 마치면 이 "현재 상태"도 갱신
 
 ---
@@ -827,3 +828,25 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - tsc 0, 테스트 60/60, build 성공, 390·1440px 가로 넘침 없음
 - 미확인: macOS 캘린더 실제 가져오기(사용자 캘린더에 일정이 생겨 하지 않음 — 파일 구조만 검사), 아이폰 Safari .ics, `/my-band` 화면(로그인 필요)
 - QA 투표 `d6fe1ed5`·`afca2396` (결정됨, 지우지 않음)
+
+## 2026-11-08 — 재방문 ②: 합주비 N빵 정산 링크 (DB 변경 — `supabase/13_splits.sql`, 승인 후 운영 적용)
+- 배경: 합주가 끝나면 단톡방에서 "얼마씩?"이 꼭 나온다. 그 순간에 링크를 하나 더 심어 정산 → 다음 합주 투표로 잇는다. 송금·계좌·결제는 만들지 않음(계산과 "냈어요" 체크만)
+- DB: `splits`·`split_payers` — 투표와 같은 방식(RLS on·정책 0개·anon/authenticated REVOKE, SECURITY DEFINER RPC `create_split`·`get_split`·`toggle_split_paid`만 EXECUTE). 금액 계산 `split_per_person`은 내부 전용(anon 실행 불가)
+  - 서버가 1인당 금액을 다시 계산(클라이언트 값 안 받음). 인원 2~20 · 시간 0.5~24(0.5 단위) · 금액 0~100만원(입력·총액 모두) · 체크 20명 · 만들기 키당 시간당 10개/전체 300개 · 60일 뒤 만료
+  - 만든 사람 = 생성 때 한 번 받는 토큰(sha256만 저장, localStorage `ms_split_tokens`), 체크하는 사람 = 투표와 같은 기기 키 `ms_vk`. `payer_key`는 응답에 안 나감
+  - 투표에서 만들면 결정된 연습실을 서버가 채우고, 합주 날짜는 ±60일 밖이면 비움
+- 화면: `app/split/_components/SplitSheet.tsx`(시트: 시간당 요금 기본값 `hourlyPrice`·없으면 빈칸+안내, 2시간·4명 기본, 추가 비용, 1인당 실시간 100원 올림) — 결정된 투표 카드(`wide`) · 상세 요금 줄 오른쪽 링크(`link`)
+  - `/split/[id]`(noindex, `JA_BLOCKED_PREFIXES`): 연습실·날짜·1인당·내역 + "실제 요금은 업체 기준" / 만든 사람만 카카오톡 공유·링크 복사(`utm_campaign=split`) / 냈어요 체크리스트(이름 `SR_MASK_CLASS`) / "다음 합주 정하기" → 이번 연습실 + 근처 2곳(`pickNearbyRooms`)으로 `VoteCreatePanel`(`parentVoteId`=정산의 투표, `source: split`, 버튼 "후보 N곳으로 다음 합주 투표 만들기")
+- 계산: `lib/split.ts` `calcPerPerson`(시간을 ×2 정수로 바꿔 소수 오차 없음, 서버와 같은 규칙) — 테스트 `tests/split.cjs`
+- 이벤트: `split_open`·`split_create`·`split_share`·`split_view`·`split_paid_toggle`·`split_next_vote_click` (+ `vote_create.source`에 `split`)
+- 확인(로컬 → 운영 DB, `codex_qa`, GA·Amplitude·page_views 차단, 브라우저 2개: 만든 사람·멤버)
+  - SQL: 로컬 Postgres 18 두 DB(Supabase 기본 권한 재현 포함)에서 2회씩 → 운영 적용. anon REST로 두 테이블 GET·POST 401(42501), `split_per_person` 401, 인원 25명 → `invalid_people`, 요금 1,000,001 → `invalid_amount`
+  - 결정된 QA 투표 `d6fe1ed5`(에이플러스, 시간당 1,000원): 시트 기본값 1,000원·2시간·4명 → 500원. 12,000원·2.5시간·3명·추가 3,000원 → 11,000원(총 33,000원) → 정산 `dfb7f039` 생성
+  - 멤버 브라우저 "QA멤버" [냈어요] → 만든 사람 새로고침에 1/3명 반영, 취소·재체크 정상. 멤버 화면엔 공유 카드 없음
+  - 다음 합주: 이번 연습실 + 근처 2곳 → 새 투표 `f197f24d`(`parent_vote_id`=`d6fe1ed5`, 첫 후보 = 에이플러스)
+  - 상세(드럼에비뉴 9,000원) 링크 44px → 시트 4,500원
+  - 카카오 공유: SDK 초기화됨, 공유 창(카카오 로그인)까지 열림 — 실제 전송은 미확인
+  - 운영 `user_events`: 6종 모두 `anon_id`·`codex_qa` (`split_share` kakao·copy, `split_open` vote·room, `vote_create` source=split)
+  - tsc 0, 테스트 66/66, build 성공(`/split/[id]` ƒ), 390·1440px 가로 넘침 없음
+- 미확인: 카카오톡 실제 전송·카톡 인앱 브라우저에서 열기, 실제 밴드 단톡방 사용
+- QA: 정산 `dfb7f039`, 투표 `f197f24d` (지우지 않음)

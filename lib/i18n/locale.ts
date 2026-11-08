@@ -19,6 +19,7 @@ export const JA_BLOCKED_PREFIXES = [
   '/partner',
   '/register', // 연습실 등록 신청
   '/vote', // 합주 후보 투표(연습실 기반, ko 전용)
+  '/split', // 합주비 정산(연습실 기반, ko 전용)
 ];
 
 export function isJaBlockedPath(pathname: string): boolean {

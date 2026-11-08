@@ -84,6 +84,7 @@ user_titles / user_challenge_score / challenge_pass_chain   명예 시스템
 user_mutual_responses    밴드 매칭 신호
 user_follows / user_events / studio_reports / studio_requests / page_views / feedbacks
 votes / vote_responses / vote_secrets    합주 후보 투표 /vote/[id] (정책 0개 — RPC 4개로만 접근, supabase/10_votes.sql)
+splits / split_payers   합주비 정산 /split/[id] (정책 0개 — RPC 3개로만 접근, supabase/13_splits.sql)
 Storage: stems       오디오 (30MB, MP3/WAV/OGG/M4A/FLAC)
 ```
 

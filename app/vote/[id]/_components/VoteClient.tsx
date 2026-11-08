@@ -34,6 +34,7 @@ import VoteAdminLink from './VoteAdminLink';
 import VoteSaveToBand from './VoteSaveToBand';
 import VoteCreatePanel from '@/app/room/[id]/_components/VoteCreatePanel';
 import AddToCalendar from '@/components/AddToCalendar';
+import SplitSheet from '@/app/split/_components/SplitSheet';
 import { calendarDescription, type CalendarEvent } from '@/lib/calendar';
 import { buildShareUrl } from '@/lib/share-utm';
 
@@ -375,6 +376,9 @@ export default function VoteClient({ voteId }: { voteId: string }) {
           <AddToCalendar event={calendarEvent} from="vote" />
         </section>
       )}
+
+      {/* 합주비 N빵 → 정산 링크(단톡방). 정산 화면의 "다음 합주 정하기"가 이 투표에 잇는다 */}
+      {decided && <SplitSheet variant="wide" from="vote" studio={decided} voteId={vote.id} playedOn={topDate} />}
 
       {/* 다음 합주도 같은 후보로 — 새 투표를 이 투표에 잇는다(단톡방의 이 링크가 다음 방문의 입구) */}
       {closed && !vote.next_vote_id && (

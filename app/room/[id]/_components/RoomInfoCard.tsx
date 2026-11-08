@@ -7,6 +7,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { studioPriceLabel } from '@/lib/studio-price';
 import CandidateToggle from './CandidateToggle';
 import AskMembersButton from './AskMembersButton';
+import SplitSheet from '@/app/split/_components/SplitSheet';
 
 interface RoomInfoCardProps {
   studio: Studio;
@@ -150,6 +151,9 @@ export default function RoomInfoCard({ studio, onShare }: RoomInfoCardProps) {
             style={{ fontFamily: 'Pretendard, sans-serif' }}
           >
             {studioPriceLabel(studio)}
+          </span>
+          <span className="ml-auto flex-shrink-0">
+            <SplitSheet variant="link" from="room" studio={studio} />
           </span>
         </div>
         {studio.phone && (
