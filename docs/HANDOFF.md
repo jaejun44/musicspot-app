@@ -15,6 +15,14 @@
 
 ## 기록
 
+### 2026-11-08 — Claude Code — 재방문 ③ PR 3 전날·미납 알림 Cron
+- 한 일: 하루 1번(20:00~20:59 KST) 합주 전날 알림 + 정산 미납 본인 알림. DB 변경 없음
+- 바뀐 파일: `vercel.json`(새)·`app/api/cron/push-reminders/route.ts`(새) · `lib/push-server.ts`·`lib/push-messages.ts`·`tests/push-messages.cjs` · docs — 브랜치 `push-reminders`
+- 확인한 것: 전날 알림 실제 수신·재실행 중복 방지·인증 401. 미납 실제 발송은 미확인(24시간 지난 정산 없음)
+- 받는 쪽: 사용자
+- 요청: PR 머지 승인 · Vercel `CRON_SECRET` 등록(Production, 값은 채팅에 쓰지 않기) · 원하면 내 크롬으로 QA 정산 `dfb7f039` 알림 받기 → 다음 날 20시대 미납 알림 확인
+- 상태: 열림
+
 ### 2026-11-08 — Claude Code — 재방문 ③ PR 2 웹 푸시 즉시 발송
 - 한 일: 멤버 투표 → 만든 사람, 결정 → 멤버 알림. `supabase/15_push_log.sql`(승인 후 운영 적용) + `web-push@3.6.7`
 - 바뀐 파일: `app/api/push/notify/route.ts`·`lib/push-server.ts`·`lib/push-messages.ts`·`tests/push-messages.cjs`·`supabase/15_push_log.sql`(새) · `lib/push.ts`·`VoteClient`·`lib/share-utm.ts`·package.json · docs — 브랜치 `push-send`
@@ -30,14 +38,6 @@
 - 받는 쪽: 사용자
 - 요청: PR 머지 승인 → VAPID 키 생성·Vercel 등록(방법은 PR 2 착수 때 안내) → 휴대폰·카톡 인앱에서 "알림 받기" 보이는지 확인
 - 상태: 열림
-
-### 2026-11-08 — Claude Code — 재방문 ③ 알림 채널 비교·설계안 (조사만)
-- 한 일: 웹 푸시(A)와 카카오 나에게 보내기(B)를 공식 문서로 비교. **추천 A**: B는 카카오가 "서비스가 사용자에게 메시지를 발송할 수 없습니다"라고 명시하고, 받을 사람 대부분이 비로그인 멤버
-- 바뀐 파일: `docs/PLAN_notifications.md`(새 파일), 이 항목 — 커밋 안 함
-- 확인한 것: 서비스 워커 없음·`web-push` 없음·Cron 0개·카카오 OAuth 추가 scope 없음. 카톡 인앱 브라우저 푸시·데스크톱에서 브라우저를 닫았을 때 받는지는 [미확인]
-- 받는 쪽: 사용자
-- 요청: 캘린더·N빵 지표 확인 뒤 A/B 결정 + 문서 6절 질문(Vercel 플랜, `web-push` 의존성, 미납 알림 여부)
-- 상태: 처리됨 (11-08, 사용자 — A·Hobby·`web-push` 승인·미납 알림 포함). 다음: 지시가 오면 PR 1(구독) 착수, SQL 초안 먼저
 
 ### 2026-11-08 — Claude Code — 재방문 ② 합주비 N빵 정산 링크
 - 한 일: 결정된 투표·상세 요금 줄 "🧮 합주비 계산" → `/split/[id]` 정산 링크(1인당·[냈어요] 체크, 로그인·송금 없음) → "다음 합주 정하기"로 새 투표. DB `splits`·`split_payers` + RPC 3개(`supabase/13_splits.sql`, 승인받아 운영 적용 완료)

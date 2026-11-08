@@ -16,7 +16,7 @@ function loadLib(file, deps = {}) {
 }
 
 const shareUtm = loadLib('share-utm');
-const { responseEvent, decidedEvent, voteResponsePayload, voteDecidedPayload, RESPONSE_WINDOW_MS } = loadLib('push-messages', {
+const { responseEvent, decidedEvent, voteResponsePayload, voteDecidedPayload, RESPONSE_WINDOW_MS, kstTomorrow, reminderEvent, rehearsalReminderPayload, unpaidPayload, UNPAID_EVENT } = loadLib('push-messages', {
   '@/lib/share-utm': shareUtm,
 });
 
@@ -41,4 +41,23 @@ test('문구: 같은 사이트 경로 + push UTM, 이름 없음', () => {
   assert.equal(d.url.startsWith('/vote/v1?utm_source=push'), true);
   assert.match(d.body, /드럼에비뉴/);
   assert.match(voteDecidedPayload('v1', null).body, /^연습실/);
+});
+
+test('내일(KST): Cron 11:00 UTC = 20:00 KST, 자정 넘으면 하루 더', () => {
+  assert.equal(kstTomorrow(new Date('2026-11-08T11:00:00Z')), '2026-11-09');
+  assert.equal(kstTomorrow(new Date('2026-11-08T14:59:00Z')), '2026-11-09'); // KST 23:59
+  assert.equal(kstTomorrow(new Date('2026-11-08T15:00:00Z')), '2026-11-10'); // KST 00:00
+  assert.equal(kstTomorrow(new Date('2026-12-31T11:00:00Z')), '2027-01-01');
+  assert.equal(reminderEvent('2026-11-09'), 'reminder:2026-11-09');
+});
+
+test('전날·미납 문구: 시간대·금액, 링크 UTM, 이름 없음', () => {
+  const r = rehearsalReminderPayload('v1', '드럼에비뉴', 'evening');
+  assert.equal(r.title, '🥁 내일 저녁 합주예요');
+  assert.equal(r.url, '/vote/v1?utm_source=push&utm_medium=share&utm_campaign=vote&utm_content=reminder');
+  assert.equal(rehearsalReminderPayload('v1', null, null).title, '🥁 내일 합주예요');
+  const u = unpaidPayload('s1', 11000);
+  assert.match(u.body, /11,000원/);
+  assert.equal(u.url, '/split/s1?utm_source=push&utm_medium=share&utm_campaign=split&utm_content=unpaid');
+  assert.equal(UNPAID_EVENT, 'unpaid');
 });
