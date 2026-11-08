@@ -48,3 +48,39 @@ export function voteDecidedPayload(voteId: string, studioName: string | null): P
     tag: `vote-${voteId}`,
   };
 }
+
+/** 한국 시간 기준 내일 날짜 'YYYY-MM-DD' (Cron은 UTC로 돈다) */
+export function kstTomorrow(now: Date): string {
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  kst.setUTCDate(kst.getUTCDate() + 1);
+  return kst.toISOString().slice(0, 10);
+}
+
+export function reminderEvent(date: string): string {
+  return `reminder:${date}`;
+}
+
+/** 정산 미납 알림은 정산당 1번 */
+export const UNPAID_EVENT = 'unpaid';
+
+const SLOT_LABEL: Record<string, string> = { morning: '오전', afternoon: '오후', evening: '저녁', night: '밤' };
+
+export function rehearsalReminderPayload(voteId: string, studioName: string | null, slot: string | null): PushPayload {
+  const when = slot && SLOT_LABEL[slot] ? `내일 ${SLOT_LABEL[slot]}` : '내일';
+  return {
+    title: `🥁 ${when} 합주예요`,
+    body: `${studioName ?? '정한 연습실'} — 눌러서 장소·시간을 다시 확인하세요.`,
+    url: pushPath(`/vote/${voteId}`, 'vote', 'reminder'),
+    tag: `vote-${voteId}`,
+  };
+}
+
+/** 본인에게만 간다. 다른 사람 이름·납부 상태는 넣지 않는다 */
+export function unpaidPayload(splitId: string, perPerson: number): PushPayload {
+  return {
+    title: '💸 합주비 정산 링크 다시 보기',
+    body: `1인당 ${perPerson.toLocaleString('ko-KR')}원 — 냈으면 [냈어요]를 눌러 두세요.`,
+    url: pushPath(`/split/${splitId}`, 'split', 'unpaid'),
+    tag: `split-${splitId}`,
+  };
+}

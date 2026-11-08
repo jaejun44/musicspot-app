@@ -22,7 +22,8 @@
 | 언제 | 무엇 | 누가 |
 |---|---|---|
 | 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`, 머지되면 `split_*`) | 에이전트 쿼리 → 사용자 판단 |
-| 진행 중 | 알림 = 웹 푸시(11-08 결정). PR 1 머지 · PR 2(투표 응답·결정 즉시 발송, `15_push_log.sql` 운영 적용) **PR 열림** → 사용자가 VAPID 키 3개 Vercel 등록 → 실제 기기 확인 → PR 3(투표 응답·결정 즉시 발송) → PR 3(전날·미납, Hobby Cron 하루 1번) | 에이전트 → 사용자 승인 |
+| 진행 중 | 알림 = 웹 푸시(11-08 결정). PR 1·2 머지, VAPID 키 등록(11-08) · PR 3(전날·미납 Cron) **PR 열림** → 사용자가 `CRON_SECRET` 등록 → 실제 기기·첫 Cron(20:00~20:59 KST) 확인 | 에이전트 → 사용자 |
+| 2주 뒤 | 알림 판정: 허용률(`push_permission`/`push_prompt_view`)·알림 유입(`utm_source=push`) vs 캘린더 유입(`utm_source=calendar`) — `docs/PLAN_notifications.md` PR 4(투표 응답·결정 즉시 발송) → PR 3(전날·미납, Hobby Cron 하루 1번) | 에이전트 → 사용자 승인 |
 | 결정 대기 | Cowork 전환 전략 ②~⑤(가입 시점·카카오톡 채널 알림·3팀 시딩·네이버/ChatGPT 유입) — `docs/HANDOFF.md` 11-08 항목. 카카오톡 채널 보유 여부 답 필요 | 사용자 |
 | 수시 | 휴대폰 카톡 "나와의 채팅"으로 관리 링크 → 결정 버튼, "우리 밴드로 저장"(로그인), 투표 카카오 공유 | 사용자(에이전트는 로그인·카톡 불가) |
 | 11월 말 | 연습실 월간 최신화 `crawling/run_all.sh` → 미리보기 승인 → `APPLY=1` | 에이전트 → 사용자 승인 |
@@ -886,3 +887,15 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - 미확인: 운영 키 등록 후 실제 기기(휴대폰·맥 사파리·카톡 인앱)
 - 참고: PR 1 QA 구독(임시 공개키)은 이번 키와 달라 발송 시 실패(failed)로 남음 — 지우지 않음
 - QA: 투표 `8e62cbb0`(결정됨, 사용자 투표 포함 3명), `6b549ff7`(진행 중)
+
+## 2026-11-08 — 재방문 ③ PR 3: 합주 전날·정산 미납 알림 Cron (DB 변경 없음)
+- `vercel.json` crons `0 11 * * *`(20:00 KST, Hobby라 20:00~20:59) → `app/api/cron/push-reminders`(`CRON_SECRET` Bearer, 없거나 틀리면 401 · VAPID 없으면 503) → `runDailyReminders`(`lib/push-server.ts`)
+  - ③ 전날: 결정된 투표 중 날짜 후보에 내일(KST)이 있고 **표가 가장 많은 날짜가 내일**인 것 → 그 투표 구독자 전원(만든 사람·멤버). 시간대 표가 있으면 "내일 저녁". 이벤트 `reminder:<날짜>`
+  - ④ 미납: 만든 지 24시간 지난 진행 중 정산 → 구독한 멤버 중 그 기기 키로 [냈어요]가 없는 사람에게만, 정산당 1번(`unpaid`). 알림에 다른 사람 이름·납부 상태 없음
+  - 모든 조회 1,000행 배치(`fetchAll`), 중복 방지는 PR 2의 `push_log` 그대로
+- 문구 `lib/push-messages.ts`(`kstTomorrow` 자정·연말 경계 테스트 포함, 테스트 75/75)
+- 확인(로컬 → 운영 DB, 임시 VAPID·CRON_SECRET은 dev 명령 env로만, 끝나고 삭제)
+  - QA 투표 `e2096421`(날짜 후보 11/9·11/10, 멤버 1명이 11/9·저녁) → 만든 사람 브라우저 구독(사용자 "허용") → 결정 → Cron 호출: 인증 없음 401 / 1회차 `reminder votes 1 sent 1` → "🥁 내일 저녁 합주예요 — 드럼에비뉴" 수신 / 2회차 skipped 1
+  - build 성공(`/api/cron/push-reminders` ƒ)
+- 미확인: ④ 실제 발송(24시간 지난 정산이 아직 없음 — 단위 테스트·코드 경로만), 운영 Cron 첫 실행
+- QA: 투표 `e2096421`(결정됨, 지우지 않음)

@@ -4,12 +4,18 @@ import 'server-only';
 import webpush from 'web-push';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  UNPAID_EVENT,
   decidedEvent,
+  kstTomorrow,
+  rehearsalReminderPayload,
+  reminderEvent,
   responseEvent,
+  unpaidPayload,
   voteDecidedPayload,
   voteResponsePayload,
   type PushPayload,
 } from '@/lib/push-messages';
+import { VOTE_SLOTS, tallyVote, topKey, type VoteResponse } from '@/lib/votes';
 
 /** 응답·결정이 이보다 오래됐으면 알림 요청을 무시(옛 이벤트 재전송 방지) */
 const FRESH_MS = 2 * 60 * 1000;
@@ -189,3 +195,97 @@ export async function notifyVoteDecided(admin: SupabaseClient, voteId: string, n
   return deliver(admin, targets, 'vote', voteId, decidedEvent(vote.decided_studio_id), voteDecidedPayload(voteId, studio?.name ?? null));
 }
 
+// ─── 하루 1번 Cron (app/api/cron/push-reminders) ─────────────────
+
+/** 1,000행 배치로 전부 읽기(docs/DATA_ACCESS.md). build가 같은 정렬·필터를 매번 만든다 */
+async function fetchAll<T>(label: string, build: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>): Promise<T[]> {
+  const all: T[] = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await build(offset, offset + 999);
+    if (error) throw new Error(`[push] ${label} 조회 실패 (offset ${offset}): ${error.message}`);
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < 1000) break;
+    offset += 1000;
+  }
+  return all;
+}
+
+export interface DailyResult {
+  reminder: { votes: number; sent: number; skipped: number; failed: number };
+  unpaid: { splits: number; sent: number; skipped: number; failed: number };
+}
+
+/**
+ * ③ 합주 전날: 결정된 투표 중 표가 가장 많은 날짜가 내일(KST)인 것 → 그 투표의 구독자 전원(만든 사람·멤버)
+ * ④ 정산 미납: 만든 지 하루 지난 진행 중 정산 → 구독한 멤버 중 그 기기로 [냈어요]를 안 누른 사람에게만, 정산당 1번
+ */
+export async function runDailyReminders(admin: SupabaseClient, now = new Date()): Promise<DailyResult> {
+  const result: DailyResult = {
+    reminder: { votes: 0, sent: 0, skipped: 0, failed: 0 },
+    unpaid: { splits: 0, sent: 0, skipped: 0, failed: 0 },
+  };
+  const add = (bucket: { sent: number; skipped: number; failed: number }, r: NotifyResult) => {
+    if (r.status !== 'sent') return;
+    bucket.sent += r.sent;
+    bucket.skipped += r.skipped;
+    bucket.failed += r.failed;
+  };
+
+  // ③ 날짜 후보에 내일이 있는 결정된 투표만 후보로
+  const tomorrow = kstTomorrow(now);
+  const votes = await fetchAll<{ id: string; studio_ids: string[]; date_options: string[]; decided_studio_id: string }>('결정된 투표', (from, to) =>
+    admin
+      .from('votes')
+      .select('id, studio_ids, date_options, decided_studio_id')
+      .not('decided_studio_id', 'is', null)
+      .contains('date_options', [tomorrow])
+      .order('id')
+      .range(from, to),
+  );
+  for (const vote of votes) {
+    const responses = await fetchAll<Pick<VoteResponse, 'picked_studio_ids' | 'picked_dates' | 'picked_slots'>>('응답', (from, to) =>
+      admin
+        .from('vote_responses')
+        .select('picked_studio_ids, picked_dates, picked_slots')
+        .eq('vote_id', vote.id)
+        .order('voter_anon')
+        .range(from, to),
+    );
+    const tally = tallyVote({ studio_ids: vote.studio_ids, date_options: vote.date_options, responses: responses as VoteResponse[] });
+    if (topKey(tally.dates, vote.date_options) !== tomorrow) continue;
+    result.reminder.votes += 1;
+    const slot = topKey(tally.slots, VOTE_SLOTS.map((s) => s.key));
+    const { data: studio, error } = await admin.from('studios').select('name').eq('id', vote.decided_studio_id).maybeSingle();
+    if (error) console.error(`[push] 연습실 이름 조회 실패 — 이름 없이 보냄: ${error.message}`);
+    const targets = [...(await fetchTargets(admin, 'vote', vote.id, 'creator')), ...(await fetchTargets(admin, 'vote', vote.id, 'member'))];
+    add(result.reminder, await deliver(admin, targets, 'vote', vote.id, reminderEvent(tomorrow), rehearsalReminderPayload(vote.id, studio?.name ?? null, slot)));
+  }
+
+  // ④ 하루 지난 진행 중 정산
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const splits = await fetchAll<{ id: string; per_person: number }>('정산', (from, to) =>
+    admin
+      .from('splits')
+      .select('id, per_person')
+      .lte('created_at', dayAgo)
+      .gt('expires_at', now.toISOString())
+      .order('id')
+      .range(from, to),
+  );
+  for (const split of splits) {
+    const members = await fetchTargets(admin, 'split', split.id, 'member');
+    if (members.length === 0) continue;
+    const paid = await fetchAll<{ payer_key: string }>('냈어요', (from, to) =>
+      admin.from('split_payers').select('payer_key').eq('split_id', split.id).eq('paid', true).order('payer_key').range(from, to),
+    );
+    const paidKeys = new Set(paid.map((p) => p.payer_key));
+    const unpaid = members.filter((t) => !paidKeys.has(t.device_key));
+    if (unpaid.length === 0) continue;
+    result.unpaid.splits += 1;
+    add(result.unpaid, await deliver(admin, unpaid, 'split', split.id, UNPAID_EVENT, unpaidPayload(split.id, split.per_person)));
+  }
+
+  return result;
+}
