@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
@@ -21,6 +21,7 @@ import JamEntryCard from '@/components/JamEntryCard';
 import type { NearbyRoom } from '@/lib/nearby-rooms';
 import RoomCompare from './RoomCompare';
 import CandidateBar from './CandidateBar';
+import AskMembersSheet from './AskMembersSheet';
 
 const TAG_PREVIEW = 8;
 
@@ -41,6 +42,7 @@ export default function RoomDetailClient({ nearby }: { nearby: NearbyRoom[] }) {
   const router = useRouter();
 
   const [studio, setStudio] = useState<Studio | null>(null);
+  const nearbyIds = useMemo(() => nearby.map((r) => r.studio.id), [nearby]);
   const [loading, setLoading] = useState(true);
   const [showAllTags, setShowAllTags] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -330,6 +332,9 @@ export default function RoomDetailClient({ nearby }: { nearby: NearbyRoom[] }) {
 
       {/* 후보 바 — 문의 바 위 */}
       <CandidateBar />
+
+      {/* 멤버한테 물어보기 시트 + 문의 후 돌아왔을 때 넛지 */}
+      <AskMembersSheet studioId={studio.id} nearbyIds={nearbyIds} />
 
       {/* 하단 고정 연락 버튼 */}
       <RoomContactBar studio={studio} />

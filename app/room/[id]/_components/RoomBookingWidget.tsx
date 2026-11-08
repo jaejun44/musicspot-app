@@ -10,6 +10,7 @@ import { bookingPath, isRealtimeBookable } from '@/lib/booking-service';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { studioPriceLabel } from '@/lib/studio-price';
+import AskMembersButton from './AskMembersButton';
 
 interface RoomBookingWidgetProps {
   studio: Studio;
@@ -122,6 +123,9 @@ export default function RoomBookingWidget({ studio }: RoomBookingWidgetProps) {
             업체의 외부 페이지로 이동합니다.
           </p>
         )}
+
+        {/* 보조: 혼자 정하지 말고 단톡방에 투표로 (주 CTA는 위 문의·예약) */}
+        <AskMembersButton variant="wide" />
       </div>
 
       {/* 외부 예약 링크가 없는 극히 드문 경우의 대체 안내 */}

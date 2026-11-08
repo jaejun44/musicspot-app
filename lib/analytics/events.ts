@@ -64,7 +64,17 @@ export type EventSchema = {
   /** 후보 담기/해제 (on = 담음, count = 바뀐 뒤 후보 수). 가득 차서 거부된 시도는 안 보낸다 */
   candidate_toggle: { studio_id: string; on: boolean; count: number };
   /** 후보 투표 링크 생성 (count = 후보 연습실 수). vote_id로 링크 1개당 유입(vote_view)을 묶는다 */
-  vote_create: { vote_id: string; count: number; is_followup?: boolean };
+  vote_create: {
+    vote_id: string;
+    count: number;
+    is_followup?: boolean;
+    /** 어느 입구에서 만들었나 (2026-11-08 추가) */
+    source?: 'ask_members' | 'candidate_bar' | 'followup';
+  };
+  // 상세 → "멤버한테 물어보기" (2026-11-08)
+  ask_members_click: { studio_id: string; from: 'booking_widget' | 'info_card' | 'return_nudge'; candidate_count: number };
+  ask_members_nudge_view: { studio_id: string };
+  ask_members_nudge_dismiss: { studio_id: string };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */

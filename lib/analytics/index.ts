@@ -13,6 +13,7 @@
 import * as amplitude from '@amplitude/unified';
 import { AMPLITUDE_ENABLED } from '@/lib/amplitude';
 import { supabase } from '@/lib/supabase';
+import { CONTACT_EVENT } from '@/lib/ask-members';
 import type { EventName, EventSchema } from './events';
 import {
   getCommonProps,
@@ -126,6 +127,10 @@ export function trackContactClick(
   _studioName?: string
 ) {
   track('contact_click', { type, studio_id: studioId });
+  // 같은 탭의 "멤버한테 물어보기" 넛지가 '문의하러 나감'을 알 수 있게 (이벤트 내용은 그대로)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(CONTACT_EVENT, { detail: { type, studioId } }));
+  }
 }
 
 export function trackSearch(method: 'gps' | 'text', query?: string) {

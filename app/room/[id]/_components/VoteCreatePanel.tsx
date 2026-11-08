@@ -12,15 +12,18 @@ interface Props {
   studioIds: string[];
   /** "다음 합주도 여기서 정하기": 이전 투표에서 이어 만든다(옛 링크가 새 투표로 안내) */
   parentVoteId?: string;
+  /** "멤버한테 물어보기" 시트: 날짜 후보를 접어 두고, 만들면 공유 카드를 강조(?new=1) */
+  askMembers?: boolean;
 }
 
 /** 날짜 후보(선택)를 고르고 투표 링크를 만든다 → /vote/[id]. 후보 시트와 결정된 투표 화면에서 쓴다 */
-export default function VoteCreatePanel({ studioIds, parentVoteId }: Props) {
+export default function VoteCreatePanel({ studioIds, parentVoteId, askMembers = false }: Props) {
   const router = useRouter();
   const days = useMemo(() => upcomingDates(new Date(), 14), []);
   const [dates, setDates] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [datesOpen, setDatesOpen] = useState(!askMembers);
 
   function toggleDate(d: string) {
     setDates((prev) =>
@@ -38,8 +41,9 @@ export default function VoteCreatePanel({ studioIds, parentVoteId }: Props) {
     setError(null);
     try {
       const id = await createVote({ anonId, studioIds, dates, country: getClientCountry() ?? 'KR', parentVoteId });
-      track('vote_create', { vote_id: id, count: studioIds.length, is_followup: !!parentVoteId });
-      router.push(`/vote/${id}`);
+      const source = askMembers ? 'ask_members' : parentVoteId ? 'followup' : 'candidate_bar';
+      track('vote_create', { vote_id: id, count: studioIds.length, is_followup: !!parentVoteId, source });
+      router.push(askMembers ? `/vote/${id}?new=1` : `/vote/${id}`);
     } catch (e) {
       console.error('[VoteCreatePanel] 투표 생성 실패', e);
       setError(e instanceof Error ? e.message : '투표를 만들지 못했어요.');
@@ -49,27 +53,41 @@ export default function VoteCreatePanel({ studioIds, parentVoteId }: Props) {
 
   return (
     <div className="mt-5 pt-4 border-t-[2px] border-dashed border-[#0A0A0A]/20">
-      <p className="text-[14px] font-bold text-[#0A0A0A]">📅 날짜 후보 (선택, 최대 {MAX_DATE_OPTIONS}개)</p>
-      <p className="text-[12px] text-[#0A0A0A]/50 mb-2">고르지 않으면 연습실만 투표해요.</p>
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {days.map((d) => {
-          const on = dates.includes(d);
-          return (
-            <button
-              key={d}
-              type="button"
-              onClick={() => toggleDate(d)}
-              aria-pressed={on}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[13px] font-bold ${
-                on ? 'bg-[#F5FF4F]' : 'bg-white text-[#0A0A0A]/70'
-              }`}
-              style={on ? { boxShadow: '2px 2px 0 #0A0A0A' } : undefined}
-            >
-              {formatVoteDate(d)}
-            </button>
-          );
-        })}
-      </div>
+      {datesOpen ? (
+        <>
+          <p className="text-[14px] font-bold text-[#0A0A0A]">📅 날짜 후보 (선택, 최대 {MAX_DATE_OPTIONS}개)</p>
+          <p className="text-[12px] text-[#0A0A0A]/50 mb-2">고르지 않으면 연습실만 투표해요.</p>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {days.map((d) => {
+              const on = dates.includes(d);
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => toggleDate(d)}
+                  aria-pressed={on}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-[10px] border-[2px] border-[#0A0A0A] text-[13px] font-bold ${
+                    on ? 'bg-[#F5FF4F]' : 'bg-white text-[#0A0A0A]/70'
+                  }`}
+                  style={on ? { boxShadow: '2px 2px 0 #0A0A0A' } : undefined}
+                >
+                  {formatVoteDate(d)}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setDatesOpen(true)}
+          aria-expanded={false}
+          className="w-full min-h-[44px] flex items-center justify-between px-4 rounded-[12px] border-[2px] border-[#0A0A0A] bg-white text-[14px] font-bold text-[#0A0A0A]"
+        >
+          <span>📅 날짜 후보도 물어보기 (선택)</span>
+          <span aria-hidden>＋</span>
+        </button>
+      )}
 
       {error && (
         <p role="alert" className="mt-2 text-[13px] font-bold text-[#FF3D77]">
@@ -87,7 +105,9 @@ export default function VoteCreatePanel({ studioIds, parentVoteId }: Props) {
       >
         {busy
           ? '만드는 중…'
-          : parentVoteId
+          : askMembers
+            ? '📣 투표 만들고 단톡방에 보내기'
+            : parentVoteId
             ? `🔁 같은 후보 ${studioIds.length}곳으로 새 투표 만들기`
             : `🗳️ 후보 ${studioIds.length}곳으로 투표 링크 만들기`}
       </motion.button>
