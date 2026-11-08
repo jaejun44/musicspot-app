@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getRecentStudioIds } from '@/lib/recentlyViewed';
 import { getFavorites } from '@/lib/favorites';
 import { supabase } from '@/lib/supabase';
-import { track, type ReturnStripKind } from '@/lib/analytics';
+import { track, type ReturnStripKind, type ReturnStripPlacement } from '@/lib/analytics';
 import { formatVoteDate, getCreatorToken, getMyVoteIds, getVote, getVoterKey, type Vote } from '@/lib/votes';
 import { Studio } from '@/types/studio';
 import StudioMiniCard from '@/app/my-bookings/_components/StudioMiniCard';
@@ -38,11 +38,18 @@ async function fetchOpenVotes(): Promise<Vote[]> {
   return results.filter((v): v is Vote => !!v && !v.is_expired && !v.decided_studio_id && !v.next_vote_id);
 }
 
+interface Props {
+  /** 어디에 붙었나(이벤트 구분). 홈·검색은 상단 전체 폭, 지역·상세는 본문 카드 사이 */
+  placement: ReturnStripPlacement;
+  /** 상세에서는 지금 보는 연습실을 뺀다 */
+  excludeId?: string;
+}
+
 /**
- * 홈·검색 상단 "진행 중인 투표 / 최근 본 / 찜한 연습실" 가로 스트립. 다시 온 사람이 클릭 없이 이어 보게 한다.
+ * 홈·검색·지역·상세의 "진행 중인 투표 / 최근 본 / 찜한 연습실" 가로 스트립. 다시 온 사람이 클릭 없이 이어 보게 한다.
  * 목록이 비면 아무것도 그리지 않는다. 비공개로 바뀐 연습실은 조회에서 빠진다(눌러도 갈 곳이 없으므로).
  */
-export default function ReturnStrip() {
+export default function ReturnStrip({ placement, excludeId }: Props) {
   const [lists, setLists] = useState<{ vote: Vote[]; recent: Studio[]; favorite: Studio[] } | null>(null);
   const [studioMap, setStudioMap] = useState<Map<string, Studio>>(new Map());
   const [kind, setKind] = useState<ReturnStripKind>('recent');
@@ -65,7 +72,8 @@ export default function ReturnStrip() {
         map = new Map(((data ?? []) as Studio[]).map((s) => [s.id, s]));
       }
       if (!alive) return;
-      const pick = (list: string[]) => list.map((id) => map.get(id)).filter(Boolean) as Studio[];
+      const pick = (list: string[]) =>
+        list.filter((id) => id !== excludeId).map((id) => map.get(id)).filter(Boolean) as Studio[];
       const next = { vote: votes, recent: pick(recentIds), favorite: pick(favoriteIds) };
       setStudioMap(map);
       setLists(next);
@@ -75,22 +83,30 @@ export default function ReturnStrip() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [excludeId]);
 
   const count = lists ? lists[kind].length : 0;
 
   useEffect(() => {
     if (count === 0 || viewed.current.has(kind)) return;
     viewed.current.add(kind);
-    track('return_strip_view', { count, kind });
-  }, [kind, count]);
+    track('return_strip_view', { count, kind, placement });
+  }, [kind, count, placement]);
 
   if (!lists) return null;
   const kinds = (['vote', 'recent', 'favorite'] as const).filter((k) => lists[k].length > 0);
   if (kinds.length === 0) return null;
 
   return (
-    <section className="relative z-10 px-4 pt-4 max-w-5xl mx-auto w-full">
+    <section
+      className={
+        placement === 'home' || placement === 'search'
+          ? 'relative z-10 px-4 pt-4 max-w-5xl mx-auto w-full'
+          : placement === 'region'
+            ? 'w-full mb-6'
+            : 'w-full' // 상세: 카드 사이 간격은 부모(space-y)가 준다
+      }
+    >
       <div
         className="bg-white rounded-[20px] border-[3px] border-[#0A0A0A] pt-4 pb-2"
         style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
@@ -125,7 +141,7 @@ export default function ReturnStrip() {
                   <Link
                     key={vote.id}
                     href={`/vote/${vote.id}`}
-                    onClick={() => track('return_strip_click', { kind: 'vote', vote_id: vote.id })}
+                    onClick={() => track('return_strip_click', { kind: 'vote', vote_id: vote.id, placement })}
                     className="w-[200px] flex-shrink-0 bg-[#FFF8F0] rounded-[16px] border-[3px] border-[#0A0A0A] p-3"
                     style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
                   >
@@ -144,7 +160,7 @@ export default function ReturnStrip() {
                 <div
                   key={studio.id}
                   className="w-[148px] flex-shrink-0"
-                  onClickCapture={() => track('return_strip_click', { kind, studio_id: studio.id })}
+                  onClickCapture={() => track('return_strip_click', { kind, studio_id: studio.id, placement })}
                 >
                   <StudioMiniCard studio={studio} index={i} />
                 </div>

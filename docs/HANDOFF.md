@@ -15,6 +15,14 @@
 
 ## 기록
 
+### 2026-11-08 — Claude Code — 착지 페이지 스트립 + 캘린더에 추가
+- 한 일: `/region`·`/room`에 최근 본·찜·진행 중인 투표 스트립(상세는 현재 곳 제외), 결정된 투표·밴드 일정에 [구글 캘린더][.ics] (하루 전 알림 + 메모에 UTM 링크, 토큰 없음)
+- 바뀐 파일: `components/{ReturnStrip,AddToCalendar}.tsx` · `lib/calendar.ts`·`tests/calendar.cjs`(새) · region·room·vote·my-band 화면 · `lib/share-utm.ts`·`lib/analytics/events.ts`·`band-ja.ts` · docs — 브랜치 `landing-strip-calendar`
+- 확인한 것: 완료 조건 1·2·4·5·6 통과(PHASES 11-08 로그). 3은 .ics 구조만 검사, 실제 가져오기·`/my-band`(로그인)는 미확인
+- 받는 쪽: 사용자
+- 요청: 머지 승인 · 휴대폰에서 결정된 투표의 .ics 열어 보기(아이폰 Safari) · 원하면 맥 캘린더 가져오기 확인
+- 상태: 열림
+
 ### 2026-11-08 — Claude Code — "멤버한테 물어보기" 구현 (Cowork 전략 ①)
 - 한 일: 상세 문의 카드·이름 옆 버튼 + 문의하고 돌아왔을 때 넛지 → 후보 시트 → 투표 생성(`?new=1` 공유 카드 강조). 문의 바는 안 건드림. Cowork 11-08 HANDOFF 기록 2건도 이 PR에 커밋
 - 바뀐 파일: `lib/ask-members.ts`·`tests/ask-members.cjs`·`AskMembersButton/Sheet.tsx`(새) · `RoomBookingWidget`·`RoomInfoCard`·`RoomDetailClient`·`VoteCreatePanel`·`VoteClient`·`lib/analytics/{index,events}.ts` · docs — PR(이 브랜치 `ask-members`)

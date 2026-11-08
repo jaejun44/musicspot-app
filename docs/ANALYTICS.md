@@ -136,6 +136,8 @@ track('challenge_upload_complete', {
   - **투표 링크 1개당 유입** = `vote_view`(is_creator=false)의 distinct anon_id / `vote_create` 수
   - 응답자 구분은 분석에 안 실리는 기기 키(`ms_vk`)라 이벤트의 anon_id와 다르다. 재방문 집계는 이벤트의 anon_id로
 - `vote_band_save {vote_id, is_new_band}` (2026-11-06 추가): 결정된 투표 → 내 밴드 합주 일정 저장(로그인, `VoteSaveToBand.tsx`)
+- `return_strip_*.placement` (2026-11-08 추가, 선택): `home` | `search` | `region` | `room` — 스트립이 붙은 화면. 지역·상세는 검색으로 바로 들어오는 재방문자의 착지 페이지. 상세에서는 지금 보는 연습실을 뺀다. 그 이전 행은 비어 있음(= 홈·검색)
+- `calendar_add {from: vote|band, method: google|ics}` (2026-11-08 추가): 결정된 투표·밴드 일정 → 내 캘린더(`components/AddToCalendar.tsx`, `lib/calendar.ts`). 캘린더 메모 링크로 돌아온 방문은 `utm_source=calendar`(campaign `vote`, 밴드 일정 자체 링크는 `utm_content=band`)
 - `ask_members_click {studio_id, from: booking_widget|info_card|return_nudge, candidate_count}` · `ask_members_nudge_view {studio_id}` · `ask_members_nudge_dismiss {studio_id}` (2026-11-08 추가): 상세 "📣 멤버한테 물어보기"(`AskMembersButton`·`AskMembersSheet`). nudge = 외부 문의(전화 제외) 후 10초~30분 안에 같은 상세로 돌아왔을 때 세션당 1회
   - `vote_create.source` (2026-11-08 추가, 선택): `ask_members` | `candidate_bar` | `followup` — 그 이전 행은 비어 있음
   - **입구별 투표 생성** = `vote_create`를 `source`로 묶기. 넛지 효과 = `ask_members_click(from=return_nudge)` / `ask_members_nudge_view`

@@ -37,7 +37,7 @@ export default function HomeClient() {
       <Navigation />
       <DecorativeElements scrollY={scrollY} />
       {/* 다시 온 사람: 최근 본·찜한 연습실을 히어로 위에 (처음 온 사람은 안 보임) */}
-      {!isJapanMode && <ReturnStrip />}
+      {!isJapanMode && <ReturnStrip placement="home" />}
       <HeroSection />
       {!isJapanMode && (
         <>

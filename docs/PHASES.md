@@ -8,7 +8,7 @@
 **운영**: https://www.musicspotfest.com — main 자동 배포(Vercel). 최신 머지 PR·열린 PR은 `git log --oneline -3`·`gh pr list`로 확인(번호를 여기 적지 않음 — 금방 낡는다)
 
 **지금 운영에 있는 핵심 흐름 (재방문 루프, 11-06 출시)**
-연습실 검색 → 상세에서 근처 비교·후보 담기 또는 **"📣 멤버한테 물어보기"(문의 카드·이름 옆·문의하고 돌아왔을 때 1회 넛지, 11-08)** → `/vote/[id]` 단톡방 투표(로그인 없음) → 만든 사람이 결정(다른 기기는 관리 링크 `#k=`) → 상세 문의·예약 / 밴드 일정 저장 → 다음 합주 때 옛 투표 링크·홈 "최근 본·찜·진행 중인 투표"로 재방문
+연습실 검색 → 상세에서 근처 비교·후보 담기 또는 **"📣 멤버한테 물어보기"(문의 카드·이름 옆·문의하고 돌아왔을 때 1회 넛지, 11-08)** → `/vote/[id]` 단톡방 투표(로그인 없음) → 만든 사람이 결정(다른 기기는 관리 링크 `#k=`) → 상세 문의·예약 / 밴드 일정 저장 → 다음 합주 때 옛 투표 링크·**캘린더 하루 전 알림의 메모 링크(11-08)**·"최근 본·찜·진행 중인 투표" 스트립(홈·검색 + **지역·상세 착지 페이지, 11-08**)으로 재방문
 
 **기준 수치 (11-05~06, 운영 DB)**
 - 공개 연습실 799곳(전부 spacecloud) · 가입자 12명
@@ -20,7 +20,7 @@
 **다음 할 일**
 | 언제 | 무엇 | 누가 |
 |---|---|---|
-| 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기" 배포일 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`) | 에이전트 쿼리 → 사용자 판단 |
+| 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`) | 에이전트 쿼리 → 사용자 판단 |
 | 결정 대기 | Cowork 전환 전략 ②~⑤(가입 시점·카카오톡 채널 알림·3팀 시딩·네이버/ChatGPT 유입) — `docs/HANDOFF.md` 11-08 항목. 카카오톡 채널 보유 여부 답 필요 | 사용자 |
 | 수시 | 휴대폰 카톡 "나와의 채팅"으로 관리 링크 → 결정 버튼, "우리 밴드로 저장"(로그인), 투표 카카오 공유 | 사용자(에이전트는 로그인·카톡 불가) |
 | 11월 말 | 연습실 월간 최신화 `crawling/run_all.sh` → 미리보기 승인 → `APPLY=1` | 에이전트 → 사용자 승인 |
@@ -28,7 +28,7 @@
 
 **보류 (조건이 오면 꺼냄)**: 관리자 로그인 시도 제한·`/api/translate` 호출 제한(가입자 50명 넘으면) · 주간 점수 리셋 Cron(8마디 트랙 활동이 생기면) · 12마디 블루스 폼 · 실결제·`/partner`(B2B 계약 후)
 
-**QA 데이터**: `utm_campaign=codex_qa` 표시, 집계 때 QA 투표 `5845fd1a`·`ad15dff2`·`966f9741`·`e5ed78eb`·`437a2814` 제외(지우지 않음). 이벤트 확인은 Supabase `user_events`
+**QA 데이터**: `utm_campaign=codex_qa` 표시, 집계 때 QA 투표 `5845fd1a`·`ad15dff2`·`966f9741`·`e5ed78eb`·`437a2814`·`d6fe1ed5`·`afca2396` 제외(지우지 않음). 이벤트 확인은 Supabase `user_events`
 **작업 규칙**: `docs/HANDOFF.md` "규칙"(전체는 `CLAUDE.md`·`docs/RULES.md`). 작업을 마치면 이 "현재 상태"도 갱신
 
 ---
@@ -806,3 +806,24 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - tsc 0, 테스트 54/54, build 성공, 390·1440px 가로 넘침 없음
 - QA 투표 `e5ed78eb`·`437a2814` (지우지 않음)
 - 발견(미수정): 에이플러스 수원시청역(`a364839b`) "📍 플레이스"가 `corporate.homeplus.co.kr`로 열림 — 연습실 `naver_place_url` 데이터 확인 필요
+
+## 2026-11-08 — 재방문 ①: 착지 페이지 스트립 + 캘린더에 추가 (DB 변경 없음)
+- 배경: 재방문자는 검색으로 홈이 아니라 `/room`·`/region`에 바로 착지하는데 스트립은 홈·검색에만 있었음. 웹은 푸시가 없으니 캘린더의 하루 전 알림 + 메모 링크를 푸시 대신 쓴다
+- 착지 스트립: `ReturnStrip`에 `placement`·`excludeId` prop
+  - `/region/[slug]`: 지역 요약 아래·목록 위. 클라이언트에서만 그려 ISR HTML에 개인 데이터 없음(서버 HTML 문구 0건, 빌드에서 `/region/[slug]` 여전히 ●)
+  - `/room/[id]`: `RoomCompare` 아래, 지금 보는 연습실 제외(연습실 바뀌면 `key`로 다시 읽음)
+- 캘린더: `lib/calendar.ts`(`buildGoogleCalendarUrl`·`buildIcs` RFC 5545 — CRLF·이스케이프·75바이트 줄 접기·`TZID=Asia/Seoul`·`VALARM -P1D`) + `components/AddToCalendar.tsx`(.ics는 Blob 다운로드, 서버 라우트 없음) — 테스트 `tests/calendar.cjs`
+  - 결정된 투표(멤버·만든 사람 모두): 표가 가장 많은 날짜·시간대(밴드 저장과 같은 기준) → 시작, 기본 2시간. 날짜·시간대 중 하나라도 없으면 "날짜를 정하면 캘린더에 넣을 수 있어요"만
+  - `/my-band/[id]` 일정 카드: 시작 시각이 있는 일정만. 메모에 `/vote/<id>`가 있으면 투표·다음 합주 링크, 없으면 밴드 일정·연습실 찾기 링크. 일본어 사전 3줄 추가(이 화면은 ja 열림)
+  - 메모 링크는 `buildShareUrl(…, 'calendar', 'vote')`(`ShareSource`에 `calendar` 추가). 관리 토큰 `#k=`는 넣지 않음
+  - 투표 화면 `?next=1`(메모의 "다음 합주 정하기"): "다음 합주도 여기서 정하기"를 펼쳐 가운데로 스크롤 후 주소에서 제거
+- 이벤트: `return_strip_*.placement` · `calendar_add {from, method}`
+- 확인(로컬 → 운영 DB, `codex_qa`, GA·Amplitude·page_views 차단)
+  - 처음 온 브라우저 `/region/suwon` 스트립 없음 → 상세 2곳 본 뒤 2곳 표시. 상세(드럼에비뉴)에서는 드럼에비뉴 빠지고 1곳
+  - 결정된 QA 투표 `d6fe1ed5`(11/11 저녁): 구글 링크 `dates=20261111T180000/20261111T200000&ctz=Asia/Seoul`, 제목·주소·메모 링크 2개 정상 / .ics CRLF 36줄·LF만 있는 줄 0, `DTSTART;TZID=Asia/Seoul:20261111T180000`, VALARM 1개 `-P1D`
+  - 날짜 없는 결정 투표 `afca2396`: 버튼 0개, 안내만
+  - `?next=1`: 패널 펼침, 카드 화면 가운데(279~566/844)
+  - 운영 `user_events`: `return_strip_view` placement home·region·room, `return_strip_click` region, `calendar_add` vote·google/ics — 모두 `anon_id`
+  - tsc 0, 테스트 60/60, build 성공, 390·1440px 가로 넘침 없음
+- 미확인: macOS 캘린더 실제 가져오기(사용자 캘린더에 일정이 생겨 하지 않음 — 파일 구조만 검사), 아이폰 Safari .ics, `/my-band` 화면(로그인 필요)
+- QA 투표 `d6fe1ed5`·`afca2396` (결정됨, 지우지 않음)

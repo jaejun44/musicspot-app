@@ -11,6 +11,7 @@ import { SR_MASK_CLASS } from '@/lib/amplitude';
 import { getClientCountry } from '@/lib/geo';
 import { studioPriceLabel } from '@/lib/studio-price';
 import {
+  SLOT_START_TIME,
   VOTE_SLOTS,
   decideVote,
   formatVoteDate,
@@ -22,6 +23,7 @@ import {
   saveCreatorToken,
   submitVoteResponse,
   tallyVote,
+  topKey,
   type SubmitResult,
   type Vote,
   type VoteSlot,
@@ -31,6 +33,9 @@ import VoteShare from './VoteShare';
 import VoteAdminLink from './VoteAdminLink';
 import VoteSaveToBand from './VoteSaveToBand';
 import VoteCreatePanel from '@/app/room/[id]/_components/VoteCreatePanel';
+import AddToCalendar from '@/components/AddToCalendar';
+import { calendarDescription, type CalendarEvent } from '@/lib/calendar';
+import { buildShareUrl } from '@/lib/share-utm';
 
 type VoteStudio = Pick<Studio, 'id' | 'name' | 'photos' | 'price_info' | 'price_per_hour' | 'has_drum' | 'address' | 'is_published'>;
 
@@ -76,6 +81,10 @@ export default function VoteClient({ voteId }: { voteId: string }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [showNext, setShowNext] = useState(false);
+  // 캘린더 메모의 "다음 합주 정하기" 링크(?next=1)로 들어오면 그 카드를 펼쳐 보여 준다
+  const nextRef = useRef<HTMLDivElement>(null);
+  const nextHandled = useRef(false);
+  const [scrollToNext, setScrollToNext] = useState(false);
   const viewed = useRef(false);
   /** undefined = 아직 안 읽음, null = 관리 링크 아님(또는 처리 끝) */
   const adminToken = useRef<string | null | undefined>(undefined);
@@ -154,6 +163,30 @@ export default function VoteClient({ voteId }: { voteId: string }) {
     requestAnimationFrame(() => shareRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     setHighlightShare(true);
   }, [vote]);
+
+  useEffect(() => {
+    if (!vote || nextHandled.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('next') !== '1') return;
+    nextHandled.current = true;
+    params.delete('next');
+    const qs = params.toString();
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+    // 이미 다음 투표가 있으면 맨 위 "다음 투표로" 안내가 보인다
+    if (vote.next_vote_id || !(vote.is_expired || vote.decided_studio_id)) return;
+    setShowNext(true);
+    setScrollToNext(true);
+  }, [vote]);
+
+  // 펼친 패널·연습실 사진이 자리를 잡은 뒤 스크롤(투표가 다시 불러와져도 취소되지 않게 별도 상태로)
+  useEffect(() => {
+    if (!scrollToNext) return;
+    const t = setTimeout(() => {
+      nextRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setScrollToNext(false);
+    }, 600);
+    return () => clearTimeout(t);
+  }, [scrollToNext]);
 
   // 투표가 다시 불러와져도(vote 갱신) 강조는 정해진 시간 뒤 꺼진다
   useEffect(() => {
@@ -264,6 +297,24 @@ export default function VoteClient({ voteId }: { voteId: string }) {
   const tally = tallyVote(vote);
   const decided = vote.decided_studio_id ? studios.get(vote.decided_studio_id) : null;
   const closed = vote.is_expired || !!vote.decided_studio_id;
+  // 캘린더: 표가 가장 많은 날짜·시간대(밴드 일정 저장과 같은 기준). 둘 중 하나라도 없으면 안내만
+  const topDate = topKey(tally.dates, vote.date_options);
+  const topSlot = topKey(tally.slots, VOTE_SLOTS.map((s) => s.key)) as VoteSlot | null;
+  const calendarEvent: CalendarEvent | null =
+    decided && topDate && topSlot
+      ? {
+          uid: `vote-${vote.id}`,
+          title: `합주 · ${decided.name}`,
+          location: decided.address ?? decided.name,
+          date: topDate,
+          startTime: SLOT_START_TIME[topSlot],
+          // 관리 토큰(#k=)은 절대 넣지 않는다 — 멤버용 링크만
+          description: calendarDescription([
+            { label: '🗳️ 투표 결과', url: buildShareUrl(`/vote/${vote.id}`, 'calendar', 'vote') },
+            { label: '🔁 다음 합주 정하기', url: buildShareUrl(`/vote/${vote.id}?next=1`, 'calendar', 'vote') },
+          ]),
+        }
+      : null;
   const voterCount = vote.responses.length;
   const nicknamesFor = (studioId: string) =>
     vote.responses.filter((r) => r.picked_studio_ids.includes(studioId)).map((r) => r.nickname);
@@ -314,9 +365,20 @@ export default function VoteClient({ voteId }: { voteId: string }) {
 
       {decided && <VoteSaveToBand vote={vote} tally={tally} studio={decided} />}
 
+      {/* 결정된 곳 → 내 캘린더(하루 전 알림 + 메모의 링크가 다음 방문 입구). 멤버·만든 사람 모두 */}
+      {decided && (
+        <section className={card} style={cardShadow}>
+          <p className="text-[15px] font-bold text-[#0A0A0A]">📅 내 캘린더에 넣기</p>
+          <p className="text-[12px] text-[#0A0A0A]/50 mt-0.5 mb-3 break-keep">
+            하루 전에 알림이 와요. 메모의 링크로 결과를 다시 보고 다음 합주도 정할 수 있어요.
+          </p>
+          <AddToCalendar event={calendarEvent} from="vote" />
+        </section>
+      )}
+
       {/* 다음 합주도 같은 후보로 — 새 투표를 이 투표에 잇는다(단톡방의 이 링크가 다음 방문의 입구) */}
       {closed && !vote.next_vote_id && (
-        <div className={card} style={cardShadow}>
+        <div ref={nextRef} className={card} style={cardShadow}>
           {showNext ? (
             <>
               <p className="text-[15px] font-bold text-[#0A0A0A]">🔁 다음 합주도 여기서 정하기</p>

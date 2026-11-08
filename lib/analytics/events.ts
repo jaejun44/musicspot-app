@@ -26,6 +26,8 @@ export type JamSource = 'dm' | 'session';
 
 /** 홈·검색 상단 재방문 스트립의 목록 종류 */
 export type ReturnStripKind = 'recent' | 'favorite' | 'vote';
+/** 스트립이 붙은 화면 (2026-11-08 추가) */
+export type ReturnStripPlacement = 'home' | 'search' | 'region' | 'room';
 
 /** 모바일 하단 탭바의 탭. feed는 일본 모드(연습실 탭 대신)에서만 */
 export type NavTab = 'studio' | 'band' | 'stems' | 'community' | 'feed' | 'my';
@@ -54,9 +56,9 @@ export type EventSchema = {
   /** 비공개 연습실 화면에서 대안 연습실·지역 페이지로 이동 */
   room_unavailable_click: { studio_id: string; to: 'studio' | 'region' | 'search'; to_studio_id?: string };
   /** 홈·검색 상단 "최근 본 / 찜한 연습실" 스트립 노출. 목록이 있을 때만(처음 온 사람은 안 보임) */
-  return_strip_view: { count: number; kind: ReturnStripKind };
+  return_strip_view: { count: number; kind: ReturnStripKind; placement?: ReturnStripPlacement };
   /** 스트립 카드 클릭 → 상세(recent·favorite: studio_id) 또는 투표(vote: vote_id) */
-  return_strip_click: { kind: ReturnStripKind; studio_id?: string; vote_id?: string };
+  return_strip_click: { kind: ReturnStripKind; studio_id?: string; vote_id?: string; placement?: ReturnStripPlacement };
   /** 연습실 상세 "근처 비슷한 연습실" 비교 블록 노출 (count = 보인 곳 수) */
   compare_view: { studio_id: string; count: number };
   /** 비교 블록에서 다른 연습실로 이동. studio_id = 이동한 곳 */
@@ -75,6 +77,8 @@ export type EventSchema = {
   ask_members_click: { studio_id: string; from: 'booking_widget' | 'info_card' | 'return_nudge'; candidate_count: number };
   ask_members_nudge_view: { studio_id: string };
   ask_members_nudge_dismiss: { studio_id: string };
+  // 결정된 투표·밴드 일정 → 내 캘린더 (2026-11-08)
+  calendar_add: { from: 'vote' | 'band'; method: 'google' | 'ics' };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */

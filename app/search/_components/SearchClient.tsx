@@ -77,7 +77,7 @@ export default function SearchClient() {
       </div>
 
       {/* 최근 본·찜한 연습실 (목록 보기에서만) */}
-      {view === 'list' && <ReturnStrip />}
+      {view === 'list' && <ReturnStrip placement="search" />}
 
       {/* 첫 진입 '내 주변' 유도 배너 */}
       {showNearbyPrompt && (

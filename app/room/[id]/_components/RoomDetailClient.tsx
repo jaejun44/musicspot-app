@@ -22,6 +22,7 @@ import type { NearbyRoom } from '@/lib/nearby-rooms';
 import RoomCompare from './RoomCompare';
 import CandidateBar from './CandidateBar';
 import AskMembersSheet from './AskMembersSheet';
+import ReturnStrip from '@/components/ReturnStrip';
 
 const TAG_PREVIEW = 8;
 
@@ -292,6 +293,9 @@ export default function RoomDetailClient({ nearby }: { nearby: NearbyRoom[] }) {
 
         {/* 근처 비슷한 연습실 비교 + 후보 담기 — 위치 바로 아래 */}
         <RoomCompare studioId={studio.id} rooms={nearby} />
+
+        {/* 다시 온 사람의 최근 본·찜·진행 중인 투표 (지금 보는 곳은 뺀다) */}
+        <ReturnStrip key={studio.id} placement="room" excludeId={studio.id} />
 
         {/* 온라인 잼 입구 — 예약·위치 확인 뒤, 리뷰 위 */}
         <JamEntryCard from="room" />
