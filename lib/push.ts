@@ -126,3 +126,21 @@ export async function unsubscribeTopic(kind: PushKind, targetId: string): Promis
   if (error) throw new Error(`알림을 끄지 못했어요. (${error.message})`);
   if (data !== 'deleted' && data !== 'not_found') console.warn('[push] 구독 해제 응답', data);
 }
+
+/**
+ * 투표 응답·결정 직후 발송 서버에 알린다(app/api/push/notify). 서버가 DB를 다시 읽어 판단하므로 결과는 기다리지 않는다.
+ * keepalive: 결정 직후 상세 페이지로 이동해도 요청이 끊기지 않게
+ */
+export function requestPushNotify(event: 'vote_response' | 'vote_decided', voteId: string): void {
+  fetch('/api/push/notify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event, vote_id: voteId }),
+    keepalive: true,
+  })
+    .then((res) => {
+      // 503 = VAPID 키 미등록(알림 기능 꺼짐) — 정상 상태라 경고만
+      if (!res.ok && res.status !== 503) console.error('[push] 알림 요청 실패', res.status);
+    })
+    .catch((e) => console.error('[push] 알림 요청 실패', e));
+}

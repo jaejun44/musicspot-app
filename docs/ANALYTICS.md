@@ -153,6 +153,7 @@ track('challenge_upload_complete', {
   - `push_prompt_view {where: vote_creator|vote_member|split, permission: default|denied|granted}`: "알림 받기" 카드 노출(지원 브라우저만, 켜져 있으면 안 보냄)
   - `push_permission {where, result: granted|denied}`: 권한 요청 결과(버튼 클릭 후)
   - `push_subscribe {kind: vote|split, where}`: 서버 저장 성공
+  - 알림 클릭 유입(2026-11-08 PR 2): `utm_source=push`, `utm_campaign=vote`, `utm_content=response|decided`. 발송 건수는 이벤트가 아니라 `push_log`(status sent|failed)
   - **허용률** = `push_permission(granted)` / `push_prompt_view`. **미지원 비율**은 카드가 안 보여 이벤트가 없음 → 지원 여부는 PR 2 이후 알림 유입(`utm_source=push`)과 함께 본다
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
