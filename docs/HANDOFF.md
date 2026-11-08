@@ -15,6 +15,14 @@
 
 ## 기록
 
+### 2026-11-08 — Claude Code — 재방문 ③ PR 2 웹 푸시 즉시 발송
+- 한 일: 멤버 투표 → 만든 사람, 결정 → 멤버 알림. `supabase/15_push_log.sql`(승인 후 운영 적용) + `web-push@3.6.7`
+- 바뀐 파일: `app/api/push/notify/route.ts`·`lib/push-server.ts`·`lib/push-messages.ts`·`tests/push-messages.cjs`·`supabase/15_push_log.sql`(새) · `lib/push.ts`·`VoteClient`·`lib/share-utm.ts`·package.json · docs — 브랜치 `push-send`
+- 확인한 것: 실제 FCM 발송 2종·10분 중복 방지·결정 중복 방지·입력 검증(PHASES 11-08 PR 2 로그)
+- 받는 쪽: 사용자
+- 요청: PR 머지 승인 · VAPID 키 3개 Vercel 등록(`npx web-push generate-vapid-keys`, 값은 채팅에 쓰지 않기) 후 재배포 · 휴대폰·카톡 인앱에서 "알림 받기" 확인
+- 상태: 열림
+
 ### 2026-11-08 — Claude Code — 재방문 ③ PR 1 웹 푸시 구독
 - 한 일: 서비스 워커·"알림 받기" 카드(투표 만든 사람·투표한 멤버·정산 안 낸 멤버) + DB `push_subscriptions`·`push_topics`(`supabase/14_push.sql`, 승인 후 운영 적용). 발송은 아직 없음
 - 바뀐 파일: `public/sw.js`·`lib/push.ts`·`components/PushOptIn.tsx`·`tests/push.cjs`·`supabase/14_push.sql`(새) · vote·split 화면 · events · docs — 브랜치 `push-subscribe`
@@ -54,14 +62,6 @@
 - 받는 쪽: 사용자
 - 요청: PR 머지 판단. 전략 ②~⑤ 우선순위·카카오톡 채널 여부는 아래 Cowork 항목대로 여전히 결정 대기
 - 상태: 열림
-
-### 2026-11-08 — Cowork — 오프라인 입구 전략 제안 (결정 대기)
-- 한 일: 웹 재방문보다 "합주실=입구" 전략 제안. ① 파일럿 합주실 방마다 QR → 방 페이지(밴드 방명록·합주 직후 8마디·다음 예약/투표) ② 파트너 합주실 월 1회 오픈 잼 나이트 ③ 799곳 데이터로 "합주실 요금 지도" 공개(AI·검색 인용 노림, ChatGPT 유입 10명 근거)
-- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: 구현·검증 없음. 1·2는 사장님 협의가 선행 조건
-- 받는 쪽: 사용자
-- 요청: (11-08 사용자) 좋은 안이나 지금은 보관 — 추후 실행. 전문은 claude.ai 프로젝트 `claude/34_오프라인_입구_마케팅안_2026-11-08.txt`
-- 상태: 처리됨 (2026-11-08, Cowork — 보관)
 
 ### 2026-11-08 — Cowork — 유입자 → 유저 전환 전략 제안 (결정 대기)
 - 한 일: 5단계 사다리(방문→결정→재방문→가입→밴드) 정의. 우선순위: ① 문의 바 옆 "멤버한테 물어보기"(후보 자동 담기 → 투표 → 카톡 공유) ② 가입은 투표 생성·찜 3개·결정 시점에만 ③ 카카오톡 채널로 합주 전후 알림(초기 수동) ④ 실제 3팀 직접 시딩 ⑤ 네이버 색인 확인·ChatGPT 유입 지역 페이지 강화

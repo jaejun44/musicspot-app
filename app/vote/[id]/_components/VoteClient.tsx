@@ -36,6 +36,7 @@ import VoteCreatePanel from '@/app/room/[id]/_components/VoteCreatePanel';
 import AddToCalendar from '@/components/AddToCalendar';
 import SplitSheet from '@/app/split/_components/SplitSheet';
 import PushOptIn from '@/components/PushOptIn';
+import { requestPushNotify } from '@/lib/push';
 import { calendarDescription, type CalendarEvent } from '@/lib/calendar';
 import { buildShareUrl } from '@/lib/share-utm';
 
@@ -220,6 +221,7 @@ export default function VoteClient({ voteId }: { voteId: string }) {
       if (result === 'saved') {
         track('vote_submit', { vote_id: vote.id, is_update: isUpdate });
         rememberMyVote(vote.id);
+        requestPushNotify('vote_response', vote.id);
         setNotice({ kind: 'ok', text: isUpdate ? '투표를 고쳤어요.' : '투표했어요! 결과는 아래에서 같이 봐요.' });
         await load();
       } else {
@@ -246,6 +248,7 @@ export default function VoteClient({ voteId }: { voteId: string }) {
         return;
       }
       track('vote_decide', { vote_id: vote.id, studio_id: studioId });
+      requestPushNotify('vote_decided', vote.id);
       router.push(`/room/${studioId}`);
     } catch (e) {
       console.error('[VoteClient] 결정 저장 실패', e);
