@@ -80,6 +80,10 @@ export default function VoteClient({ voteId }: { voteId: string }) {
   /** undefined = 아직 안 읽음, null = 관리 링크 아님(또는 처리 끝) */
   const adminToken = useRef<string | null | undefined>(undefined);
   const adminOpenTracked = useRef(false);
+  // "멤버한테 물어보기"로 막 만든 투표(?new=1): 공유 카드로 스크롤하고 한 번 강조
+  const shareRef = useRef<HTMLDivElement>(null);
+  const newHandled = useRef(false);
+  const [highlightShare, setHighlightShare] = useState(false);
 
   const load = useCallback(async () => {
     if (!UUID_RE.test(voteId)) {
@@ -137,6 +141,26 @@ export default function VoteClient({ voteId }: { voteId: string }) {
       setPickSlots(mine.picked_slots);
     }
   }, [vote]);
+
+  useEffect(() => {
+    if (!vote?.is_creator || newHandled.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('new') !== '1') return;
+    newHandled.current = true;
+    // 새로고침·재방문 때 다시 강조되지 않게 지운다
+    params.delete('new');
+    const qs = params.toString();
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+    requestAnimationFrame(() => shareRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    setHighlightShare(true);
+  }, [vote]);
+
+  // 투표가 다시 불러와져도(vote 갱신) 강조는 정해진 시간 뒤 꺼진다
+  useEffect(() => {
+    if (!highlightShare) return;
+    const t = setTimeout(() => setHighlightShare(false), 2400);
+    return () => clearTimeout(t);
+  }, [highlightShare]);
 
   async function handleSubmit() {
     if (!vote) return;
@@ -318,11 +342,20 @@ export default function VoteClient({ voteId }: { voteId: string }) {
       )}
 
       {vote.is_creator && !closed && (
-        <VoteShare
-          voteId={vote.id}
-          count={vote.studio_ids.length}
-          studioNames={vote.studio_ids.map((id) => studios.get(id)?.name).filter(Boolean) as string[]}
-        />
+        <motion.div
+          ref={shareRef}
+          animate={highlightShare ? { scale: [1, 1.03, 1] } : { scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className={`rounded-[20px] transition-[outline-color] duration-500 outline outline-[3px] outline-offset-4 ${
+            highlightShare ? 'outline-[#FF3D77]' : 'outline-transparent'
+          }`}
+        >
+          <VoteShare
+            voteId={vote.id}
+            count={vote.studio_ids.length}
+            studioNames={vote.studio_ids.map((id) => studios.get(id)?.name).filter(Boolean) as string[]}
+          />
+        </motion.div>
       )}
 
       {/* 만든 사람에게만 — 결정 후에도(다음 투표를 이어 가려면 필요) */}
