@@ -15,6 +15,14 @@
 
 ## 기록
 
+### 2026-11-08 — Claude Code — 재방문 ② 합주비 N빵 정산 링크
+- 한 일: 결정된 투표·상세 요금 줄 "🧮 합주비 계산" → `/split/[id]` 정산 링크(1인당·[냈어요] 체크, 로그인·송금 없음) → "다음 합주 정하기"로 새 투표. DB `splits`·`split_payers` + RPC 3개(`supabase/13_splits.sql`, 승인받아 운영 적용 완료)
+- 바뀐 파일: `app/split/`·`lib/split.ts`·`tests/split.cjs`·`supabase/13_splits.sql`(새) · vote·room 화면 · `VoteCreatePanel`·`lib/{share-utm,i18n/locale}.ts`·`lib/analytics/events.ts` · docs — 브랜치 `split-link`
+- 확인한 것: 완료 조건 1~5 통과(PHASES 11-08 "재방문 ②" 로그). 카카오톡 실제 전송은 미확인
+- 받는 쪽: 사용자
+- 요청: PR 머지 승인 · 머지 후 실제 밴드 단톡방에서 한 번 써 보기(정산 링크 카톡 공유 → 멤버 [냈어요] → 다음 합주 투표)
+- 상태: 열림
+
 ### 2026-11-08 — Claude Code — 착지 페이지 스트립 + 캘린더에 추가
 - 한 일: `/region`·`/room`에 최근 본·찜·진행 중인 투표 스트립(상세는 현재 곳 제외), 결정된 투표·밴드 일정에 [구글 캘린더][.ics] (하루 전 알림 + 메모에 UTM 링크, 토큰 없음)
 - 바뀐 파일: `components/{ReturnStrip,AddToCalendar}.tsx` · `lib/calendar.ts`·`tests/calendar.cjs`(새) · region·room·vote·my-band 화면 · `lib/share-utm.ts`·`lib/analytics/events.ts`·`band-ja.ts` · docs — 브랜치 `landing-strip-calendar`

@@ -14,10 +14,12 @@ interface Props {
   parentVoteId?: string;
   /** "멤버한테 물어보기" 시트: 날짜 후보를 접어 두고, 만들면 공유 카드를 강조(?new=1) */
   askMembers?: boolean;
+  /** 정산 화면 "다음 합주 정하기"에서 만들 때 (vote_create.source) */
+  fromSplit?: boolean;
 }
 
 /** 날짜 후보(선택)를 고르고 투표 링크를 만든다 → /vote/[id]. 후보 시트와 결정된 투표 화면에서 쓴다 */
-export default function VoteCreatePanel({ studioIds, parentVoteId, askMembers = false }: Props) {
+export default function VoteCreatePanel({ studioIds, parentVoteId, askMembers = false, fromSplit = false }: Props) {
   const router = useRouter();
   const days = useMemo(() => upcomingDates(new Date(), 14), []);
   const [dates, setDates] = useState<string[]>([]);
@@ -41,7 +43,7 @@ export default function VoteCreatePanel({ studioIds, parentVoteId, askMembers = 
     setError(null);
     try {
       const id = await createVote({ anonId, studioIds, dates, country: getClientCountry() ?? 'KR', parentVoteId });
-      const source = askMembers ? 'ask_members' : parentVoteId ? 'followup' : 'candidate_bar';
+      const source = fromSplit ? 'split' : askMembers ? 'ask_members' : parentVoteId ? 'followup' : 'candidate_bar';
       track('vote_create', { vote_id: id, count: studioIds.length, is_followup: !!parentVoteId, source });
       router.push(askMembers ? `/vote/${id}?new=1` : `/vote/${id}`);
     } catch (e) {
@@ -107,6 +109,8 @@ export default function VoteCreatePanel({ studioIds, parentVoteId, askMembers = 
           ? '만드는 중…'
           : askMembers
             ? '📣 투표 만들고 단톡방에 보내기'
+            : fromSplit
+            ? `🔁 후보 ${studioIds.length}곳으로 다음 합주 투표 만들기`
             : parentVoteId
             ? `🔁 같은 후보 ${studioIds.length}곳으로 새 투표 만들기`
             : `🗳️ 후보 ${studioIds.length}곳으로 투표 링크 만들기`}

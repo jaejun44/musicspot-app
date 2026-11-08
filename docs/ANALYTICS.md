@@ -139,8 +139,16 @@ track('challenge_upload_complete', {
 - `return_strip_*.placement` (2026-11-08 추가, 선택): `home` | `search` | `region` | `room` — 스트립이 붙은 화면. 지역·상세는 검색으로 바로 들어오는 재방문자의 착지 페이지. 상세에서는 지금 보는 연습실을 뺀다. 그 이전 행은 비어 있음(= 홈·검색)
 - `calendar_add {from: vote|band, method: google|ics}` (2026-11-08 추가): 결정된 투표·밴드 일정 → 내 캘린더(`components/AddToCalendar.tsx`, `lib/calendar.ts`). 캘린더 메모 링크로 돌아온 방문은 `utm_source=calendar`(campaign `vote`, 밴드 일정 자체 링크는 `utm_content=band`)
 - `ask_members_click {studio_id, from: booking_widget|info_card|return_nudge, candidate_count}` · `ask_members_nudge_view {studio_id}` · `ask_members_nudge_dismiss {studio_id}` (2026-11-08 추가): 상세 "📣 멤버한테 물어보기"(`AskMembersButton`·`AskMembersSheet`). nudge = 외부 문의(전화 제외) 후 10초~30분 안에 같은 상세로 돌아왔을 때 세션당 1회
-  - `vote_create.source` (2026-11-08 추가, 선택): `ask_members` | `candidate_bar` | `followup` — 그 이전 행은 비어 있음
+  - `vote_create.source` (2026-11-08 추가, 선택): `ask_members` | `candidate_bar` | `followup` | `split` — 그 이전 행은 비어 있음
   - **입구별 투표 생성** = `vote_create`를 `source`로 묶기. 넛지 효과 = `ask_members_click(from=return_nudge)` / `ask_members_nudge_view`
+- 합주비 정산 (2026-11-08 추가, `/split/[id]`, `app/split/`·`lib/split.ts`) — 금액·이름·토큰은 담지 않는다
+  - `split_open {from: vote|room}`: "🧮 합주비 계산" 시트 열기(결정된 투표 카드 / 상세 요금 줄)
+  - `split_create {people, has_vote}`: 정산 링크 만들기 성공
+  - `split_share {channel: kakao|copy}`: 만든 사람의 단톡방 공유(링크는 `utm_campaign=split`)
+  - `split_view {is_creator}`: 정산 화면 첫 로드 1회
+  - `split_paid_toggle {on}`: [냈어요] 체크·취소 저장 성공
+  - `split_next_vote_click {}`: "🔁 다음 합주 정하기" 펼침 → 투표가 만들어지면 `vote_create {source: split}`
+  - **정산 → 다음 투표 전환** = `split_next_vote_click` 대비 `vote_create(source=split)`. 멤버 참여 = `split_view(is_creator=false)`·`split_paid_toggle`
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서

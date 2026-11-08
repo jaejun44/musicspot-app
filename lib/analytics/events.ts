@@ -71,7 +71,7 @@ export type EventSchema = {
     count: number;
     is_followup?: boolean;
     /** 어느 입구에서 만들었나 (2026-11-08 추가) */
-    source?: 'ask_members' | 'candidate_bar' | 'followup';
+    source?: 'ask_members' | 'candidate_bar' | 'followup' | 'split';
   };
   // 상세 → "멤버한테 물어보기" (2026-11-08)
   ask_members_click: { studio_id: string; from: 'booking_widget' | 'info_card' | 'return_nudge'; candidate_count: number };
@@ -79,6 +79,13 @@ export type EventSchema = {
   ask_members_nudge_dismiss: { studio_id: string };
   // 결정된 투표·밴드 일정 → 내 캘린더 (2026-11-08)
   calendar_add: { from: 'vote' | 'band'; method: 'google' | 'ics' };
+  // 합주비 N빵 정산 /split/[id] (2026-11-08)
+  split_open: { from: 'vote' | 'room' };
+  split_create: { people: number; has_vote: boolean };
+  split_share: { channel: ShareChannel };
+  split_view: { is_creator: boolean };
+  split_paid_toggle: { on: boolean };
+  split_next_vote_click: Record<string, never>;
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */
