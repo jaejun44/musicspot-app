@@ -149,6 +149,11 @@ track('challenge_upload_complete', {
   - `split_paid_toggle {on}`: [냈어요] 체크·취소 저장 성공
   - `split_next_vote_click {}`: "🔁 다음 합주 정하기" 펼침 → 투표가 만들어지면 `vote_create {source: split}`
   - **정산 → 다음 투표 전환** = `split_next_vote_click` 대비 `vote_create(source=split)`. 멤버 참여 = `split_view(is_creator=false)`·`split_paid_toggle`
+- 웹 푸시 구독 (2026-11-08 추가, `components/PushOptIn.tsx`·`lib/push.ts`, 설계 `docs/PLAN_notifications.md`) — endpoint·키는 담지 않는다
+  - `push_prompt_view {where: vote_creator|vote_member|split, permission: default|denied|granted}`: "알림 받기" 카드 노출(지원 브라우저만, 켜져 있으면 안 보냄)
+  - `push_permission {where, result: granted|denied}`: 권한 요청 결과(버튼 클릭 후)
+  - `push_subscribe {kind: vote|split, where}`: 서버 저장 성공
+  - **허용률** = `push_permission(granted)` / `push_prompt_view`. **미지원 비율**은 카드가 안 보여 이벤트가 없음 → 지원 여부는 PR 2 이후 알림 유입(`utm_source=push`)과 함께 본다
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서

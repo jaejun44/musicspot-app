@@ -15,6 +15,22 @@
 
 ## 기록
 
+### 2026-11-08 — Claude Code — 재방문 ③ PR 1 웹 푸시 구독
+- 한 일: 서비스 워커·"알림 받기" 카드(투표 만든 사람·투표한 멤버·정산 안 낸 멤버) + DB `push_subscriptions`·`push_topics`(`supabase/14_push.sql`, 승인 후 운영 적용). 발송은 아직 없음
+- 바뀐 파일: `public/sw.js`·`lib/push.ts`·`components/PushOptIn.tsx`·`tests/push.cjs`·`supabase/14_push.sql`(새) · vote·split 화면 · events · docs — 브랜치 `push-subscribe`
+- 확인한 것: SQL 26개 항목·REST 401·실제 Chromium 구독·SW 알림 표시·이벤트 3종. 실제 휴대폰·카톡 인앱은 미확인
+- 받는 쪽: 사용자
+- 요청: PR 머지 승인 → VAPID 키 생성·Vercel 등록(방법은 PR 2 착수 때 안내) → 휴대폰·카톡 인앱에서 "알림 받기" 보이는지 확인
+- 상태: 열림
+
+### 2026-11-08 — Claude Code — 재방문 ③ 알림 채널 비교·설계안 (조사만)
+- 한 일: 웹 푸시(A)와 카카오 나에게 보내기(B)를 공식 문서로 비교. **추천 A**: B는 카카오가 "서비스가 사용자에게 메시지를 발송할 수 없습니다"라고 명시하고, 받을 사람 대부분이 비로그인 멤버
+- 바뀐 파일: `docs/PLAN_notifications.md`(새 파일), 이 항목 — 커밋 안 함
+- 확인한 것: 서비스 워커 없음·`web-push` 없음·Cron 0개·카카오 OAuth 추가 scope 없음. 카톡 인앱 브라우저 푸시·데스크톱에서 브라우저를 닫았을 때 받는지는 [미확인]
+- 받는 쪽: 사용자
+- 요청: 캘린더·N빵 지표 확인 뒤 A/B 결정 + 문서 6절 질문(Vercel 플랜, `web-push` 의존성, 미납 알림 여부)
+- 상태: 처리됨 (11-08, 사용자 — A·Hobby·`web-push` 승인·미납 알림 포함). 다음: 지시가 오면 PR 1(구독) 착수, SQL 초안 먼저
+
 ### 2026-11-08 — Claude Code — 재방문 ② 합주비 N빵 정산 링크
 - 한 일: 결정된 투표·상세 요금 줄 "🧮 합주비 계산" → `/split/[id]` 정산 링크(1인당·[냈어요] 체크, 로그인·송금 없음) → "다음 합주 정하기"로 새 투표. DB `splits`·`split_payers` + RPC 3개(`supabase/13_splits.sql`, 승인받아 운영 적용 완료)
 - 바뀐 파일: `app/split/`·`lib/split.ts`·`tests/split.cjs`·`supabase/13_splits.sql`(새) · vote·room 화면 · `VoteCreatePanel`·`lib/{share-utm,i18n/locale}.ts`·`lib/analytics/events.ts` · docs — 브랜치 `split-link`
@@ -62,11 +78,3 @@
 - 받는 쪽: Cowork
 - 요청: (11-08 사용자 승인) `contact_click`·`booking_attempt` 주요 이벤트 지정 완료. `booking_realtime_click`·`vote_create`는 GA에 아직 수신 기록이 없어 지정 불가 → 첫 수신 후 별표 지정
 - 상태: 열림
-
-### 2026-11-06 — Claude Code — 인수인계 통로 개설 · 시작 읽기 분량 축소
-- 한 일: 이 파일 신설(PR #37), PHASES 맨 위 "현재 상태" 요약, CLAUDE.md 시작·마무리 규칙. 이후 시작 때 읽는 범위를 PHASES 첫 `---`까지·이 파일로 제한, 중복 규칙 정리
-- 바뀐 파일: `docs/HANDOFF.md` · `docs/PHASES.md` · `CLAUDE.md` · `docs/DATA_ACCESS.md`(새 파일, CLAUDE.md의 MCP·1,000행 상세를 옮김) — PR #37·#38
-- 확인한 것: 11-06 작업(PR #25~#36) 모두 머지·운영 배포, 관리자 비밀번호·세션 시크릿 교체 사용자 확인
-- 받는 쪽: Cowork
-- 요청: 위 "규칙"대로 작업 시작·끝에 이 파일을 쓴다. 첫 작업 때 이 항목을 `상태: 처리됨 (날짜, Cowork)`로 바꿔 읽었다는 표시를 남긴다
-- 상태: 처리됨 (2026-11-08, Cowork)

@@ -13,6 +13,7 @@ import { formatVoteDate, getVoterKey } from '@/lib/votes';
 import { formatWon, getSplit, getSplitCreatorToken, toggleSplitPaid, type Split, type TogglePaidResult } from '@/lib/split';
 import type { Studio } from '@/types/studio';
 import VoteCreatePanel from '@/app/room/[id]/_components/VoteCreatePanel';
+import PushOptIn from '@/components/PushOptIn';
 
 interface Props {
   splitId: string;
@@ -346,6 +347,9 @@ export default function SplitClient({ splitId }: Props) {
           </div>
         )}
       </section>
+
+      {/* 웹 푸시: 아직 안 낸 멤버 본인에게만 하루 뒤 1번 (PR 3에서 발송) */}
+      {!split.is_creator && !split.is_expired && !mine?.paid && <PushOptIn kind="split" targetId={split.id} where="split" />}
 
       {/* 다음 합주 — 같은 연습실 + 근처 후보로 새 투표 */}
       {nextIds.length > 0 && (

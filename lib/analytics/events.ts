@@ -86,6 +86,10 @@ export type EventSchema = {
   split_view: { is_creator: boolean };
   split_paid_toggle: { on: boolean };
   split_next_vote_click: Record<string, never>;
+  /** 웹 푸시 "알림 받기" 카드 (docs/PLAN_notifications.md). where = 붙은 화면, permission = 카드가 보일 때 브라우저 권한 */
+  push_prompt_view: { where: 'vote_creator' | 'vote_member' | 'split'; permission: 'default' | 'denied' | 'granted' };
+  push_permission: { where: 'vote_creator' | 'vote_member' | 'split'; result: 'granted' | 'denied' };
+  push_subscribe: { kind: 'vote' | 'split'; where: 'vote_creator' | 'vote_member' | 'split' };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */

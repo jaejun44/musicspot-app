@@ -35,6 +35,7 @@ import VoteSaveToBand from './VoteSaveToBand';
 import VoteCreatePanel from '@/app/room/[id]/_components/VoteCreatePanel';
 import AddToCalendar from '@/components/AddToCalendar';
 import SplitSheet from '@/app/split/_components/SplitSheet';
+import PushOptIn from '@/components/PushOptIn';
 import { calendarDescription, type CalendarEvent } from '@/lib/calendar';
 import { buildShareUrl } from '@/lib/share-utm';
 
@@ -424,6 +425,11 @@ export default function VoteClient({ voteId }: { voteId: string }) {
         </motion.div>
       )}
 
+      {/* 웹 푸시: 만든 사람 = 멤버 응답 알림 (지원 안 하는 브라우저에선 안 보임) */}
+      {vote.is_creator && !closed && (
+        <PushOptIn kind="vote" targetId={vote.id} where="vote_creator" creatorToken={getCreatorToken(vote.id)} />
+      )}
+
       {/* 만든 사람에게만 — 결정 후에도(다음 투표를 이어 가려면 필요) */}
       {vote.is_creator && <VoteAdminLink voteId={vote.id} />}
 
@@ -599,6 +605,11 @@ export default function VoteClient({ voteId }: { voteId: string }) {
           </motion.button>
           <p className="mt-2 text-[12px] text-[#0A0A0A]/50 text-center">로그인 없이 투표해요. 이 기기에서 다시 열면 고칠 수 있어요.</p>
         </section>
+      )}
+
+      {/* 웹 푸시: 투표한 멤버 = 결정·전날 알림 */}
+      {!vote.is_creator && !closed && vote.responses.some((r) => r.is_mine) && (
+        <PushOptIn kind="vote" targetId={vote.id} where="vote_member" />
       )}
 
       {closed && notice && (

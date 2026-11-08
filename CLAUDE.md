@@ -55,6 +55,7 @@ CRON_SECRET                 # Vercel Cron 인증
 BOOKING_ORIGIN              # 실시간 예약 프론트 배포 주소. /booking/* rewrite 대상 (production 빌드 필수)
 NEXT_PUBLIC_BOOKING_API_URL # 실시간 예약 API (예: https://api.musicspotfest.com)
 BOOKING_ADMIN_API_TOKEN     # 예약 서버 관리자 키(사장님 초대 링크). 서버 전용, NEXT_PUBLIC 금지
+NEXT_PUBLIC_VAPID_PUBLIC_KEY # 웹 푸시 공개키. 미설정이면 "알림 받기" 카드가 안 보임 (비밀키 VAPID_PRIVATE_KEY는 PR 2, 서버 전용)
 ```
 
 ---
@@ -85,6 +86,7 @@ user_mutual_responses    밴드 매칭 신호
 user_follows / user_events / studio_reports / studio_requests / page_views / feedbacks
 votes / vote_responses / vote_secrets    합주 후보 투표 /vote/[id] (정책 0개 — RPC 4개로만 접근, supabase/10_votes.sql)
 splits / split_payers   합주비 정산 /split/[id] (정책 0개 — RPC 3개로만 접근, supabase/13_splits.sql)
+push_subscriptions / push_topics   웹 푸시 구독 (정책 0개 — 쓰기 RPC 2개, 읽기는 서버 service key만, supabase/14_push.sql)
 Storage: stems       오디오 (30MB, MP3/WAV/OGG/M4A/FLAC)
 ```
 
