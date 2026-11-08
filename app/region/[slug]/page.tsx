@@ -22,6 +22,7 @@ import RoomCard from '@/components/RoomCard';
 import Navigation from '@/components/Navigation';
 import SiteFooter from '@/components/SiteFooter';
 import JamEntryCard from '@/components/JamEntryCard';
+import ReturnStrip from '@/components/ReturnStrip';
 
 interface Props {
   params: { slug: string };
@@ -231,6 +232,9 @@ export default async function RegionPage({ params }: Props) {
             </ul>
           )}
         </header>
+
+        {/* 재방문자: 최근 본·찜·진행 중인 투표. 클라이언트에서만 그려 ISR HTML에 개인 데이터가 섞이지 않는다 */}
+        <ReturnStrip placement="region" />
 
         {rooms.length === 0 ? (
           <div className="py-16 text-center">

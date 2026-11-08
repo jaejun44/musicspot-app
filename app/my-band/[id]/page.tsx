@@ -7,6 +7,9 @@ import Navigation from '@/components/Navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import AddToCalendar from '@/components/AddToCalendar';
+import { calendarDescription, isCalendarReady, type CalendarEvent } from '@/lib/calendar';
+import { buildShareUrl } from '@/lib/share-utm';
 
 /* ─── Types ─── */
 interface Band {
@@ -469,7 +472,7 @@ export default function BandDetailPage() {
                 ) : (
                   <div className="flex flex-col gap-2">
                     {selectedDateSchedules.map((s) => (
-                      <ScheduleCard key={s.id} schedule={s} userId={user?.id ?? ''} onDelete={handleDeleteSchedule} />
+                      <ScheduleCard key={s.id} schedule={s} bandId={bandId} userId={user?.id ?? ''} onDelete={handleDeleteSchedule} />
                     ))}
                   </div>
                 )}
@@ -496,7 +499,7 @@ export default function BandDetailPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 {upcomingSchedules.map((s) => (
-                  <ScheduleCard key={s.id} schedule={s} userId={user?.id ?? ''} onDelete={handleDeleteSchedule} showDate />
+                  <ScheduleCard key={s.id} schedule={s} bandId={bandId} userId={user?.id ?? ''} onDelete={handleDeleteSchedule} showDate />
                 ))}
               </div>
             )}
@@ -619,15 +622,18 @@ export default function BandDetailPage() {
 /* ─── ScheduleCard ─── */
 function ScheduleCard({
   schedule: s,
+  bandId,
   userId,
   onDelete,
   showDate,
 }: {
   schedule: Schedule;
+  bandId: string;
   userId: string;
   onDelete: (id: string) => void;
   showDate?: boolean;
 }) {
+  const calendarEvent = scheduleCalendarEvent(s, bandId);
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }}
@@ -670,8 +676,38 @@ function ScheduleCard({
           </button>
         )}
       </div>
+      {/* 시작 시각이 있는 일정만 — 하루 전 알림이 다음 합주의 입구 */}
+      {calendarEvent && (
+        <div className="mt-3">
+          <AddToCalendar event={calendarEvent} from="band" compact />
+        </div>
+      )}
     </motion.div>
   );
+}
+
+/** 일정 → 캘린더. 투표에서 저장한 일정이면(메모에 /vote/<id>) 투표·다음 합주 링크, 아니면 밴드·연습실 찾기 링크 */
+function scheduleCalendarEvent(s: Schedule, bandId: string): CalendarEvent | null {
+  if (!s.start_time || !isCalendarReady(s.date, s.start_time)) return null;
+  const voteId = s.notes?.match(/\/vote\/([0-9a-f-]{36})/)?.[1];
+  const links = voteId
+    ? [
+        { label: '🗳️ 투표 결과', url: buildShareUrl(`/vote/${voteId}`, 'calendar', 'vote') },
+        { label: '🔁 다음 합주 정하기', url: buildShareUrl(`/vote/${voteId}?next=1`, 'calendar', 'vote') },
+      ]
+    : [
+        { label: '🎸 밴드 일정', url: buildShareUrl(`/my-band/${bandId}`, 'calendar', 'vote', 'band') },
+        { label: '🔍 다음 합주 장소 찾기', url: buildShareUrl('/search', 'calendar', 'vote', 'band') },
+      ];
+  return {
+    uid: `band-schedule-${s.id}`,
+    title: s.title,
+    location: s.location,
+    date: s.date,
+    startTime: s.start_time.slice(0, 5),
+    endTime: s.end_time ? s.end_time.slice(0, 5) : null,
+    description: calendarDescription(links),
+  };
 }
 
 /* ─── JoinBandButton ─── */

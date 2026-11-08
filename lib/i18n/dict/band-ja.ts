@@ -212,4 +212,8 @@ export const BAND_JA: Record<string, string> = {
   '{d}일 전': '{d}日前',
   // 모바일 하단 탭바 (BottomTabBar)
   '주요 메뉴': 'メインメニュー',
+  // 캘린더에 추가 (AddToCalendar, 밴드 일정)
+  '구글 캘린더': 'Googleカレンダー',
+  '아이폰·기타(.ics)': 'iPhone・その他(.ics)',
+  '날짜를 정하면 캘린더에 넣을 수 있어요': '日程が決まるとカレンダーに追加できます',
 };
