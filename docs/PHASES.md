@@ -22,6 +22,7 @@
 | 언제 | 무엇 | 누가 |
 |---|---|---|
 | 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`, 머지되면 `split_*`) | 에이전트 쿼리 → 사용자 판단 |
+| 진행 중 | 알림 = 웹 푸시(11-08 결정). PR 1(서비스 워커·구독, `14_push.sql` 운영 적용) **PR 열림** → 머지 후 사용자가 VAPID 키 생성·등록 → PR 2(투표 응답·결정 즉시 발송) → PR 3(전날·미납, Hobby Cron 하루 1번) | 에이전트 → 사용자 승인 |
 | 결정 대기 | Cowork 전환 전략 ②~⑤(가입 시점·카카오톡 채널 알림·3팀 시딩·네이버/ChatGPT 유입) — `docs/HANDOFF.md` 11-08 항목. 카카오톡 채널 보유 여부 답 필요 | 사용자 |
 | 수시 | 휴대폰 카톡 "나와의 채팅"으로 관리 링크 → 결정 버튼, "우리 밴드로 저장"(로그인), 투표 카카오 공유 | 사용자(에이전트는 로그인·카톡 불가) |
 | 11월 말 | 연습실 월간 최신화 `crawling/run_all.sh` → 미리보기 승인 → `APPLY=1` | 에이전트 → 사용자 승인 |
@@ -850,3 +851,22 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - tsc 0, 테스트 66/66, build 성공(`/split/[id]` ƒ), 390·1440px 가로 넘침 없음
 - 미확인: 카카오톡 실제 전송·카톡 인앱 브라우저에서 열기, 실제 밴드 단톡방 사용
 - QA: 정산 `dfb7f039`, 투표 `f197f24d` (지우지 않음)
+
+## 2026-11-08 — 재방문 ③ PR 1: 웹 푸시 구독 (DB 변경 — `supabase/14_push.sql`, 승인 후 운영 적용)
+- 배경: `docs/PLAN_notifications.md` — 카카오 나에게 보내기는 정책상 서비스 발송 불가, 받을 사람 대부분이 비로그인 → 웹 푸시(A) 결정. PR 1은 구독만(발송은 PR 2, `web-push`는 그때 설치)
+- DB: `push_subscriptions`(endpoint·p256dh·auth·기기 키·user_id) · `push_topics`(vote|split × creator|member) — RLS on·정책 0개·REVOKE, 쓰기 RPC `subscribe_push`·`unsubscribe_push`만. **읽는 RPC 없음**(endpoint = 보낼 수 있는 URL → 발송 서버만 service key로)
+  - creator는 만든 사람 토큰 해시가 맞을 때만, 투표 member는 그 기기 키로 응답한 적이 있어야, 정산은 링크 가진 누구나. creator는 재구독으로 내려가지 않음
+  - 한도: 기기당 구독 5 · 구독당 대상 50 · 전체 새 구독 시간당 300. 대상이 0개가 되면 구독 삭제
+- 클라이언트: `public/sw.js`(push·notificationclick만, **fetch·캐시 없음**, 링크는 같은 사이트만) · `lib/push.ts`(지원 판별, "알림 받기" 클릭 때만 SW 등록·권한 요청) · `components/PushOptIn.tsx`
+  - 붙인 곳: 투표 만든 사람(진행 중, 공유 카드 아래) / 투표한 멤버(진행 중, 투표 폼 아래) / 정산에서 아직 안 낸 멤버(체크리스트 아래)
+  - 미지원(카톡 인앱·홈 화면 밖 iOS·`NEXT_PUBLIC_VAPID_PUBLIC_KEY` 없음)이면 아무것도 안 보임 → **키 등록 전 머지해도 운영 화면 변화 없음**
+- 테스트 `tests/push.cjs`(base64url 변환·대상 목록 50개·잘못된 저장값)
+- 확인(로컬 → 운영 DB, `codex_qa`, GA·Amplitude·page_views 차단, QA용 임시 공개키는 dev 명령 env로만 — 파일·채팅에 안 씀, 비밀키는 만들자마자 버림)
+  - SQL: 로컬 Postgres 18(Supabase 기본 권한 재현) 2회 적용 + 26개 항목 통과 → 운영 적용. 운영: 두 테이블 RLS·정책 0·anon SELECT/INSERT 불가, RPC 2개 secdef·search_path. anon REST GET·POST 401(42501), RPC `not_member`·`invalid` 정상
+  - 헤드리스: 권한 자동 거절 → "브라우저에서 알림이 막혀 있어요" 안내 표시(denied 경로)
+  - 화면이 보이는 Chromium: 투표 만든 사람 구독(FCM endpoint·p256dh 87자·auth 22자·role creator) → 다른 사람 투표에 응답 후 멤버 구독 → 정산 구독 → 끄기(서버 대상 삭제·새로고침 후 카드 다시 보임)
+  - `sw.js` push 핸들러: CDP `deliverPushMessage`로 알림 표시 확인, 외부 URL은 사이트 주소로 바뀜
+  - 운영 `user_events`: `push_prompt_view`·`push_permission`(granted·denied)·`push_subscribe`(vote·split) 모두 `anon_id`·`codex_qa`
+  - tsc 0, 테스트 70/70, build 성공, 390·1440px 가로 넘침 없음
+- 미확인: 실제 기기(맥 사파리·안드로이드 크롬·아이폰 홈 화면 앱·**카톡 인앱 브라우저**) — 운영 키 등록 후 사용자 확인 필요
+- QA: 투표 `a2bfaafc`·`ef51dc5e`(진행 중), 구독 1개(임시 키 기준이라 발송 불가 — PR 2 첫 발송 때 실패 응답으로 정리됨, 지우지 않음)
