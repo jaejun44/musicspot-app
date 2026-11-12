@@ -163,6 +163,12 @@ track('challenge_upload_complete', {
   - `ear_entry_click {from: tab|strip|room|home}`: 입구 클릭 — 하단 탭·상단 메뉴(tab) / ReturnStrip 음감 카드(strip, `return_strip_click {kind: ear}`도 같이) / 연습실 상세 리뷰 아래 카드(room). `home`은 예약값(지금 호출부 없음)
   - 푸시: `push_prompt_view`·`push_permission`의 `where: ear`, `push_subscribe {kind: ear}`. 알림 유입은 `utm_source=push&utm_campaign=ear&utm_content=daily`
   - **완주율** = `ear_complete` / `ear_start`(anon·날짜 기준). 문제별 정답률 = `ear_answer` type별 correct 비율
+- 밴드씬 뉴스 `/news` (2026-11-12 추가, 인스타 카드뉴스 웹 보관 — `app/news/`·`components/NewsLatest.tsx`, 데이터 `news_posts`)
+  - `news_list_view {count}`: `/news` 첫 로드 1회(count = 처음 보인 카드 수, 최대 12)
+  - `news_view {slug}`: 글 상세 1회(이전·다음 글로 옮기면 그 글로 다시 1회)
+  - `news_entry_click {from: home|region|ear|nav}`: 입구 클릭 — 홈 히어로 아래 최신 2개 / 지역 페이지 연습실 목록 아래 최신 2개 / 음감 결과 화면 링크 / 상단 메뉴 "뉴스"
+  - `news_outbound_click {slug, to: instagram|source|search|ear|stems}`: 상세에서 나가는 링크(인스타 원본·출처 링크·하단 입구 3개)
+  - **입구별 유입** = `news_entry_click` from별. **상세 → 다른 기능** = `news_outbound_click(to=search|ear|stems)` / `news_view`
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
@@ -306,3 +312,19 @@ select count(*) players,
 from a;
 ```
 - `ear_complete`는 하루 1번만 생기므로 distinct 날짜 수 = 푼 날 수. localStorage를 지우면 같은 사람도 새 anon으로 셀 수 있다(과소 추정 쪽)
+
+### 밴드씬 뉴스 재방문 (2026-11-12 추가)
+같은 anon_id가 `news_view`를 **서로 다른 날(KST)** 2번 이상 한 사람 수(= 뉴스 때문에 다시 온 사람의 근사치).
+```sql
+with d as (
+  select distinct props->>'anon_id' anon, (created_at at time zone 'Asia/Seoul')::date kst_day
+  from user_events
+  where event_type = 'news_view' and props->>'anon_id' is not null
+    and coalesce(props->>'utm_campaign', '') <> 'codex_qa'          -- QA 제외
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 봇 제외
+)
+select count(*) readers,
+       count(*) filter (where days >= 2) returned_2plus_days
+from (select anon, count(*) days from d group by anon) t;
+```
+- 인스타에서 온 사람은 `utm_source=instagram`(프로필 링크에 붙이면) 또는 referrer로 따로 본다

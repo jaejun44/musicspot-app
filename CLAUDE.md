@@ -89,7 +89,9 @@ votes / vote_responses / vote_secrets    합주 후보 투표 /vote/[id] (정책
 splits / split_payers   합주비 정산 /split/[id] (정책 0개 — RPC 3개로만 접근, supabase/13_splits.sql)
 push_subscriptions / push_topics   웹 푸시 구독 (정책 0개 — 쓰기 RPC 2개, 읽기는 서버 service key만, supabase/14_push.sql · 음감 kind ear 16_push_ear.sql)
 push_log             웹 푸시 발송 기록·중복 방지 (정책·RPC 0개 — 발송 서버만, supabase/15_push_log.sql)
+news_posts           밴드씬 뉴스 /news (공개 글만 읽기 정책, 쓰기는 service key — scripts/import_cardnews.py, supabase/17_news.sql)
 Storage: stems       오디오 (30MB, MP3/WAV/OGG/M4A/FLAC)
+Storage: news        카드뉴스 이미지 WebP (공개 읽기, 업로드는 service key만)
 ```
 
 > 신규 테이블 필수 컬럼(country/language/created_at) 상세 → `docs/RULES.md`

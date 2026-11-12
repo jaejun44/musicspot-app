@@ -249,6 +249,13 @@ export default function EarClient() {
           >
             🎸 {t('오늘 들은 진행으로 8마디 만들기')} →
           </Link>
+          <Link
+            href="/news"
+            onClick={() => track('news_entry_click', { from: 'ear' })}
+            className="block px-1 py-3 min-h-[44px] text-[14px] font-bold text-[#0A0A0A]/70 underline underline-offset-4"
+          >
+            📰 {t('오늘의 밴드 뉴스')} →
+          </Link>
         </div>
       </main>
     );

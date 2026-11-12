@@ -12,6 +12,7 @@ import SiteFooter from '@/components/SiteFooter';
 import ThemeSongPlayer from '@/components/ThemeSongPlayer';
 import WelcomeSheet from '@/components/WelcomeSheet';
 import ReturnStrip from '@/components/ReturnStrip';
+import NewsLatest from '@/components/NewsLatest';
 import { useIsJapanMode } from '@/lib/i18n';
 
 export default function HomeClient() {
@@ -39,6 +40,10 @@ export default function HomeClient() {
       {/* 다시 온 사람: 최근 본·찜한 연습실을 히어로 위에 (처음 온 사람은 안 보임) */}
       {!isJapanMode && <ReturnStrip placement="home" />}
       <HeroSection />
+      {/* 매일 새로 볼 것: 밴드씬 뉴스 최신 2개 (ja에서도 보임 — 글은 한국어 그대로) */}
+      <div className="relative z-10 px-4 sm:px-6 py-6 max-w-5xl mx-auto">
+        <NewsLatest from="home" />
+      </div>
       {!isJapanMode && (
         <>
           <SearchBar />

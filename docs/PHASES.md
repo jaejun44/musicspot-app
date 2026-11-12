@@ -13,6 +13,8 @@
 
 (11-12 출시, PR #45) **오늘의 음감 `/ear`** — 매일 같은 5문제(로그인 없음, 하루 1번) → 결과 공유(카톡·링크) → 연속 기록 → 다음 날 20시대 "아직 안 풀었어요" 푸시·홈 스트립 카드로 재방문. 합주실 찾기는 빈도가 낮아 "매일 올 이유"로 추가(Cowork 11-12 제안 ①). 하단 탭 커뮤니티 자리를 음감으로 바꿈
 
+(PR 열림, 11-12) **밴드씬 뉴스 `/news`** — 인스타 카드뉴스(하루 2개)를 사이트에 쌓아 검색 유입·"매일 새로 볼 것"·인스타 프로필 링크 착지점으로. 76개 반영(이미지 380장 30.7MB), 홈 히어로 아래·지역 페이지·음감 결과·상단 메뉴 입구. 매일 반영은 `docs/NEWS_PUBLISH.md` 1줄(수동)
+
 **기준 수치 (11-05~06, 운영 DB)**
 - 공개 연습실 799곳(전부 spacecloud) · 가입자 12명
 - 최근 30일 연습실 상세(studio_view) 봇 제외 366세션(봇 포함 768) · 세션당 상세 1.07개
@@ -24,6 +26,7 @@
 | 언제 | 무엇 | 누가 |
 |---|---|---|
 | 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`, 머지되면 `split_*`) | 에이전트 쿼리 → 사용자 판단 |
+| 머지 후 | 밴드씬 뉴스: 인스타 프로필 링크를 `/news`로 바꿀지 · 매일 반영(카드뉴스 게시 뒤 `--only … --apply` 1줄)을 누가·어떻게 돌릴지 · 2주 뒤 `docs/ANALYTICS.md` "밴드씬 뉴스 재방문" | 사용자 결정 |
 | 11-26 무렵 | 오늘의 음감 유지·중단: `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수(PR 머지 후 2주). 머지 직후 아이폰 소리 확인 | 에이전트 쿼리 → 사용자 판단 |
 | 진행 중 | 알림 = 웹 푸시(11-08 결정). PR 1·2 머지, VAPID 키 등록(11-08) · PR 3(전날·미납 Cron) **PR 열림** → 사용자가 `CRON_SECRET` 등록 → 실제 기기·첫 Cron(20:00~20:59 KST) 확인 | 에이전트 → 사용자 |
 | 2주 뒤 | 알림 판정: 허용률(`push_permission`/`push_prompt_view`)·알림 유입(`utm_source=push`) vs 캘린더 유입(`utm_source=calendar`) — `docs/PLAN_notifications.md` PR 4(투표 응답·결정 즉시 발송) → PR 3(전날·미납, Hobby Cron 하루 1번) | 에이전트 → 사용자 승인 |
@@ -928,4 +931,27 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - 데스크톱·안드로이드는 아무것도 안 함. `lib/ensemble-audio.ts`(8마디)는 그대로
 - 문제 화면 듣기 버튼 아래 "소리가 안 들리면 무음 모드와 볼륨을 확인하세요"(iOS만, 마운트 후 판별, ja 사전 추가)
 - 확인: 데스크톱 크롬 — 듣기 탭 → AudioContext running·재생 중, 안내 안 보임 / 아이폰 UA 크롬 — 안내 보임, 무음 오디오 2번 탭에 1회만 재생, 390 넘침 없음. tsc 0, 테스트 87/87, build 성공
-- 미확인: 실제 아이폰 무음 스위치(iOS 시뮬레이터 연결이 2번 실패해 못 봄 — 시뮬레이터엔 무음 스위치도 없음)
+- 확인(11-12, 사용자 실기기, #46 머지 후 운영): 아이폰 Safari 무음 스위치 켠 채 소리 남
+
+## 2026-11-12 — 밴드씬 뉴스 `/news`: 인스타 카드뉴스 웹 보관 (DB 변경 — `supabase/17_news.sql`, 승인 후 운영 적용)
+- 배경(Cowork 11-12 점검): 11-06~12 방문자 52명 중 다른 날 재방문 1명. 인스타 카드뉴스를 매일 2개 올리지만 GA 28일 인스타 유입 6명, 같은 글이 사이트에 없어 검색에 안 잡힘 → 사이트에 쌓는다(Stage 1 유입)
+- DB: `news_posts`(slug·제목·본문·날짜·이미지 경로·출처 jsonb·저작자 표기·해시태그·인스타 URL·`source_key` 고유·`image_source_kind`·country/language) RLS on, 읽기 정책 = 공개 글만 anon·authenticated, 쓰기 권한 REVOKE(service_role만). Storage 공개 버킷 `news`(WebP, 2MB, 객체 정책 없음 → 업로드 service만)
+  - `image_source_kind`(사용자 요청): cc(Wikimedia·CC·퍼블릭 도메인) 36 · original(자체 그래픽) 1 · official(레이블·밴드 공식 자료·재킷·포스터·보도 사진, 섞이면 이쪽) 39 → 나중에 official만 `is_published=false`로 내릴 수 있게
+  - 운영 적용 순서: 17 본체 → (중단된 첫 `--apply`가 1행을 이미 올려) 컬럼은 빈 값 허용 추가 → 그 행 original → NOT NULL·CHECK (사용자 승인)
+- 가져오기 `scripts/import_cardnews.py`(+ 순수 파싱 `scripts/cardnews_parse.py`, 테스트 `scripts/test_cardnews_parse.py` ← `tests/cardnews-parse.cjs`): `--plan`(미리보기만)·`--apply`·`--only <날짜/슬롯>`. Pillow WebP 가로 1080·장당 200KB 이하(평균 82KB). `source_key` upsert, `is_published`는 덮어쓰지 않음. 원본 폴더 읽기만
+  - 132슬롯 → 76 가져옴 / 56 건너뜀: status=blocked 49 · prepared 2 · 이미지 표기 없음 2(10-05/slot-12 P.O.D., 10-10/slot-12 Parkway Drive) · caption 없음 1 · 다른 슬롯에 게시 1 · 중복 삭제 1
+  - 표기 판정: 처음 "사진:" 줄만 → 55개라 사용자에게 물음 → 변형 표기(이미지:·사진·재킷:·표지 사진:·비주얼:·재킷:·포스터:) 인정. 문구는 원문 그대로 표시
+- 화면: `/news`(최신순 12개 + 더보기, 메타 "밴드씬 뉴스 | Music Spot") · `/news/[slug]`(카드 전체 세로·대체 텍스트·본문·출처·저작자 표기 항상 펼침·인스타 링크·이전/다음·최신 3·하단 입구 /search(ja 숨김)·/ear·/stems, ISR 1시간·generateStaticParams·NewsArticle JSON-LD·OG=첫 카드) · 사이트맵에 목록+글
+  - 입구: 홈 히어로 아래 최신 2개(ja에서도) · 지역 페이지 연습실 목록 아래 최신 2개(서버 조회, 실패해도 페이지는 그림) · 음감 결과 1줄 링크 · 상단 메뉴 "뉴스"(하단 탭바 그대로). 연습실 상세엔 안 넣음
+  - ja: `/news` 허용, 글은 한국어 그대로, UI 문구 `lib/i18n/dict/news-ja.ts`
+- 이벤트 4종 `news_list_view/view/entry_click/outbound_click` + 재방문 쿼리(`docs/ANALYTICS.md`). 매일 반영 방법 `docs/NEWS_PUBLISH.md`
+- 확인(로컬 → 운영 DB, `codex_qa`, GA·Amplitude·page_views 차단)
+  - 로컬 Postgres: 17 새 DB·운영 상태 DB 각 2번 OK, anon 쓰기·수정·삭제 거부, 비공개 글 anon에게 안 보임, 빈 표기·잘못된 분류값 거부
+  - `--apply` 2번 → 76개 그대로(slug 76 고유), 저장소 380개 30.74MB
+  - 운영 anon 키: insert 401 · update/delete 42501 · Storage 업로드 403(RLS) · 읽기 76개
+  - SSR HTML에 NewsArticle JSON-LD·og:image(첫 카드 1080×1350)·저작자 표기·인스타 링크. 없는 slug 404
+  - 390·1440: `/news`·상세·홈·지역 가로 넘침 없음(홈의 넘침 요소는 기존 장식·HOT 가로 스크롤, 페이지 scrollWidth = 화면 폭)
+  - 이벤트 4종 같은 anon_id로 적재(home·region·ear·nav, instagram). view 이벤트 개발 모드 2번 기록 → ref로 1회 고정(split_view 패턴)
+  - tsc 0, 테스트 88/88, build 성공(`/news/[slug]` ● 76개). `/sitemap.xml` 60초 초과 재시도 경고 1번(이전 빌드에도 간헐적으로 있던 것, 결과는 성공)
+- 미확인: 실제 인스타 프로필 링크 유입, 검색 색인(배포 후)
+- 참고: `/news` 목록은 루트 레이아웃이 `headers()`를 읽어 다른 페이지처럼 요청마다 렌더(ƒ). 상세는 ISR

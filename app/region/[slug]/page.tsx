@@ -23,6 +23,8 @@ import Navigation from '@/components/Navigation';
 import SiteFooter from '@/components/SiteFooter';
 import JamEntryCard from '@/components/JamEntryCard';
 import ReturnStrip from '@/components/ReturnStrip';
+import NewsLatest from '@/components/NewsLatest';
+import { fetchNewsPage, type NewsSummary } from '@/lib/news';
 
 interface Props {
   params: { slug: string };
@@ -150,6 +152,11 @@ export default async function RegionPage({ params }: Props) {
   const faqs = buildFaqs(region, selection, stats);
   const nearby = nearbyRegions(region, REGIONS);
   const station = region.area?.kind === 'station' ? region.area.name : null;
+  // 뉴스 입구는 곁가지라 조회가 실패해도 지역 페이지는 그대로 그린다(로그만)
+  const news: NewsSummary[] = await fetchNewsPage(0, 2).catch((e) => {
+    console.error('[region] 최신 뉴스 조회 실패', e);
+    return [];
+  });
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -262,6 +269,9 @@ export default async function RegionPage({ params }: Props) {
             ))}
           </section>
         )}
+
+        {/* 매일 새로 볼 것: 밴드씬 뉴스 최신 2개 — 연습실 목록 다음 */}
+        <NewsLatest from="region" posts={news} className="mt-10" />
 
         {/* 온라인 잼 입구 — 연습실 목록 다음 */}
         <JamEntryCard from="region" className="mt-10 max-w-2xl" />

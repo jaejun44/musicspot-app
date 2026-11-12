@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { REGIONS } from '@/lib/regions';
 import { fetchSeoulStudios } from '@/lib/region-rooms';
 import { selectRegionRooms, isIndexable } from '@/lib/region-select';
+import { fetchAllNewsSlugs } from '@/lib/news';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
@@ -20,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/feed`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
     { url: `${SITE_URL}/stems`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
     { url: `${SITE_URL}/ear`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.6 },
+    { url: `${SITE_URL}/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
   ];
 
   // 지역 SEO 페이지 (롱테일 검색 유입). 연습실이 적어 noindex인 서울 지역은 뺀다
@@ -98,5 +100,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticRoutes, ...regionRoutes, ...studioRoutes, ...postRoutes, ...stemRoutes];
+  // 밴드씬 뉴스 글 (1,000행 배치)
+  const newsRoutes: MetadataRoute.Sitemap = (await fetchAllNewsSlugs()).map((n) => ({
+    url: `${SITE_URL}/news/${n.slug}`,
+    lastModified: new Date(n.updated_at),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...regionRoutes, ...studioRoutes, ...postRoutes, ...stemRoutes, ...newsRoutes];
 }

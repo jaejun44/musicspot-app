@@ -97,6 +97,13 @@ export type EventSchema = {
   ear_share: { channel: ShareChannel };
   /** 음감으로 들어온 입구. tab = 하단 탭바·상단 메뉴, strip = 재방문 스트립 카드, room = 연습실 상세 카드 */
   ear_entry_click: { from: 'tab' | 'strip' | 'room' | 'home' };
+  // 밴드씬 뉴스 /news — 인스타 카드뉴스 웹 보관 (2026-11-12). 재방문 판정은 news_view를 서로 다른 날 한 anon_id 수
+  news_list_view: { count: number };
+  news_view: { slug: string };
+  /** 뉴스로 들어온 입구. home = 홈 히어로 아래 카드, region = 지역 페이지 카드, ear = 음감 결과 링크, nav = 상단 메뉴 */
+  news_entry_click: { from: 'home' | 'region' | 'ear' | 'nav' };
+  /** 상세에서 밖(또는 다른 기능)으로 나가는 링크 */
+  news_outbound_click: { slug: string; to: 'instagram' | 'source' | 'search' | 'ear' | 'stems' };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */

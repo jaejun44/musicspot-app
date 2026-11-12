@@ -15,20 +15,20 @@
 
 ## 기록
 
+### 2026-11-12 — Claude Code — 밴드씬 뉴스 `/news` (인스타 카드뉴스 웹 보관, Cowork 11-12 제안 ④)
+- 한 일: 카드뉴스 76개를 `news_posts`·Storage `news`로 가져와 `/news` 목록·상세(JSON-LD·OG·저작자 표기 항상 표시) + 입구(홈·지역·음감 결과·상단 메뉴). DB `supabase/17_news.sql`(+ `image_source_kind`) 승인 후 운영 적용. Cowork 11-12 항목은 ①·④ 모두 처리돼 정리함
+- 바뀐 파일: `app/news/`·`lib/news.ts`·`components/NewsCard.tsx`·`NewsLatest.tsx`·`scripts/import_cardnews.py`·`cardnews_parse.py`·`test_cardnews_parse.py`·`tests/cardnews-parse.cjs`·`lib/i18n/dict/news-ja.ts`·`docs/NEWS_PUBLISH.md` 새 파일 + 홈·지역·음감·메뉴·사이트맵·이벤트 — 브랜치 `news-archive` PR
+- 확인한 것: `--apply` 2번 76개 그대로(30.74MB), anon 쓰기 거부, 이벤트 4종 적재, 390/1440 넘침 없음, tsc 0·테스트 88/88·build 성공. 건너뜀 56(blocked 49·표기 없음 2 등)
+- 받는 쪽: 사용자
+- 요청: ① PR 머지 승인 ② 인스타 프로필 링크를 `/news`로 바꿀지(바꾸면 `?utm_source=instagram&utm_medium=profile` 권장) ③ 매일 반영 방법 결정 — 수동 1줄(`docs/NEWS_PUBLISH.md`) 또는 카드뉴스 게시 작업 마지막 단계에 그 1줄 추가 ④ official 39개를 계속 둘지
+- 상태: 열림
+
 ### 2026-11-12 — Claude Code — 오늘의 음감 `/ear` 매일 5문제 (+ 아이폰 무음 모드 대응)
 - 한 일: 날짜 시드 5문제(높낮이·음정·장단조·코드·4마디 진행) + Web Audio 합성 + 연속 기록(localStorage `ms_ear`) + 공유 + 입구(하단 탭 커뮤니티→음감 A안·상단 메뉴·스트립·상세 카드) + 매일 20시대 "아직 안 풀었어요" 푸시. DB `supabase/16_push_ear.sql` 운영 적용(승인·백업 후)
 - 바뀐 파일: `app/ear/`·`lib/ear/`·`components/EarEntryCard.tsx`·`lib/i18n/dict/ear-ja.ts`·`tests/ear-*.cjs` 새 파일 + 탭바·메뉴·ReturnStrip·PushOptIn·push-server 등 — 브랜치 `ear-daily` PR
 - 확인한 것: 로컬→운영 DB 풀이·잠금·공유·스트립·이벤트 5종·Cron 2회(sent 1 → skipped 1). 후속(브랜치 `ear-ios-silent` PR): 사용자 실기기에서 무음 스위치면 소리 안 남 → `lib/ear/synth.ts` 듣기 탭에서 `navigator.audioSession.type='playback'`(iOS 17+), 없으면 무음 `<audio>` 1회 + iOS만 "무음 모드와 볼륨 확인" 안내. 데스크톱 크롬 소리 그대로·아이폰 UA 안내 확인, tsc 0·테스트 87/87·build 성공, 실기기 무음 스위치 미확인
 - 받는 쪽: 사용자
-- 요청: ① PR 머지 — 처리됨(11-12, 사용자 승인 → #45 머지, 운영 /ear 200 확인) ② 무음 모드 PR 머지 후 아이폰 Safari에서 무음 스위치 켠 채 `/ear` 듣기 재확인(iOS 버전도 알려 주기) ③ 2주 뒤(11-26 무렵) `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수로 유지·중단 결정
-- 상태: 열림
-
-### 2026-11-12 — Cowork — 재방문 지표 점검 + "매일 올 이유" 전략 제안
-- 한 일: 11-06~12 운영 DB(봇·QA 제외) 방문자 52명 중 다른 날 재방문 1명, 49명이 `/room` 착지, 투표 루프 실사용 1명. 결론: 합주실 찾기는 빈도가 낮아 루프만으로는 재방문이 안 쌓임 → 매일 쓰는 층 제안(① 오늘의 음감 ② 메트로놈·튜너 ③ 지역×조건 SEO 페이지 ④ 카드뉴스 웹 보관)
-- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: 위 수치는 `user_events` 조회 1회. 제안은 구현·검증 안 함. D7은 코호트가 아직 7일 미만이라 미확정
-- 받는 쪽: 사용자
-- 요청: ①(오늘의 음감) 처리됨(11-12 Claude Code, 바로 위 항목) · ④(카드뉴스 웹 보관) 프롬프트를 Claude Code에 전달할지 결정. ④ 원본 확인(11-12): `~/Desktop/musicSpot_cardnews/_active/daily/<날짜>/slot-*/` — 132개 중 published 79개, 캡션 84개, 이미지 1080×1350 PNG 약 1MB/장, 옛 슬롯은 이미지가 `out/`이 아닌 슬롯 루트에 있음
+- 요청: ① PR 머지 — 처리됨(11-12, 사용자 승인 → #45 머지, 운영 /ear 200 확인) ② 아이폰 무음 모드 소리 — 처리됨(11-12, #46 머지 후 사용자 실기기 확인) ③ 2주 뒤(11-26 무렵) `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수로 유지·중단 결정
 - 상태: 열림
 
 ### 2026-11-08 — Claude Code — 재방문 ③ PR 3 전날·미납 알림 Cron
