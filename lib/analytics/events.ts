@@ -25,12 +25,12 @@ export type UploadSource = 'file' | 'record' | 'youtube' | 'jam';
 export type JamSource = 'dm' | 'session';
 
 /** 홈·검색 상단 재방문 스트립의 목록 종류 */
-export type ReturnStripKind = 'recent' | 'favorite' | 'vote';
+export type ReturnStripKind = 'recent' | 'favorite' | 'vote' | 'ear';
 /** 스트립이 붙은 화면 (2026-11-08 추가) */
 export type ReturnStripPlacement = 'home' | 'search' | 'region' | 'room';
 
 /** 모바일 하단 탭바의 탭. feed는 일본 모드(연습실 탭 대신)에서만 */
-export type NavTab = 'studio' | 'band' | 'stems' | 'community' | 'feed' | 'my';
+export type NavTab = 'studio' | 'band' | 'stems' | 'community' | 'feed' | 'my' | 'ear';
 
 // ─── 이벤트 스키마 ───────────────────────────────────────────────
 export type EventSchema = {
@@ -87,9 +87,16 @@ export type EventSchema = {
   split_paid_toggle: { on: boolean };
   split_next_vote_click: Record<string, never>;
   /** 웹 푸시 "알림 받기" 카드 (docs/PLAN_notifications.md). where = 붙은 화면, permission = 카드가 보일 때 브라우저 권한 */
-  push_prompt_view: { where: 'vote_creator' | 'vote_member' | 'split'; permission: 'default' | 'denied' | 'granted' };
-  push_permission: { where: 'vote_creator' | 'vote_member' | 'split'; result: 'granted' | 'denied' };
-  push_subscribe: { kind: 'vote' | 'split'; where: 'vote_creator' | 'vote_member' | 'split' };
+  push_prompt_view: { where: 'vote_creator' | 'vote_member' | 'split' | 'ear'; permission: 'default' | 'denied' | 'granted' };
+  push_permission: { where: 'vote_creator' | 'vote_member' | 'split' | 'ear'; result: 'granted' | 'denied' };
+  push_subscribe: { kind: 'vote' | 'split' | 'ear'; where: 'vote_creator' | 'vote_member' | 'split' | 'ear' };
+  // 오늘의 음감 /ear — 매일 5문제 (2026-11-12). 재방문 판정은 ear_complete를 서로 다른 날 한 anon_id 수
+  ear_start: { streak: number };
+  ear_answer: { index: number; type: 'higher' | 'interval' | 'quality' | 'chord' | 'progression'; correct: boolean };
+  ear_complete: { score: number; streak: number };
+  ear_share: { channel: ShareChannel };
+  /** 음감으로 들어온 입구. tab = 하단 탭바·상단 메뉴, strip = 재방문 스트립 카드, room = 연습실 상세 카드 */
+  ear_entry_click: { from: 'tab' | 'strip' | 'room' | 'home' };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MapPin, Guitar, Music, MessageSquare, Newspaper, User, type LucideIcon } from 'lucide-react';
+import { MapPin, Guitar, Music, Headphones, Newspaper, User, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useT, useIsJapanMode } from '@/lib/i18n';
 import { track } from '@/lib/analytics';
@@ -12,7 +12,7 @@ import type { NavTab } from '@/lib/analytics/events';
 // 상세 화면(연습실 상세의 문의 바 등 자체 하단 버튼이 있는 곳)에서는 숨긴다.
 // 떠 있는 동안 globals.css의 --tabbar-h가 생겨 다른 하단 고정 요소가 그 위로 비켜 선다.
 
-const EXACT_PATHS = ['/', '/search', '/band-matching', '/stems', '/community', '/feed', '/my-band', '/my-bookings'];
+const EXACT_PATHS = ['/', '/search', '/band-matching', '/stems', '/ear', '/community', '/feed', '/my-band', '/my-bookings'];
 
 function isTabBarPage(pathname: string) {
   return EXACT_PATHS.includes(pathname) || pathname === '/region' || pathname.startsWith('/region/');
@@ -42,7 +42,8 @@ export default function BottomTabBar() {
       : [{ key: 'studio' as const, label: t('연습실'), href: '/search', icon: MapPin, isActive: (p: string) => p === '/search' || p.startsWith('/region') }]),
     { key: 'band', label: t('밴드찾기'), href: '/band-matching', icon: Guitar, isActive: (p) => p === '/band-matching' },
     { key: 'stems', label: t('8마디'), href: '/stems', icon: Music, isActive: (p) => p === '/stems' },
-    { key: 'community', label: t('커뮤니티'), href: '/community', icon: MessageSquare, isActive: (p) => p === '/community' },
+    // 커뮤니티는 상단 메뉴에 남기고 탭은 매일 오는 음감으로 (2026-11-12 A안)
+    { key: 'ear', label: t('음감'), href: '/ear', icon: Headphones, isActive: (p) => p === '/ear' },
     ...(isJapanMode
       ? [{ key: 'feed' as const, label: t('피드'), href: '/feed', icon: Newspaper, isActive: (p: string) => p === '/feed' }]
       : []),
@@ -64,7 +65,10 @@ export default function BottomTabBar() {
             <li key={tab.key} className="flex-1">
               <Link
                 href={tab.href}
-                onClick={() => track('nav_tab_click', { tab: tab.key })}
+                onClick={() => {
+                  track('nav_tab_click', { tab: tab.key });
+                  if (tab.key === 'ear') track('ear_entry_click', { from: 'tab' });
+                }}
                 aria-current={active ? 'page' : undefined}
                 className={`h-full flex flex-col items-center justify-center gap-1 font-bold text-[12px] ${
                   active ? 'text-[#FF3D77]' : 'text-[#0A0A0A]'

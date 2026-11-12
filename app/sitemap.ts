@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/community`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.6 },
     { url: `${SITE_URL}/feed`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
     { url: `${SITE_URL}/stems`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
+    { url: `${SITE_URL}/ear`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.6 },
   ];
 
   // 지역 SEO 페이지 (롱테일 검색 유입). 연습실이 적어 noindex인 서울 지역은 뺀다

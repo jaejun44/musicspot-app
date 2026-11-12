@@ -18,6 +18,7 @@ import RoomBookingWidget from './RoomBookingWidget';
 import RoomContactBar from './RoomContactBar';
 import ReviewSection from './ReviewSection';
 import JamEntryCard from '@/components/JamEntryCard';
+import EarEntryCard from '@/components/EarEntryCard';
 import type { NearbyRoom } from '@/lib/nearby-rooms';
 import RoomCompare from './RoomCompare';
 import CandidateBar from './CandidateBar';
@@ -304,6 +305,9 @@ export default function RoomDetailClient({ nearby }: { nearby: NearbyRoom[] }) {
         <div id="reviews">
           <ReviewSection studioId={studio.id} onReviewSaved={refreshStudio} />
         </div>
+
+        {/* 오늘의 음감 입구 — 리뷰 아래, 문의·비교·후보와 떨어진 곳 */}
+        <EarEntryCard />
 
         {/* 카카오 공유 */}
         <KakaoShareButton

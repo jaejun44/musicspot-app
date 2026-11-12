@@ -16,7 +16,7 @@ function loadLib(file, deps = {}) {
 }
 
 const shareUtm = loadLib('share-utm');
-const { responseEvent, decidedEvent, voteResponsePayload, voteDecidedPayload, RESPONSE_WINDOW_MS, kstTomorrow, reminderEvent, rehearsalReminderPayload, unpaidPayload, UNPAID_EVENT } = loadLib('push-messages', {
+const { responseEvent, decidedEvent, voteResponsePayload, voteDecidedPayload, RESPONSE_WINDOW_MS, kstTomorrow, reminderEvent, rehearsalReminderPayload, unpaidPayload, UNPAID_EVENT, kstDate, earEvent, earPayload, EAR_TARGET_ID } = loadLib('push-messages', {
   '@/lib/share-utm': shareUtm,
 });
 
@@ -60,4 +60,16 @@ test('전날·미납 문구: 시간대·금액, 링크 UTM, 이름 없음', () =
   assert.match(u.body, /11,000원/);
   assert.equal(u.url, '/split/s1?utm_source=push&utm_medium=share&utm_campaign=split&utm_content=unpaid');
   assert.equal(UNPAID_EVENT, 'unpaid');
+});
+
+test('오늘의 음감: KST 오늘 날짜로 하루 1건, /ear push UTM, 언어별 문구', () => {
+  assert.equal(kstDate(new Date('2026-11-12T11:00:00Z')), '2026-11-12');
+  assert.equal(kstDate(new Date('2026-11-12T15:00:00Z')), '2026-11-13');
+  assert.equal(earEvent('2026-11-12'), 'ear:2026-11-12');
+  assert.equal(EAR_TARGET_ID, '00000000-0000-0000-0000-000000000000');
+  const ko = earPayload('ko');
+  assert.equal(ko.url, '/ear?utm_source=push&utm_medium=share&utm_campaign=ear&utm_content=daily');
+  assert.match(ko.title, /오늘의 음감/);
+  assert.equal(ko.tag, 'ear-daily');
+  assert.match(earPayload('ja').title, /今日の音感/);
 });

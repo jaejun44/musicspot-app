@@ -150,11 +150,19 @@ track('challenge_upload_complete', {
   - `split_next_vote_click {}`: "🔁 다음 합주 정하기" 펼침 → 투표가 만들어지면 `vote_create {source: split}`
   - **정산 → 다음 투표 전환** = `split_next_vote_click` 대비 `vote_create(source=split)`. 멤버 참여 = `split_view(is_creator=false)`·`split_paid_toggle`
 - 웹 푸시 구독 (2026-11-08 추가, `components/PushOptIn.tsx`·`lib/push.ts`, 설계 `docs/PLAN_notifications.md`) — endpoint·키는 담지 않는다
-  - `push_prompt_view {where: vote_creator|vote_member|split, permission: default|denied|granted}`: "알림 받기" 카드 노출(지원 브라우저만, 켜져 있으면 안 보냄)
+  - `push_prompt_view {where: vote_creator|vote_member|split|ear, permission: default|denied|granted}`: "알림 받기" 카드 노출(지원 브라우저만, 켜져 있으면 안 보냄)
   - `push_permission {where, result: granted|denied}`: 권한 요청 결과(버튼 클릭 후)
-  - `push_subscribe {kind: vote|split, where}`: 서버 저장 성공
+  - `push_subscribe {kind: vote|split|ear, where}`: 서버 저장 성공
   - 알림 클릭 유입(2026-11-08 PR 2): `utm_source=push`, `utm_campaign=vote`, `utm_content=response|decided|reminder`(정산 미납은 `utm_campaign=split&utm_content=unpaid`). 발송 건수는 이벤트가 아니라 `push_log`(status sent|failed)
   - **허용률** = `push_permission(granted)` / `push_prompt_view`. **미지원 비율**은 카드가 안 보여 이벤트가 없음 → 지원 여부는 PR 2 이후 알림 유입(`utm_source=push`)과 함께 본다
+- 오늘의 음감 `/ear` (2026-11-12 추가, `app/ear/_components/EarClient.tsx`·`EarShare.tsx`, 기록은 localStorage `ms_ear` — 서버에는 누가 풀었는지 저장하지 않는다)
+  - `ear_start {streak}`: [시작]/[이어 풀기] 탭. streak = 그때까지의 연속 일수
+  - `ear_answer {index: 1~5, type: higher|interval|quality|chord|progression, correct}`: 문제마다 1회. **정답 값·고른 값은 담지 않는다**
+  - `ear_complete {score: 0~5, streak}`: 5번째 답을 낸 순간 1회(하루 1번만 풀 수 있어 anon·날짜당 최대 1회)
+  - `ear_share {channel: kakao|copy|native}`: 결과 공유(링크는 `utm_campaign=ear`, 공유 텍스트에 정답 없음)
+  - `ear_entry_click {from: tab|strip|room|home}`: 입구 클릭 — 하단 탭·상단 메뉴(tab) / ReturnStrip 음감 카드(strip, `return_strip_click {kind: ear}`도 같이) / 연습실 상세 리뷰 아래 카드(room). `home`은 예약값(지금 호출부 없음)
+  - 푸시: `push_prompt_view`·`push_permission`의 `where: ear`, `push_subscribe {kind: ear}`. 알림 유입은 `utm_source=push&utm_campaign=ear&utm_content=daily`
+  - **완주율** = `ear_complete` / `ear_start`(anon·날짜 기준). 문제별 정답률 = `ear_answer` type별 correct 비율
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
@@ -274,3 +282,27 @@ from (select anon, vote_id, count(distinct kst_day) days from v group by 1, 2) t
 ```
 - 다음 투표로 이어진 경우(옛 링크 → 새 투표)는 `votes.parent_vote_id`로 묶어서 본다
 
+### 오늘의 음감 재방문 (2026-11-12 추가, 2주 뒤 유지·중단 판정)
+같은 anon_id가 `ear_complete`를 **다른 날(KST)** 몇 번 남겼는지 + 가장 긴 연속 일수.
+```sql
+with d as (
+  select distinct props->>'anon_id' anon, (created_at at time zone 'Asia/Seoul')::date kst_day
+  from user_events
+  where event_type = 'ear_complete' and props->>'anon_id' is not null
+    and coalesce(props->>'utm_campaign', '') <> 'codex_qa'          -- QA 제외
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 봇 제외
+),
+g as (  -- 연속된 날끼리 같은 grp
+  select anon, kst_day, kst_day - (row_number() over (partition by anon order by kst_day))::int grp from d
+),
+a as (
+  select anon, count(*) days, max(run) best_run
+  from (select anon, kst_day, count(*) over (partition by anon, grp) run from g) t group by anon
+)
+select count(*) players,
+       count(*) filter (where days = 2)      days_2,
+       count(*) filter (where days >= 3)     days_3plus,
+       count(*) filter (where best_run >= 3) streak_3plus   -- 판정 기준: 3일 연속 완주한 사람 수
+from a;
+```
+- `ear_complete`는 하루 1번만 생기므로 distinct 날짜 수 = 푼 날 수. localStorage를 지우면 같은 사람도 새 anon으로 셀 수 있다(과소 추정 쪽)

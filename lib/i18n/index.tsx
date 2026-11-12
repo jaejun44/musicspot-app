@@ -20,6 +20,7 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from './locale';
 import { CORE_JA } from './dict/core-ja';
 import { BAND_JA } from './dict/band-ja';
 import { COMMUNITY_JA } from './dict/community-ja';
+import { EAR_JA } from './dict/ear-ja';
 
 export type { Locale } from './locale';
 
@@ -27,6 +28,7 @@ const DICT_JA: Record<string, string> = {
   ...CORE_JA,
   ...BAND_JA,
   ...COMMUNITY_JA,
+  ...EAR_JA,
 };
 
 type Vars = Record<string, string | number>;
