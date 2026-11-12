@@ -39,6 +39,7 @@ export function useRoomSearch(): UseRoomSearchReturn {
   // Parse filter params from URL
   const filterRoomType = searchParams.get('room_type') as StudioFilters['room_type'] | null;
   const filterDrum = searchParams.get('has_drum') === '1';
+  const filterBand = searchParams.get('band') === '1';
   const filterMaxPrice = searchParams.get('max_price') ? Number(searchParams.get('max_price')) : undefined;
   const filterRadius = searchParams.get('radius') ? Number(searchParams.get('radius')) : undefined;
   const filterRegion = searchParams.get('region') ?? undefined;
@@ -47,6 +48,7 @@ export function useRoomSearch(): UseRoomSearchReturn {
   const filters: StudioFilters = {
     room_type: filterRoomType ?? undefined,
     has_drum: filterDrum || undefined,
+    band_only: filterBand || undefined,
     max_price: filterMaxPrice,
     radius: filterRadius,
     region: filterRegion,
@@ -86,6 +88,7 @@ export function useRoomSearch(): UseRoomSearchReturn {
     if (lat != null) params.set('lat', String(lat));
     if (lng != null) params.set('lng', String(lng));
     if (f.room_type) params.set('room_type', f.room_type);
+    if (f.band_only) params.set('band', '1');
     if (f.has_drum) params.set('has_drum', '1');
     if (f.max_price) params.set('max_price', String(f.max_price));
     if (f.radius) params.set('radius', String(f.radius));

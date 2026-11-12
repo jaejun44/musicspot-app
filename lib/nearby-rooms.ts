@@ -1,6 +1,7 @@
 import { getDistanceKm } from './distance';
 import type { Studio } from '@/types/studio';
 import type { RegionMeta } from './regions';
+import { sortByBandRank } from './studio-kinds';
 
 export interface NearbyRoom {
   studio: Studio;
@@ -22,6 +23,7 @@ function sameUse(originType: string | null, roomType: string | null | undefined)
 /**
  * 비공개된 연습실 대신 보여줄 근처 공개 연습실.
  * 같은 쓰임(월 대여였으면 M·both)을 가까운 순으로 먼저, 모자라면 나머지를 가까운 순으로 채운다.
+ * 맨 앞 기준은 밴드용(band_rank) — 밴드용 → 그 외 → 댄스 전용, 같은 등급 안에선 위 순서 그대로(2026-11-12).
  */
 export function pickNearbyRooms(origin: Origin, candidates: Studio[], max = 6): NearbyRoom[] {
   const withDistance = candidates
@@ -30,7 +32,7 @@ export function pickNearbyRooms(origin: Origin, candidates: Studio[], max = 6): 
     .sort((a, b) => a.distanceM - b.distanceM);
   const same = withDistance.filter((r) => sameUse(origin.room_type, r.studio.room_type));
   const rest = withDistance.filter((r) => !sameUse(origin.room_type, r.studio.room_type));
-  return [...same, ...rest].slice(0, max);
+  return sortByBandRank([...same, ...rest], (r) => r.studio).slice(0, max);
 }
 
 /** 좌표에서 가장 가까운 지역 페이지(기준점이 있는 지역만). maxKm 밖이면 없음 */

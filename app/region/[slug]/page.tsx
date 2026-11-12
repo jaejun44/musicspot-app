@@ -19,6 +19,9 @@ import {
 import { localeAlternates } from '@/lib/seo';
 import { Studio } from '@/types/studio';
 import RoomCard from '@/components/RoomCard';
+import BandDivider, { isBandBoundary } from '@/components/BandDivider';
+import { Fragment } from 'react';
+import { collectionForRegion } from '@/lib/room-collections';
 import Navigation from '@/components/Navigation';
 import SiteFooter from '@/components/SiteFooter';
 import JamEntryCard from '@/components/JamEntryCard';
@@ -53,6 +56,7 @@ async function fetchRoomsByRegion(keyword: string): Promise<Studio[]> {
     .eq('is_published', true)
     .or(MUSIC_CATEGORY_FILTER)
     .or(regionConditions)
+    .order('band_rank', { ascending: true }) // 밴드용 먼저(2026-11-12)
     .order('data_quality_score', { ascending: false })
     .order('review_avg', { ascending: false, nullsFirst: false })
     .range(0, 59);
@@ -86,7 +90,8 @@ function buildFaqs(region: RegionMeta, selection: RegionSelection, stats: Region
   faqs.push({
     q: `${region.label} 합주실·연습실은 몇 곳이에요?`,
     a:
-      `${scopeText(region, selection.radiusM)}에 ${stats.total}곳이 있어요. ` +
+      `${scopeText(region, selection.radiusM)}에 ${stats.total}곳이 있어요(댄스 전용 연습실 제외). ` +
+      (stats.band > 0 ? `밴드 합주가 가능한 곳은 ${stats.band}곳이고, ` : '밴드 합주 가능으로 확인된 곳은 아직 없어요. ') +
       (stats.drum > 0
         ? `그중 드럼을 쓸 수 있는 곳은 ${stats.drum}곳이에요.`
         : '드럼 가능으로 등록된 곳은 아직 없어요.'),
@@ -112,8 +117,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!region) return { title: '지역 연습실 | Music Spot' };
 
   const selection = await getRegionRooms(region);
-  const title = `${region.label} 합주실·연습실 추천 | Music Spot`;
-  const description = `${scopeText(region, selection.radiusM)} 합주실·연습실 ${selection.rooms.length}곳을 한눈에. 위치·가격·드럼 여부로 비교하고 바로 문의하세요.`;
+  // 짝 조합 페이지(예: 마포 밴드 합주실)가 있으면 이 페이지는 '연습실'로 — 같은 검색어로 두 페이지가 경쟁하지 않게
+  const title = collectionForRegion(region.slug)
+    ? `${region.label} 연습실 추천 | Music Spot`
+    : `${region.label} 합주실·연습실 추천 | Music Spot`;
+  const description = `${scopeText(region, selection.radiusM)} 합주실·연습실 ${regionStats(selection.rooms).total}곳을 한눈에. 위치·가격·드럼 여부로 비교하고 바로 문의하세요.`;
   const url = `${SITE_URL}/region/${region.slug}`;
 
   // 로컬 검색엔진용 geo 메타태그
@@ -151,7 +159,19 @@ export default async function RegionPage({ params }: Props) {
   const stats = regionStats(selection.rooms);
   const faqs = buildFaqs(region, selection, stats);
   const nearby = nearbyRegions(region, REGIONS);
+  // 밴드 합주 가능이 0곳이면 가까운 동네 중 밴드용이 있는 곳으로 안내(서울 지역만 — 같은 원본에서 바로 셀 수 있음)
+  const bandNearby =
+    stats.band === 0 && region.area
+      ? await (async () => {
+          const seoul = await fetchSeoulStudios();
+          return nearbyRegions(region, REGIONS, REGIONS.length)
+            .map((r) => ({ r, band: regionStats(selectRegionRooms(r.area!, seoul).rooms).band }))
+            .filter((x) => x.band > 0)
+            .slice(0, 3);
+        })()
+      : [];
   const station = region.area?.kind === 'station' ? region.area.name : null;
+  const bandCollection = collectionForRegion(region.slug);
   // 뉴스 입구는 곁가지라 조회가 실패해도 지역 페이지는 그대로 그린다(로그만)
   const news: NewsSummary[] = await fetchNewsPage(0, 2).catch((e) => {
     console.error('[region] 최신 뉴스 조회 실패', e);
@@ -215,17 +235,50 @@ export default async function RegionPage({ params }: Props) {
 
         <header className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bungee">
-            {region.label} <span className="text-comic-pink">합주실·연습실</span>
+            {region.label} <span className="text-comic-pink">{bandCollection ? '연습실' : '합주실·연습실'}</span>
           </h1>
           <p className="mt-2 text-sm text-comic-black/60 leading-relaxed">
-            {scopeText(region, selection.radiusM)} 합주실·연습실 {rooms.length}곳.
+            {scopeText(region, selection.radiusM)} 합주실·연습실 {stats.total}곳
+            {stats.band > 0 ? `, 그중 밴드 합주 가능 ${stats.band}곳.` : '.'}
             {' '}위치·가격·드럼 여부로 비교하고 바로 문의하세요.
           </p>
+          {bandCollection && (
+            <Link
+              href={`/rooms/${bandCollection.slug}`}
+              className="mt-3 inline-flex items-center min-h-[44px] px-4 rounded-[12px] bg-[#F5FF4F] border-[2px] border-comic-black text-[13px] font-bold"
+              style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+            >
+              🎸 {bandCollection.title}만 모아 보기 →
+            </Link>
+          )}
+          {stats.band === 0 && (
+            <div className="mt-3 rounded-[12px] border-[2px] border-comic-black bg-white px-4 py-3" style={{ boxShadow: '2px 2px 0 #0A0A0A' }}>
+              <p className="text-[13px] font-bold text-comic-black">🥁 이 동네에는 밴드 합주 가능한 곳이 아직 없어요</p>
+              {bandNearby.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {bandNearby.map(({ r, band }) => (
+                    <Link
+                      key={r.slug}
+                      href={`/region/${r.slug}`}
+                      className="inline-flex items-center min-h-[44px] px-3 rounded-[12px] bg-[#F5FF4F] border-[2px] border-comic-black text-[13px] font-bold"
+                    >
+                      {r.label} 밴드 합주 {band}곳 →
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {stats.total > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2 text-[13px] font-bold">
               <li className="px-3 py-1.5 bg-white border-[2px] border-comic-black" style={{ boxShadow: '2px 2px 0 #0A0A0A' }}>
-                🎸 {stats.total}곳
+                📍 연습실 {stats.total}곳
               </li>
+              {stats.band > 0 && (
+                <li className="px-3 py-1.5 bg-white border-[2px] border-comic-black" style={{ boxShadow: '2px 2px 0 #0A0A0A' }}>
+                  🎸 밴드 합주 {stats.band}곳
+                </li>
+              )}
               {stats.drum > 0 && (
                 <li className="px-3 py-1.5 bg-white border-[2px] border-comic-black" style={{ boxShadow: '2px 2px 0 #0A0A0A' }}>
                   🥁 드럼 가능 {stats.drum}곳
@@ -258,14 +311,16 @@ export default async function RegionPage({ params }: Props) {
           </div>
         ) : (
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {selection.rooms.map(({ studio, distanceM }) => (
-              <RoomCard
-                key={studio.id}
-                studio={studio}
-                locationNote={
-                  station && distanceM != null ? `🚶 ${station} 도보 약 ${walkMinutes(distanceM)}분` : undefined
-                }
-              />
+            {selection.rooms.map(({ studio, distanceM }, i) => (
+              <Fragment key={studio.id}>
+                {isBandBoundary(rooms, i) && <BandDivider />}
+                <RoomCard
+                  studio={studio}
+                  locationNote={
+                    station && distanceM != null ? `🚶 ${station} 도보 약 ${walkMinutes(distanceM)}분` : undefined
+                  }
+                />
+              </Fragment>
             ))}
           </section>
         )}

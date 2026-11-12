@@ -8,6 +8,7 @@ import { studioPriceLabel } from '@/lib/studio-price';
 import CandidateToggle from './CandidateToggle';
 import AskMembersButton from './AskMembersButton';
 import SplitSheet from '@/app/split/_components/SplitSheet';
+import { studioBadges } from '@/lib/studio-kinds';
 
 interface RoomInfoCardProps {
   studio: Studio;
@@ -87,14 +88,16 @@ export default function RoomInfoCard({ studio, onShare }: RoomInfoCardProps) {
             {roomLabel}
           </span>
         )}
-        {studio.has_drum && (
+        {/* 종류 배지 최대 2개(밴드 합주 > 드럼 > 피아노 > 보컬 > 녹음). 댄스 전용은 없음. kinds가 없는 옛 데이터는 드럼만 */}
+        {(studio.kinds ? studioBadges(studio) : studio.has_drum ? ['🥁 드럼 가능'] : []).map((badge) => (
           <span
+            key={badge}
             className="px-3 py-1 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[8px]"
             style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
           >
-            🥁 드럼 가능
+            {badge}
           </span>
-        )}
+        ))}
         {studio.capacity && (
           <span
             className="px-3 py-1 bg-[#4FC3F7] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[8px]"

@@ -118,6 +118,7 @@ export default function SearchClient() {
             userLat={userLat}
             userLng={userLng}
             onLoadMore={loadMore}
+            bandFirst={filters.sort_by !== 'price'}
           />
         ) : (
           <div className="flex-1 flex flex-col relative min-h-0" style={{ height: 'calc(100vh - 180px)' }}>

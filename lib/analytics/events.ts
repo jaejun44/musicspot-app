@@ -35,7 +35,8 @@ export type NavTab = 'studio' | 'band' | 'stems' | 'community' | 'feed' | 'my' |
 // ─── 이벤트 스키마 ───────────────────────────────────────────────
 export type EventSchema = {
   // ── 연습실 (기존 — 이름 변경 금지) ──────────────────────────
-  studio_view: { studio_id: string; studio_name: string };
+  /** band_rank(선택, 2026-11-12~): 0 밴드 합주 가능 / 1 그 외 / 2 댄스 전용 */
+  studio_view: { studio_id: string; studio_name: string; band_rank?: number };
   contact_click: { type: 'source' | 'naver' | 'kakao' | 'phone'; studio_id: string };
   search: { method: 'gps' | 'text'; query?: string };
   filter_apply: { filter_type: string; value: string };

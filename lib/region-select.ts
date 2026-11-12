@@ -2,6 +2,7 @@ import type { RegionArea, RegionMeta } from './regions';
 import type { Studio } from '@/types/studio';
 import { getDistanceKm } from './distance';
 import { hourlyPrice } from './studio-price';
+import { bandRank, sortByBandRank } from './studio-kinds';
 
 // 지역 페이지 연습실 고르기 — 순수 함수(데이터 조회는 페이지에서). tests/region-select.cjs
 
@@ -16,7 +17,15 @@ const WALK_M_PER_MIN = 70;
 /** 서울 지역 페이지가 검색엔진에 올라갈 최소 연습실 수. 미만은 noindex + 사이트맵 제외(얇은 페이지) */
 export const MIN_ROOMS_FOR_INDEX = 8;
 
-/** 이 선택 결과로 검색엔진에 올릴지. 서울 밖(area 없음)은 기존대로 항상 올린다 */
+/** 요약·FAQ 곳 수에 넣는 연습실 — 댄스 전용(band_rank 2)은 목록 맨 뒤에 보이지만 세지 않는다(2026-11-12) */
+export function countedRooms(rooms: RegionRoom[]): RegionRoom[] {
+  return rooms.filter((r) => bandRank(r.studio) < 2);
+}
+
+/**
+ * 이 선택 결과로 검색엔진에 올릴지. 서울 밖(area 없음)은 기존대로 항상 올린다.
+ * 기준은 댄스 전용까지 포함한 전체 수 그대로(2026-11-12 사용자 결정 — 빼고 세면 26개 중 9개가 빠짐. 2주 뒤 지표 보고 다시 판단)
+ */
 export function isIndexable(region: RegionMeta, selection: RegionSelection): boolean {
   return !region.area || selection.rooms.length >= MIN_ROOMS_FOR_INDEX;
 }
@@ -46,8 +55,15 @@ function distanceM(area: RegionArea, s: Studio): number | null {
  * studios: 서울 음악 연습실 전체(품질 점수 순). area가 없는 지역엔 쓰지 않는다.
  * station → 반경 안, gu → 주소에 그 구가 있는 곳. 둘 다 받은 순서(품질 순)를 유지한다 —
  * 거리순으로 하면 사진 깨진 월세 작업실 같은 저품질 목록이 맨 위로 올라온다(홍대 실측). 거리는 카드에 도보 분으로 보여준다.
+ * 마지막에 밴드용(band_rank 0) 먼저 → 그 외 → 댄스 전용 순으로 안정 정렬(같은 등급 안은 품질 순 그대로).
+ * 반경 넓히기 판단은 기존대로 전체 수로 한다.
  */
 export function selectRegionRooms(area: RegionArea, studios: Studio[]): RegionSelection {
+  const picked = pickRegionRooms(area, studios);
+  return { ...picked, rooms: sortByBandRank(picked.rooms, (r) => r.studio) };
+}
+
+function pickRegionRooms(area: RegionArea, studios: Studio[]): RegionSelection {
   if (area.kind === 'gu') {
     const rooms = studios
       .filter((s) => (s.address ?? '').includes(`${area.gu} `))
@@ -87,14 +103,18 @@ export function nearbyRegions(region: RegionMeta, all: RegionMeta[], limit = 4):
 }
 
 export interface RegionStats {
+  /** 댄스 전용을 뺀 곳 수 */
   total: number;
+  /** 밴드 합주 가능(band_rank 0) */
+  band: number;
   drum: number;
   pricedCount: number;
   minPrice: number | null;
   medianPrice: number | null;
 }
 
-export function regionStats(rooms: RegionRoom[]): RegionStats {
+export function regionStats(all: RegionRoom[]): RegionStats {
+  const rooms = countedRooms(all);
   const prices = rooms
     .map((r) => hourlyPrice(r.studio))
     .filter((p): p is number => p != null)
@@ -102,6 +122,7 @@ export function regionStats(rooms: RegionRoom[]): RegionStats {
   const mid = Math.floor(prices.length / 2);
   return {
     total: rooms.length,
+    band: rooms.filter((r) => bandRank(r.studio) === 0).length,
     drum: rooms.filter((r) => r.studio.has_drum).length,
     pricedCount: prices.length,
     minPrice: prices[0] ?? null,

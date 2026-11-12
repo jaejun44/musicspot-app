@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { REGIONS, type RegionMeta } from '@/lib/regions';
 import { fetchSeoulStudios } from '@/lib/region-rooms';
 import { selectRegionRooms } from '@/lib/region-select';
+import { COLLECTIONS, MIN_ROOMS_FOR_COLLECTION_INDEX, pickCollection } from '@/lib/room-collections';
 import { localeAlternates } from '@/lib/seo';
 import Navigation from '@/components/Navigation';
 import SiteFooter from '@/components/SiteFooter';
@@ -56,6 +57,9 @@ export default async function RegionIndexPage() {
   const roomCount = new Map(
     REGIONS.filter((r) => r.area).map((r) => [r.slug, selectRegionRooms(r.area!, seoulStudios).rooms.length]),
   );
+  const collections = COLLECTIONS.map((c) => ({ c, count: pickCollection(c, seoulStudios).length })).filter(
+    (x) => x.count >= MIN_ROOMS_FOR_COLLECTION_INDEX,
+  );
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -94,6 +98,25 @@ export default async function RegionIndexPage() {
             가고 싶은 동네를 골라 위치·가격·드럼 여부를 비교해보세요.
           </p>
         </header>
+
+        {/* 종류별 모음(밴드 합주·드럼·피아노) — 8곳 이상인 것만 */}
+        {collections.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-sm font-bold text-comic-black/60 mb-3">종류별로 모아 보기</h2>
+            <div className="flex flex-wrap gap-2">
+              {collections.map(({ c, count }) => (
+                <Link
+                  key={c.slug}
+                  href={`/rooms/${c.slug}`}
+                  className="inline-flex items-center min-h-[44px] px-4 rounded-[12px] bg-[#F5FF4F] border-[2px] border-comic-black text-[13px] font-bold"
+                  style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
+                >
+                  {c.title} {count}곳 →
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="flex flex-col gap-10">
           {groups.map((group) => (
