@@ -15,12 +15,12 @@
 
 ## 기록
 
-### 2026-11-12 — Claude Code — 오늘의 음감 `/ear` 매일 5문제
+### 2026-11-12 — Claude Code — 오늘의 음감 `/ear` 매일 5문제 (+ 아이폰 무음 모드 대응)
 - 한 일: 날짜 시드 5문제(높낮이·음정·장단조·코드·4마디 진행) + Web Audio 합성 + 연속 기록(localStorage `ms_ear`) + 공유 + 입구(하단 탭 커뮤니티→음감 A안·상단 메뉴·스트립·상세 카드) + 매일 20시대 "아직 안 풀었어요" 푸시. DB `supabase/16_push_ear.sql` 운영 적용(승인·백업 후)
 - 바뀐 파일: `app/ear/`·`lib/ear/`·`components/EarEntryCard.tsx`·`lib/i18n/dict/ear-ja.ts`·`tests/ear-*.cjs` 새 파일 + 탭바·메뉴·ReturnStrip·PushOptIn·push-server 등 — 브랜치 `ear-daily` PR
-- 확인한 것: 로컬→운영 DB(`codex_qa`, 분석 차단) 5문제 풀이·잠금·공유·스트립·이벤트 5종 적재·Cron 2회(sent 1 → skipped 1, 알림 표시). tsc 0·테스트 87/87·build 성공. 실제 아이폰 소리는 미확인
+- 확인한 것: 로컬→운영 DB 풀이·잠금·공유·스트립·이벤트 5종·Cron 2회(sent 1 → skipped 1). 후속(브랜치 `ear-ios-silent` PR): 사용자 실기기에서 무음 스위치면 소리 안 남 → `lib/ear/synth.ts` 듣기 탭에서 `navigator.audioSession.type='playback'`(iOS 17+), 없으면 무음 `<audio>` 1회 + iOS만 "무음 모드와 볼륨 확인" 안내. 데스크톱 크롬 소리 그대로·아이폰 UA 안내 확인, tsc 0·테스트 87/87·build 성공, 실기기 무음 스위치 미확인
 - 받는 쪽: 사용자
-- 요청: ① PR 머지 승인 ② 머지 후 아이폰 Safari에서 `/ear` 소리(무음 스위치 켠 상태 포함) 확인 ③ 2주 뒤(11-26 무렵) `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수로 유지·중단 결정
+- 요청: ① PR 머지 — 처리됨(11-12, 사용자 승인 → #45 머지, 운영 /ear 200 확인) ② 무음 모드 PR 머지 후 아이폰 Safari에서 무음 스위치 켠 채 `/ear` 듣기 재확인(iOS 버전도 알려 주기) ③ 2주 뒤(11-26 무렵) `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수로 유지·중단 결정
 - 상태: 열림
 
 ### 2026-11-12 — Cowork — 재방문 지표 점검 + "매일 올 이유" 전략 제안

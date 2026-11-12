@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { track } from '@/lib/analytics';
 import { useT, useIsJapanMode } from '@/lib/i18n';
 import { buildDailyQuiz, kstToday, msUntilKstMidnight, type Question } from '@/lib/ear/daily';
-import { playSound, stopSound, unlockEarAudio } from '@/lib/ear/synth';
+import { isIOS, playSound, stopSound, unlockEarAudio } from '@/lib/ear/synth';
 import {
   EAR_QUESTION_COUNT,
   addAnswer,
@@ -40,9 +40,11 @@ function formatDate(date: string): string {
 function ListenButton({ question, heard, onPlayed }: { question: Question; heard: boolean; onPlayed: () => void }) {
   const t = useT();
   const [playing, setPlaying] = useState(false);
+  const [ios, setIos] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => setIos(isIOS()), []); // 서버 렌더와 어긋나지 않게 마운트 후 판별
 
   async function handlePlay() {
     try {
@@ -58,7 +60,7 @@ function ListenButton({ question, heard, onPlayed }: { question: Question; heard
     }
   }
 
-  return (
+  const button = (
     <motion.button
       type="button"
       onClick={handlePlay}
@@ -68,6 +70,15 @@ function ListenButton({ question, heard, onPlayed }: { question: Question; heard
     >
       {playing ? t('🔊 재생 중…') : heard ? t('🔁 다시 듣기') : t('▶ 듣기')}
     </motion.button>
+  );
+  if (!ios) return button;
+  return (
+    <div>
+      {button}
+      <p className="mt-2 text-center text-[12px] font-bold text-[#0A0A0A]/60 break-keep" style={FONT}>
+        {t('소리가 안 들리면 무음 모드와 볼륨을 확인하세요')}
+      </p>
+    </div>
   );
 }
 
