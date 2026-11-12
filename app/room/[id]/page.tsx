@@ -38,7 +38,7 @@ const getStudio = cache(async (id: string) => {
   const { data } = await supabase
     .from('studios')
     .select(
-      'id, name, address, phone, lat, lng, room_type, price_per_hour, price_info, photos, hours, region, review_avg, review_count'
+      'id, name, address, phone, lat, lng, room_type, price_per_hour, price_info, photos, hours, region, review_avg, review_count, band_rank'
     )
     .eq('id', id)
     .eq('is_published', true)
@@ -134,6 +134,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
     },
     ...(geoMeta && { other: geoMeta }),
+    // 댄스 전용(band_rank 2)은 열리고 문의도 되지만 검색엔진에는 올리지 않는다(2026-11-12, 되돌리기: 이 줄 삭제 + sitemap.ts의 band_rank 조건)
+    ...(data.band_rank === 2 && { robots: { index: false, follow: true } }),
   };
 }
 

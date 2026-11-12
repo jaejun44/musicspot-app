@@ -25,7 +25,7 @@ import argparse
 import pandas as pd
 from dotenv import load_dotenv
 from supabase import create_client
-from studio_rules import classify_room_type, parse_hourly_price
+from studio_rules import band_rank, classify_kinds, classify_room_type, parse_hourly_price
 
 
 load_dotenv(".env.local")
@@ -207,6 +207,9 @@ def main():
                 rec[k] = v or []
             else:
                 rec[k] = clean_value(v)
+        # 연습실 종류(2026-11-12) — 새로 넣는 곳도 같은 규칙으로
+        rec["kinds"] = classify_kinds(rec)
+        rec["band_rank"] = band_rank(rec["kinds"])
         if rec.get("room_type") == "T":
             t_count += 1
         elif rec.get("room_type") == "M":

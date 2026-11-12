@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Studio, StudioFilters } from '@/types/studio';
 import { sortByDistanceAndQuality } from '@/lib/sort';
+import { danceOnlyLast, sortByBandRank } from '@/lib/studio-kinds';
 import { expandRegion, regionCity } from '@/lib/region-alias';
 
 const PAGE_SIZE = 20;
@@ -44,6 +45,7 @@ export function useStudios() {
         const f = opts.filters;
         if (f?.room_type) query = query.or(`room_type.eq.${f.room_type},room_type.eq.both`);
         if (f?.has_drum) query = query.eq('has_drum', true);
+        if (f?.band_only) query = query.eq('band_rank', 0);
         if (f?.max_price) query = query.lte('price_per_hour', f.max_price);
         for (const [value, includeName] of [[f?.region, false], [opts.region, true]] as const) {
           if (!value) continue;
@@ -54,13 +56,14 @@ export function useStudios() {
             `address.ilike.%${t}%`, `region.ilike.%${t}%`, ...(includeName ? [`name.ilike.%${t}%`] : []),
           ]).join(','));
         }
+        // 기본: 밴드용(band_rank 0) 먼저 → 품질 순. 가격순은 아래에서 전체를 받아 정렬(댄스 전용은 맨 뒤 — 서버 정렬로는 표현 못 함)
         if (f?.sort_by === 'price') query = query.order('price_per_hour', { ascending: true, nullsFirst: false });
-        else query = query.order('data_quality_score', { ascending: false }).order('review_avg', { ascending: false, nullsFirst: false });
+        else query = query.order('band_rank', { ascending: true }).order('data_quality_score', { ascending: false }).order('review_avg', { ascending: false, nullsFirst: false });
         return query.order('id', { ascending: true });
       };
 
-      if (gps) {
-        // 모든 필터를 적용한 전체 배치를 거리 정렬. RPC의 200개 상한/필터 누락 방지.
+      if (gps || opts.filters?.sort_by === 'price') {
+        // 모든 필터를 적용한 전체 배치를 받아 정렬. GPS = 거리, 가격순 = 가격(둘 다 댄스 전용은 뒤로). 공개 연습실이 1,000곳 아래라 전체를 받아도 가볍다
         const all: Studio[] = [];
         for (let offset = 0; ; offset += BATCH_SIZE) {
           const { data, error: failure } = await makeQuery().range(offset, offset + BATCH_SIZE - 1);
@@ -69,9 +72,15 @@ export function useStudios() {
           all.push(...(data ?? []) as Studio[]);
           if (!data || data.length < BATCH_SIZE) break;
         }
-        let results = sortByDistanceAndQuality(all.filter(s => s.lat != null && s.lng != null), opts.lat!, opts.lng!)
-          .filter(s => s.distance <= (opts.filters?.radius ?? 3));
-        if (opts.filters?.sort_by === 'price') results = results.sort((a, b) => (a.price_per_hour ?? Infinity) - (b.price_per_hour ?? Infinity));
+        let results: Studio[] = gps
+          ? sortByDistanceAndQuality(all.filter(s => s.lat != null && s.lng != null), opts.lat!, opts.lng!)
+              .filter(s => s.distance <= (opts.filters?.radius ?? 3))
+          : all;
+        if (opts.filters?.sort_by === 'price') {
+          results = danceOnlyLast([...results].sort((a, b) => (a.price_per_hour ?? Infinity) - (b.price_per_hour ?? Infinity)), s => s);
+        } else {
+          results = sortByBandRank(results, s => s); // 밴드용 먼저, 같은 등급 안에선 거리 구간·품질 순 그대로
+        }
         cached.current = results;
         setStudios(results.slice(0, PAGE_SIZE));
         setTotalCount(results.length);
@@ -109,7 +118,7 @@ export function useStudios() {
   const loadMore = useCallback(() => {
     if (busy.current) return;
     const next = page.current + 1;
-    if (Number.isFinite(lastOpts.current.lat) && Number.isFinite(lastOpts.current.lng)) {
+    if ((Number.isFinite(lastOpts.current.lat) && Number.isFinite(lastOpts.current.lng)) || lastOpts.current.filters?.sort_by === 'price') {
       page.current = next;
       setStudios(cached.current.slice(0, (next + 1) * PAGE_SIZE));
       setHasMore((next + 1) * PAGE_SIZE < cached.current.length);

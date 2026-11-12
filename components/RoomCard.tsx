@@ -10,6 +10,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useWorkingPhotos } from '@/hooks/useWorkingPhotos';
 import { trackFavoriteToggle } from '@/lib/analytics';
 import { studioPriceLabel } from '@/lib/studio-price';
+import { studioBadges } from '@/lib/studio-kinds';
 
 interface RoomCardProps {
   studio: Studio;
@@ -103,14 +104,16 @@ export default function RoomCard({ studio, userLat, userLng, locationNote }: Roo
                 {roomLabel}
               </span>
             )}
-            {studio.has_drum && (
+            {/* 종류 배지 최대 2개(밴드 합주 > 드럼 > 피아노 > 보컬 > 녹음). 댄스 전용은 없음. kinds가 없는 옛 데이터는 드럼만 */}
+            {(studio.kinds ? studioBadges(studio) : studio.has_drum ? ['🥁 드럼'] : []).map((badge) => (
               <span
+                key={badge}
                 className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
                 style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
               >
-                🥁 드럼
+                {badge}
               </span>
-            )}
+            ))}
           </div>
         </div>
 

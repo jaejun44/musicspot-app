@@ -117,8 +117,9 @@ async function logEvent(eventType: string, props: AnyProps) {
 
 // ─── 연습실 (기존 호출부 호환 래퍼 — 시그니처 변경 금지) ──────────
 
-export function trackStudioView(studioId: string, studioName: string) {
-  track('studio_view', { studio_id: studioId, studio_name: studioName });
+/** bandRank(선택, 2026-11-12) — 앞 두 인자는 그대로라 기존 호출부 호환 */
+export function trackStudioView(studioId: string, studioName: string, bandRank?: number) {
+  track('studio_view', { studio_id: studioId, studio_name: studioName, ...(bandRank != null && { band_rank: bandRank }) });
 }
 
 export function trackContactClick(

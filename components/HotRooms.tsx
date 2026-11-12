@@ -26,10 +26,11 @@ export default function HotRooms() {
     async function load() {
       const { data } = await supabase
         .from('studios')
-        .select('id, name, region, address, price_per_hour, price_info, photos, data_quality_score, has_drum, room_type, naver_place_url, kakao_channel')
+        .select('id, name, region, address, price_per_hour, price_info, photos, data_quality_score, has_drum, room_type, naver_place_url, kakao_channel, kinds, band_rank')
         .eq('is_published', true)
         .not('photos', 'is', null)
         .gt('data_quality_score', 0)
+        .eq('band_rank', 0) // HOT은 밴드 합주 가능한 곳만(2026-11-12)
         .or('category.ilike.%악기%,category.ilike.%보컬%,category.ilike.%녹음%,category.ilike.%합주%,category.ilike.%개인연습실%')
         .order('data_quality_score', { ascending: false })
         .limit(8);

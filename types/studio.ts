@@ -23,6 +23,10 @@ export interface Studio {
   photos: string[] | null;
   notes: string | null;
   data_quality_score: number;
+  /** 연습실 종류(supabase/18_studio_kinds.sql, scripts/studio_rules.py classify_kinds) */
+  kinds?: string[];
+  /** 0 = 밴드 합주 가능 / 1 = 그 외 / 2 = 댄스 전용 */
+  band_rank?: number;
   review_avg: number | null;
   review_count: number;
   is_published: boolean;
@@ -38,4 +42,6 @@ export interface StudioFilters {
   radius?: number;
   region?: string;
   sort_by?: 'price';
+  /** "🎸 밴드 합주" 칩 — band_rank 0만 */
+  band_only?: boolean;
 }

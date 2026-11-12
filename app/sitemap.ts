@@ -4,6 +4,7 @@ import { REGIONS } from '@/lib/regions';
 import { fetchSeoulStudios } from '@/lib/region-rooms';
 import { selectRegionRooms, isIndexable } from '@/lib/region-select';
 import { fetchAllNewsSlugs } from '@/lib/news';
+import { COLLECTIONS, MIN_ROOMS_FOR_COLLECTION_INDEX, pickCollection } from '@/lib/room-collections';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
@@ -35,6 +36,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
+  // 종류 조합 페이지(/rooms) — 색인 기준을 넘는 것만
+  const collectionRoutes: MetadataRoute.Sitemap = COLLECTIONS.filter(
+    (c) => pickCollection(c, seoulStudios).length >= MIN_ROOMS_FOR_COLLECTION_INDEX,
+  ).map((c) => ({ url: `${SITE_URL}/rooms/${c.slug}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.85 }));
+
   // Dynamic studio pages — paginate to handle >1,000 rows
   const studioRoutes: MetadataRoute.Sitemap = [];
   let offset = 0;
@@ -44,6 +50,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('studios')
       .select('id, updated_at')
       .eq('is_published', true)
+      .lt('band_rank', 2) // 댄스 전용은 상세가 noindex라 사이트맵에서도 뺀다(2026-11-12)
+      .order('id')
       .range(offset, offset + 999);
 
     if (!data || data.length === 0) break;
@@ -108,5 +116,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...regionRoutes, ...studioRoutes, ...postRoutes, ...stemRoutes, ...newsRoutes];
+  return [...staticRoutes, ...regionRoutes, ...collectionRoutes, ...studioRoutes, ...postRoutes, ...stemRoutes, ...newsRoutes];
 }

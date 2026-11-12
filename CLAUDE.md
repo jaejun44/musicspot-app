@@ -73,7 +73,7 @@ VAPID_PRIVATE_KEY / VAPID_SUBJECT # 웹 푸시 발송(서버 전용, NEXT_PUBLIC
 ## Supabase 주요 테이블
 
 ```
-studios              연습실 (공개 799곳, 전부 spacecloud · 2026-10-26. 최신화: scripts/refresh_spacecloud.py)
+studios              연습실 (공개 799곳 중 밴드 합주 가능 170 · 2026-11-12. kinds·band_rank = scripts/studio_rules.py, 18_studio_kinds.sql. 최신화: scripts/refresh_spacecloud.py)
 bookings             예약
 user_profiles        밴드매칭 프로필
 direct_messages      1:1 채팅 (Realtime)

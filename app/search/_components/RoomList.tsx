@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import RoomCard from '@/components/RoomCard';
+import BandDivider, { isBandBoundary } from '@/components/BandDivider';
+import { Fragment } from 'react';
 import { Studio } from '@/types/studio';
 import { trackLoadMore } from '@/lib/analytics';
 
@@ -14,6 +16,8 @@ interface RoomListProps {
   userLat: number | null;
   userLng: number | null;
   onLoadMore: () => void;
+  /** 밴드용 먼저 정렬일 때만 구분선(가격순은 섞여 있어 안 그림) */
+  bandFirst?: boolean;
 }
 
 export default function RoomList({
@@ -24,6 +28,7 @@ export default function RoomList({
   userLat,
   userLng,
   onLoadMore,
+  bandFirst = false,
 }: RoomListProps) {
   if (loading && studios.length === 0) {
     return (
@@ -79,13 +84,11 @@ export default function RoomList({
 
       {/* 카드 그리드 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {studios.map((studio) => (
-          <RoomCard
-            key={studio.id}
-            studio={studio}
-            userLat={userLat ?? undefined}
-            userLng={userLng ?? undefined}
-          />
+        {studios.map((studio, i) => (
+          <Fragment key={studio.id}>
+            {bandFirst && isBandBoundary(studios, i) && <BandDivider />}
+            <RoomCard studio={studio} userLat={userLat ?? undefined} userLng={userLng ?? undefined} />
+          </Fragment>
         ))}
       </div>
 

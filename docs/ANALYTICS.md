@@ -121,6 +121,9 @@ track('challenge_upload_complete', {
 ### 연습실 (기존 — 이름 변경 금지)
 
 `studio_view` · `contact_click` · `search` · `filter_apply` · `view_toggle` · `load_more` · `favorite_toggle` · `map_marker_click` · `hot_room_click` · `coming_soon_click` · `booking_attempt` · `booking_start` · `payment_select` · `booking_complete`
+- 연습실 종류 구분 (2026-11-12, `studios.kinds`·`band_rank` — 0 밴드 합주 가능 / 1 그 외 / 2 댄스 전용)
+  - `studio_view`에 선택 속성 `band_rank` 추가(이름 변경 없음). 그 이전 행은 없음 → 비교는 아래 쿼리처럼 `studios.band_rank`를 붙여서 본다
+  - `filter_apply`의 `filter_type`에 새 값 `band`("🎸 밴드 합주" 칩, `value` on|off). 검색 URL은 `band=1`
 
 - `booking_realtime_click` (2026-09-29 추가): 연습실 상세의 "실시간 예약" → `/booking/s/:id`. `RoomBookingWidget.tsx`.
 - `room_unavailable_view` / `room_unavailable_click` (2026-10-26 추가): 비공개(폐업·모집 끝난 광고) 연습실 주소로 들어온 화면. view는 `nearby_count`(대안 수), click은 `to: studio | region | search`(+`to_studio_id`). `UnavailableRoom.tsx`. 이동률 = click 세션 / view 세션
@@ -328,3 +331,24 @@ select count(*) readers,
 from (select anon, count(*) days from d group by anon) t;
 ```
 - 인스타에서 온 사람은 `utm_source=instagram`(프로필 링크에 붙이면) 또는 referrer로 따로 본다
+
+### 밴드용 상세 조회 비율 · 세션당 상세 조회 (2026-11-12 추가, 연습실 종류 구분 전후 비교)
+배포일(KST)을 `:cut`에 넣는다. `band_rank`는 지금 `studios` 값을 붙여 배포 전 기간도 같은 기준으로 센다.
+```sql
+with v as (
+  select e.session_id, (e.created_at at time zone 'Asia/Seoul')::date d, s.band_rank
+  from user_events e
+  join studios s on s.id::text = e.props->>'studio_id'
+  where e.event_type = 'studio_view'
+    and coalesce(e.props->>'utm_campaign', '') <> 'codex_qa'
+    and e.user_agent !~* '(bot|spider|crawler|headless|lighthouse)'
+    and e.created_at > now() - interval '28 days'
+)
+select case when d < date :'cut' then 'before' else 'after' end period,
+       count(*) views,
+       round(100.0 * count(*) filter (where band_rank = 0) / nullif(count(*), 0), 1) band_view_pct,   -- 밴드용 상세 비율
+       round(100.0 * count(*) filter (where band_rank = 2) / nullif(count(*), 0), 1) dance_view_pct,
+       round(count(*)::numeric / nullif(count(distinct session_id), 0), 2) views_per_session          -- 세션당 상세 조회
+from v group by 1 order by 1 desc;
+```
+- 같은 기간 길이로 비교한다(예: 배포 전 14일 vs 후 14일). `filter_apply(filter_type=band)` 클릭 수도 함께 본다

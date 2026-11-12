@@ -65,7 +65,7 @@ export default function RoomDetailClient({ nearby }: { nearby: NearbyRoom[] }) {
 
       const s = data as Studio;
       setStudio(s);
-      trackStudioView(s.id, s.name);
+      trackStudioView(s.id, s.name, s.band_rank);
       addRecentlyViewed(s.id);
       setLoading(false);
     }

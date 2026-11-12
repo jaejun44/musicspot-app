@@ -15,13 +15,29 @@
 
 ## 기록
 
+### 2026-11-13 — Claude Code — 연습실 종류 구분: 밴드용 우선, 댄스 전용은 뒤로 (Cowork 11-12 사전 점검 처리)
+- 한 일: 공개 799곳을 밴드 합주 170 · 그 외 449 · 댄스 전용 180으로 분류(승인) → `studios.kinds·band_rank`(18_studio_kinds.sql, 861행 반영·백업). 모든 목록 밴드용 먼저·댄스 전용 맨 뒤, "🎸 밴드 합주" 칩·배지·구분선, 댄스 전용 상세 noindex·사이트맵 제외, 조합 페이지 4개(`/rooms/seoul-band·drum·piano·mapo-band`), /region/mapo 제목 "마포 연습실"로. Cowork 사전 점검 항목은 처리돼 정리함
+- 바뀐 파일: `scripts/studio_rules.py`·`update_studio_kinds.py`·`refresh_spacecloud.py`·`import_merged.py` · `lib/studio-kinds.ts`·`room-collections.ts`·`region-select.ts`·`nearby-rooms.ts` · `hooks/useStudios.ts` · `app/rooms/`·지역·상세·검색·HOT·사이트맵 · 테스트 3개 — 브랜치 `studio-kinds` PR
+- 확인한 것: 운영 분포 = 미리보기, 검색 구분선 171번째·가격순 댄스 끝·칩 동작, noindex·사이트맵, 390/1440 넘침 없음, tsc 0·테스트 96/96·build 성공. 지역 색인 기준은 사용자 결정으로 그대로(빼면 9개 빠짐)
+- 받는 쪽: 사용자
+- 요청: ① PR 머지 승인 ② 머지 2주 뒤 `docs/ANALYTICS.md` "밴드용 상세 조회 비율 · 세션당 상세 조회" 전후 비교(배포일 기준) — 그때 지역 색인 기준을 바꿀지도
+- 상태: 열림
+
+### 2026-11-12 — Cowork — 카드뉴스 지침에 "게시 후 웹 뉴스 반영" 단계 추가
+- 한 일: 사용자 승인으로 `~/Desktop/musicSpot_cardnews/CLAUDE.md` 맨 아래에 섹션 추가(인스타 게시 뒤 `import_cardnews.py --only <날짜>/<슬롯> --apply`, 못 돌리면 보고에 "웹 반영 안 됨"). 막힘(blocked) 49개 슬롯 확인: 47개는 맥 잠금·크롬 미연결로 생긴 빈 기록, 카드가 있던 2개 중 1개(10-10 Fit For A King)만 미게시
+- 바뀐 파일: 레포 밖 `musicSpot_cardnews/CLAUDE.md`(git 아님) · `docs/HANDOFF.md`(이 항목) — 커밋 안 함
+- 확인한 것: 섹션이 1번만 들어감. 카드뉴스 프로젝트 세션에서 실제로 명령이 도는지는 미확인
+- 받는 쪽: 사용자
+- 요청: 다음 카드뉴스 업로드 때 게시 보고에 "웹 반영 완료"가 나오는지 확인. 안 되면 사유를 Cowork에 전달
+- 상태: 열림
+
 ### 2026-11-12 — Claude Code — 밴드씬 뉴스 `/news` (인스타 카드뉴스 웹 보관, Cowork 11-12 제안 ④)
 - 한 일: 카드뉴스 76개를 `news_posts`·Storage `news`로 가져와 `/news` 목록·상세(JSON-LD·OG·저작자 표기 항상 표시) + 입구(홈·지역·음감 결과·상단 메뉴). DB `supabase/17_news.sql`(+ `image_source_kind`) 승인 후 운영 적용. Cowork 11-12 항목은 ①·④ 모두 처리돼 정리함
 - 바뀐 파일: `app/news/`·`lib/news.ts`·`components/NewsCard.tsx`·`NewsLatest.tsx`·`scripts/import_cardnews.py`·`cardnews_parse.py`·`test_cardnews_parse.py`·`tests/cardnews-parse.cjs`·`lib/i18n/dict/news-ja.ts`·`docs/NEWS_PUBLISH.md` 새 파일 + 홈·지역·음감·메뉴·사이트맵·이벤트 — 브랜치 `news-archive` PR
 - 확인한 것: `--apply` 2번 76개 그대로(30.74MB), anon 쓰기 거부, 이벤트 4종 적재, 390/1440 넘침 없음, tsc 0·테스트 88/88·build 성공. 건너뜀 56(blocked 49·표기 없음 2 등)
 - 받는 쪽: 사용자
-- 요청: ① PR 머지 승인 ② 인스타 프로필 링크를 `/news`로 바꿀지(바꾸면 `?utm_source=instagram&utm_medium=profile` 권장) ③ 매일 반영 방법 결정 — 수동 1줄(`docs/NEWS_PUBLISH.md`) 또는 카드뉴스 게시 작업 마지막 단계에 그 1줄 추가 ④ official 39개를 계속 둘지
-- 상태: 열림
+- 요청: ① 머지 — 처리됨(11-12 #47, 운영 /news·상세·사이트맵 76개 확인) ② 인스타 프로필 링크 → `https://www.musicspotfest.com/news?utm_source=instagram&utm_medium=bio&utm_campaign=news`(11-12 결정, 바꾸는 건 사용자) ③ 매일 반영 = 카드뉴스 게시 작업 마지막 단계에 `--only … --apply` 1줄(11-12 방향 결정, 매일 운영 DB 쓰기 — 카드뉴스 폴더 지침 수정은 사용자 허용 후, 이 레포 밖) ④ official 39개 공개 유지, 권리자 요청 시 `docs/NEWS_PUBLISH.md` SQL로 즉시 비공개
+- 상태: 열림(② 링크 교체·③ 지침 반영 대기)
 
 ### 2026-11-12 — Claude Code — 오늘의 음감 `/ear` 매일 5문제 (+ 아이폰 무음 모드 대응)
 - 한 일: 날짜 시드 5문제(높낮이·음정·장단조·코드·4마디 진행) + Web Audio 합성 + 연속 기록(localStorage `ms_ear`) + 공유 + 입구(하단 탭 커뮤니티→음감 A안·상단 메뉴·스트립·상세 카드) + 매일 20시대 "아직 안 풀었어요" 푸시. DB `supabase/16_push_ear.sql` 운영 적용(승인·백업 후)

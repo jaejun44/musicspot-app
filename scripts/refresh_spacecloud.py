@@ -7,6 +7,7 @@ Music Spot — spacecloud 연습실 최신화 (사진·요금·폐업) (2026-10-
   - price_info : 상품별 최저 '시간당 N원~ / 패키지 N원~' (기존 수집 형식과 같음)
                  + price_per_hour·room_type을 같은 규칙(studio_rules)으로
   - 페이지 404 : 문 닫은 것으로 보고 is_published=false
+  - kinds·band_rank : 연습실 종류(studio_rules.classify_kinds) — 다시 계산해 달라졌을 때만
 네이버·카카오 링크, 주소·좌표, 이름 등 다른 칸은 건드리지 않는다.
 검색(/search)·API(api.spacecloud.kr)는 robots.txt가 막아 두어 쓰지 않는다.
 
@@ -32,14 +33,14 @@ from dotenv import load_dotenv
 from supabase import create_client
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from studio_rules import classify_room_type, parse_hourly_price  # noqa: E402
+from studio_rules import band_rank, classify_kinds, classify_room_type, parse_hourly_price  # noqa: E402
 from update_quality_score import calc_score  # noqa: E402  (같은 점수 규칙 재사용)
 
 load_dotenv(".env.local")
 supabase = create_client(os.environ["NEXT_PUBLIC_SUPABASE_URL"], os.environ["SUPABASE_SERVICE_KEY"])
 
-FIELDS = "id, name, source, source_url, photos, is_published, data_quality_score, price_info, price_per_hour, room_type, phone, naver_place_url, kakao_channel, address, lat, lng"
-BACKUP_KEYS = ("photos", "price_info", "price_per_hour", "room_type", "is_published", "data_quality_score", "updated_at")
+FIELDS = "id, name, source, source_url, photos, is_published, data_quality_score, price_info, price_per_hour, room_type, phone, naver_place_url, kakao_channel, address, lat, lng, category, options, notes, has_drum, kinds, band_rank"
+BACKUP_KEYS = ("photos", "price_info", "price_per_hour", "room_type", "is_published", "data_quality_score", "kinds", "band_rank", "updated_at")
 MAX_PHOTOS = 10
 DELAY_SEC = 1.5  # 상대 서버 부담을 줄이려고 한 곳씩, 간격을 두고
 SPACE_URL_RE = re.compile(r"^https://www\.spacecloud\.kr/space/\d+$")
@@ -121,6 +122,11 @@ def row_changes(row: dict, detail: dict) -> dict:
         upd["price_info"] = price
         upd["price_per_hour"] = parse_hourly_price(price)
         upd["room_type"] = classify_room_type("spacecloud", price)
+    # 연습실 종류(2026-11-12)도 같은 규칙으로 다시 계산 — 요금 안내가 바뀌면 분류가 바뀔 수 있다. 같으면 건드리지 않음
+    kinds = classify_kinds({**row, **upd})
+    if kinds != (row.get("kinds") or []):
+        upd["kinds"] = kinds
+        upd["band_rank"] = band_rank(kinds)
     return upd
 
 

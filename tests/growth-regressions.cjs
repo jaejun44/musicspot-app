@@ -42,6 +42,7 @@ function harness(respond) {
   const { useStudios } = load('hooks/useStudios.ts', {
     react, '@/lib/supabase': { supabase }, '@/lib/region-alias': { expandRegion: v => [v], regionCity: v => v === '홍대' ? '서울' : undefined },
     '@/lib/sort': { sortByDistanceAndQuality: rows => rows.map(s => ({ ...s, distance: 1 })) },
+    '@/lib/studio-kinds': load('lib/studio-kinds.ts'),
   });
   return { hook: useStudios(), states, calls };
 }
@@ -73,6 +74,34 @@ test('GPS applies drum, price and region filters before distance pagination', as
   const operations = JSON.stringify(h.calls[0]);
   assert.match(operations, /has_drum/); assert.match(operations, /price_per_hour/); assert.match(operations, /홍대/); assert.match(operations, /서울/);
   assert.equal(h.states[0][0].id, 'gps');
+});
+test('기본 정렬은 밴드용(band_rank) 먼저, 밴드 합주 칩은 band_rank 0만', async () => {
+  const h = harness(() => ({ data: [{ id: 'a' }], count: 1 }));
+  await h.hook.search({ filters: { band_only: true, has_drum: true } });
+  const ops = h.calls[0];
+  assert.equal(ops.find(c => c[0] === 'order')[1], 'band_rank');
+  assert.ok(ops.some(c => c[0] === 'eq' && c[1] === 'band_rank' && c[2] === 0));
+  assert.ok(ops.some(c => c[0] === 'eq' && c[1] === 'has_drum'));
+});
+test('가격순은 가격대로 정렬하되 댄스 전용(band_rank 2)은 맨 뒤', async () => {
+  const rows = [
+    { id: 'dance-cheap', price_per_hour: 3000, band_rank: 2 },
+    { id: 'band', price_per_hour: 9000, band_rank: 0 },
+    { id: 'vocal', price_per_hour: 5000, band_rank: 1 },
+  ];
+  const h = harness(() => ({ data: rows, count: 3 }));
+  await h.hook.search({ filters: { sort_by: 'price' } });
+  assert.equal(h.states[0].map(s => s.id).join(','), 'vocal,band,dance-cheap');
+});
+test('GPS 기본 정렬도 밴드용 먼저(같은 등급 안은 거리·품질 순 유지)', async () => {
+  const rows = [
+    { id: 'near-dance', lat: 37, lng: 127, band_rank: 2 },
+    { id: 'near-piano', lat: 37, lng: 127, band_rank: 1 },
+    { id: 'far-band', lat: 37, lng: 127, band_rank: 0 },
+  ];
+  const h = harness(() => ({ data: rows, count: 3 }));
+  await h.hook.search({ lat: 37, lng: 127 });
+  assert.equal(h.states[0].map(s => s.id).join(','), 'far-band,near-piano,near-dance');
 });
 test('failed initial search exposes retry instead of stale results', async () => {
   const h = harness(() => ({ error: Error('offline') }));

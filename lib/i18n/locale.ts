@@ -13,6 +13,7 @@ export function isLocale(value: unknown): value is Locale {
 export const JA_BLOCKED_PREFIXES = [
   '/search',
   '/region',
+  '/rooms', // 종류 조합 페이지(연습실 기반, ko 전용)
   '/room',
   '/booking', // 실시간 예약(별도 배포, next.config rewrites)
   '/my-bookings',
