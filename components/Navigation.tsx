@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Bell } from 'lucide-react';
-import { trackComingSoonClick } from '@/lib/analytics';
+import { track, trackComingSoonClick } from '@/lib/analytics';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationDropdown from '@/components/NotificationDropdown';
@@ -29,15 +29,21 @@ export default function Navigation() {
   }
 
   // 일본 모드에서는 연습실 관련 메뉴(연습실 찾기, 예약 기반 '마이') 숨김
-  const menuItems: { label: string; path: string; jaHidden?: boolean; trackAs?: 'band_matching' | 'community' }[] = [
+  const menuItems: { label: string; path: string; jaHidden?: boolean; trackAs?: 'band_matching' | 'community' | 'ear' }[] = [
     { label: t('연습실'), path: '/search', jaHidden: true },
     { label: t('밴드찾기'), path: '/band-matching', trackAs: 'band_matching' as const },
     { label: t('내 밴드'), path: '/my-band' },
     { label: t('8마디'), path: '/stems' },
+    { label: t('음감'), path: '/ear', trackAs: 'ear' as const },
     { label: t('피드'), path: '/feed' },
     { label: t('커뮤니티'), path: '/community', trackAs: 'community' as const },
     { label: t('마이'), path: '/my-bookings', jaHidden: true },
   ].filter((item) => !(isJapanMode && item.jaHidden));
+
+  function trackMenu(trackAs?: 'band_matching' | 'community' | 'ear') {
+    if (trackAs === 'ear') track('ear_entry_click', { from: 'tab' });
+    else if (trackAs) trackComingSoonClick(trackAs);
+  }
 
   // 일본 모드에서는 /my-bookings가 차단되므로 프로필 링크를 공개 프로필로 대체
   const profileHref = isJapanMode && user ? `/u/${user.id}` : '/my-bookings';
@@ -70,7 +76,7 @@ export default function Navigation() {
               className="relative"
               onMouseEnter={() => setHoveredItem(item.label)}
               onMouseLeave={() => setHoveredItem(null)}
-              onClick={() => item.trackAs && trackComingSoonClick(item.trackAs)}
+              onClick={() => trackMenu(item.trackAs)}
             >
               <span
                 className={`cursor-pointer relative z-10 px-3 py-1 ${
@@ -195,7 +201,7 @@ export default function Navigation() {
               href={item.path}
               className="block px-8 py-4 border-b border-[#0A0A0A] hover:bg-[#F5FF4F] transition-colors"
               style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700 }}
-              onClick={() => { setMenuOpen(false); item.trackAs && trackComingSoonClick(item.trackAs); }}
+              onClick={() => { setMenuOpen(false); trackMenu(item.trackAs); }}
             >
               {item.label}
             </Link>

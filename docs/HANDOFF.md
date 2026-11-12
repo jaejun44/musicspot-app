@@ -15,6 +15,22 @@
 
 ## 기록
 
+### 2026-11-12 — Claude Code — 오늘의 음감 `/ear` 매일 5문제
+- 한 일: 날짜 시드 5문제(높낮이·음정·장단조·코드·4마디 진행) + Web Audio 합성 + 연속 기록(localStorage `ms_ear`) + 공유 + 입구(하단 탭 커뮤니티→음감 A안·상단 메뉴·스트립·상세 카드) + 매일 20시대 "아직 안 풀었어요" 푸시. DB `supabase/16_push_ear.sql` 운영 적용(승인·백업 후)
+- 바뀐 파일: `app/ear/`·`lib/ear/`·`components/EarEntryCard.tsx`·`lib/i18n/dict/ear-ja.ts`·`tests/ear-*.cjs` 새 파일 + 탭바·메뉴·ReturnStrip·PushOptIn·push-server 등 — 브랜치 `ear-daily` PR
+- 확인한 것: 로컬→운영 DB(`codex_qa`, 분석 차단) 5문제 풀이·잠금·공유·스트립·이벤트 5종 적재·Cron 2회(sent 1 → skipped 1, 알림 표시). tsc 0·테스트 87/87·build 성공. 실제 아이폰 소리는 미확인
+- 받는 쪽: 사용자
+- 요청: ① PR 머지 승인 ② 머지 후 아이폰 Safari에서 `/ear` 소리(무음 스위치 켠 상태 포함) 확인 ③ 2주 뒤(11-26 무렵) `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수로 유지·중단 결정
+- 상태: 열림
+
+### 2026-11-12 — Cowork — 재방문 지표 점검 + "매일 올 이유" 전략 제안
+- 한 일: 11-06~12 운영 DB(봇·QA 제외) 방문자 52명 중 다른 날 재방문 1명, 49명이 `/room` 착지, 투표 루프 실사용 1명. 결론: 합주실 찾기는 빈도가 낮아 루프만으로는 재방문이 안 쌓임 → 매일 쓰는 층 제안(① 오늘의 음감 ② 메트로놈·튜너 ③ 지역×조건 SEO 페이지 ④ 카드뉴스 웹 보관)
+- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
+- 확인한 것: 위 수치는 `user_events` 조회 1회. 제안은 구현·검증 안 함. D7은 코호트가 아직 7일 미만이라 미확정
+- 받는 쪽: 사용자
+- 요청: ①(오늘의 음감) 처리됨(11-12 Claude Code, 바로 위 항목) · ④(카드뉴스 웹 보관) 프롬프트를 Claude Code에 전달할지 결정. ④ 원본 확인(11-12): `~/Desktop/musicSpot_cardnews/_active/daily/<날짜>/slot-*/` — 132개 중 published 79개, 캡션 84개, 이미지 1080×1350 PNG 약 1MB/장, 옛 슬롯은 이미지가 `out/`이 아닌 슬롯 루트에 있음
+- 상태: 열림
+
 ### 2026-11-08 — Claude Code — 재방문 ③ PR 3 전날·미납 알림 Cron
 - 한 일: 하루 1번(20:00~20:59 KST) 합주 전날 알림 + 정산 미납 본인 알림. DB 변경 없음
 - 바뀐 파일: `vercel.json`(새)·`app/api/cron/push-reminders/route.ts`(새) · `lib/push-server.ts`·`lib/push-messages.ts`·`tests/push-messages.cjs` · docs — 브랜치 `push-reminders`
@@ -31,14 +47,6 @@
 - 요청: PR 머지 승인 · VAPID 키 3개 Vercel 등록(`npx web-push generate-vapid-keys`, 값은 채팅에 쓰지 않기) 후 재배포 · 휴대폰·카톡 인앱에서 "알림 받기" 확인
 - 상태: 열림
 
-### 2026-11-08 — Claude Code — 재방문 ③ PR 1 웹 푸시 구독
-- 한 일: 서비스 워커·"알림 받기" 카드(투표 만든 사람·투표한 멤버·정산 안 낸 멤버) + DB `push_subscriptions`·`push_topics`(`supabase/14_push.sql`, 승인 후 운영 적용). 발송은 아직 없음
-- 바뀐 파일: `public/sw.js`·`lib/push.ts`·`components/PushOptIn.tsx`·`tests/push.cjs`·`supabase/14_push.sql`(새) · vote·split 화면 · events · docs — 브랜치 `push-subscribe`
-- 확인한 것: SQL 26개 항목·REST 401·실제 Chromium 구독·SW 알림 표시·이벤트 3종. 실제 휴대폰·카톡 인앱은 미확인
-- 받는 쪽: 사용자
-- 요청: PR 머지 승인 → VAPID 키 생성·Vercel 등록(방법은 PR 2 착수 때 안내) → 휴대폰·카톡 인앱에서 "알림 받기" 보이는지 확인
-- 상태: 열림
-
 ### 2026-11-08 — Claude Code — 재방문 ② 합주비 N빵 정산 링크
 - 한 일: 결정된 투표·상세 요금 줄 "🧮 합주비 계산" → `/split/[id]` 정산 링크(1인당·[냈어요] 체크, 로그인·송금 없음) → "다음 합주 정하기"로 새 투표. DB `splits`·`split_payers` + RPC 3개(`supabase/13_splits.sql`, 승인받아 운영 적용 완료)
 - 바뀐 파일: `app/split/`·`lib/split.ts`·`tests/split.cjs`·`supabase/13_splits.sql`(새) · vote·room 화면 · `VoteCreatePanel`·`lib/{share-utm,i18n/locale}.ts`·`lib/analytics/events.ts` · docs — 브랜치 `split-link`
@@ -53,14 +61,6 @@
 - 확인한 것: 완료 조건 1·2·4·5·6 통과(PHASES 11-08 로그). 3은 .ics 구조만 검사, 실제 가져오기·`/my-band`(로그인)는 미확인
 - 받는 쪽: 사용자
 - 요청: 머지 승인 · 휴대폰에서 결정된 투표의 .ics 열어 보기(아이폰 Safari) · 원하면 맥 캘린더 가져오기 확인
-- 상태: 열림
-
-### 2026-11-08 — Claude Code — "멤버한테 물어보기" 구현 (Cowork 전략 ①)
-- 한 일: 상세 문의 카드·이름 옆 버튼 + 문의하고 돌아왔을 때 넛지 → 후보 시트 → 투표 생성(`?new=1` 공유 카드 강조). 문의 바는 안 건드림. Cowork 11-08 HANDOFF 기록 2건도 이 PR에 커밋
-- 바뀐 파일: `lib/ask-members.ts`·`tests/ask-members.cjs`·`AskMembersButton/Sheet.tsx`(새) · `RoomBookingWidget`·`RoomInfoCard`·`RoomDetailClient`·`VoteCreatePanel`·`VoteClient`·`lib/analytics/{index,events}.ts` · docs — PR(이 브랜치 `ask-members`)
-- 확인한 것: 완료 조건 1~5 통과(PHASES 11-08 로그). 실기기 카톡 공유는 미확인
-- 받는 쪽: 사용자
-- 요청: PR 머지 판단. 전략 ②~⑤ 우선순위·카카오톡 채널 여부는 아래 Cowork 항목대로 여전히 결정 대기
 - 상태: 열림
 
 ### 2026-11-08 — Cowork — 유입자 → 유저 전환 전략 제안 (결정 대기)

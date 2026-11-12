@@ -4,8 +4,12 @@ import 'server-only';
 import webpush from 'web-push';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  EAR_TARGET_ID,
   UNPAID_EVENT,
   decidedEvent,
+  earEvent,
+  earPayload,
+  kstDate,
   kstTomorrow,
   rehearsalReminderPayload,
   reminderEvent,
@@ -41,6 +45,11 @@ export function configureWebPush(): boolean {
   return true;
 }
 
+type PushKind = 'vote' | 'split' | 'ear';
+
+/** 음감 구독자는 전원이 한 대상이라 많아질 수 있다 — push_log upsert·발송을 이만큼씩 나눈다 */
+const EAR_BATCH = 500;
+
 interface Target {
   subscription_id: string;
   device_key: string;
@@ -57,7 +66,7 @@ interface TopicRow {
 }
 
 /** 대상(투표·정산)의 한 역할 구독 전부. 1,000행 배치(docs/DATA_ACCESS.md) */
-async function fetchTargets(admin: SupabaseClient, kind: 'vote' | 'split', targetId: string, role: 'creator' | 'member'): Promise<Target[]> {
+async function fetchTargets(admin: SupabaseClient, kind: PushKind, targetId: string, role: 'creator' | 'member'): Promise<Target[]> {
   const all: Target[] = [];
   let offset = 0;
   while (true) {
@@ -87,7 +96,7 @@ async function fetchTargets(admin: SupabaseClient, kind: 'vote' | 'split', targe
 async function deliver(
   admin: SupabaseClient,
   targets: Target[],
-  kind: 'vote' | 'split',
+  kind: PushKind,
   targetId: string,
   event: string,
   payload: PushPayload,
@@ -215,16 +224,21 @@ async function fetchAll<T>(label: string, build: (from: number, to: number) => P
 export interface DailyResult {
   reminder: { votes: number; sent: number; skipped: number; failed: number };
   unpaid: { splits: number; sent: number; skipped: number; failed: number };
+  ear: { targets: number; sent: number; skipped: number; failed: number };
 }
 
 /**
  * ③ 합주 전날: 결정된 투표 중 표가 가장 많은 날짜가 내일(KST)인 것 → 그 투표의 구독자 전원(만든 사람·멤버)
  * ④ 정산 미납: 만든 지 하루 지난 진행 중 정산 → 구독한 멤버 중 그 기기로 [냈어요]를 안 누른 사람에게만, 정산당 1번
+ * ⑤ 오늘의 음감: 구독자 전원에게 하루 1번. 서버는 누가 풀었는지 모른다(기록은 브라우저 localStorage에만).
+ *    서비스 워커에서 "이미 푼 기기는 표시 생략"은 하지 않는다 — 푸시를 받고 알림을 안 띄우면 크롬이 대신
+ *    "백그라운드에서 업데이트됨" 알림을 띄우고, 반복되면 권한을 회수할 수 있다(userVisibleOnly)
  */
 export async function runDailyReminders(admin: SupabaseClient, now = new Date()): Promise<DailyResult> {
   const result: DailyResult = {
     reminder: { votes: 0, sent: 0, skipped: 0, failed: 0 },
     unpaid: { splits: 0, sent: 0, skipped: 0, failed: 0 },
+    ear: { targets: 0, sent: 0, skipped: 0, failed: 0 },
   };
   const add = (bucket: { sent: number; skipped: number; failed: number }, r: NotifyResult) => {
     if (r.status !== 'sent') return;
@@ -285,6 +299,17 @@ export async function runDailyReminders(admin: SupabaseClient, now = new Date())
     if (unpaid.length === 0) continue;
     result.unpaid.splits += 1;
     add(result.unpaid, await deliver(admin, unpaid, 'split', split.id, UNPAID_EVENT, unpaidPayload(split.id, split.per_person)));
+  }
+
+  // ⑤ 오늘의 음감 — 언어별 문구, 500개씩
+  const earTargets = await fetchTargets(admin, 'ear', EAR_TARGET_ID, 'member');
+  result.ear.targets = earTargets.length;
+  const event = earEvent(kstDate(now));
+  for (const language of Array.from(new Set(earTargets.map((t) => (t.language === 'ja' ? 'ja' : 'ko'))))) {
+    const group = earTargets.filter((t) => (t.language === 'ja' ? 'ja' : 'ko') === language);
+    for (let i = 0; i < group.length; i += EAR_BATCH) {
+      add(result.ear, await deliver(admin, group.slice(i, i + EAR_BATCH), 'ear', EAR_TARGET_ID, event, earPayload(language)));
+    }
   }
 
   return result;

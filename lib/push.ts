@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
  * 구독은 기기 키(ms_vk)와 투표·정산 id에 묶인다. 어떤 대상을 켰는지는 이 브라우저 localStorage(ms_push_topics)에만 둔다(읽는 RPC 없음).
  */
 
-export type PushKind = 'vote' | 'split';
+export type PushKind = 'vote' | 'split' | 'ear';
 export type PushSupport = 'unsupported' | 'denied' | 'default' | 'granted';
 export type SubscribeResult = 'saved' | 'invalid' | 'not_found' | 'expired' | 'not_member' | 'limited';
 
@@ -81,6 +81,7 @@ export async function subscribeTopic(input: {
   deviceKey: string;
   creatorToken?: string | null;
   country: string;
+  language?: 'ko' | 'ja';
 }): Promise<SubscribeResult | 'denied'> {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return 'denied';
@@ -105,7 +106,7 @@ export async function subscribeTopic(input: {
     p_target_id: input.targetId,
     p_creator_token: input.creatorToken ?? null,
     p_country: input.country,
-    p_language: 'ko',
+    p_language: input.language ?? 'ko',
   });
   if (error) throw new Error(`알림을 켜지 못했어요. (${error.message})`);
   const result = data as SubscribeResult;

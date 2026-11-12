@@ -26,7 +26,7 @@ export function decidedEvent(studioId: string): string {
 }
 
 /** buildShareUrl의 절대 주소 → 경로+쿼리 (미리보기 배포에서도 같은 사이트로 열리게) */
-function pushPath(path: string, campaign: 'vote' | 'split', content: string): string {
+function pushPath(path: string, campaign: 'vote' | 'split' | 'ear', content: string): string {
   const u = new URL(buildShareUrl(path, 'push', campaign, content));
   return `${u.pathname}${u.search}`;
 }
@@ -47,6 +47,11 @@ export function voteDecidedPayload(voteId: string, studioName: string | null): P
     url: pushPath(`/vote/${voteId}`, 'vote', 'decided'),
     tag: `vote-${voteId}`,
   };
+}
+
+/** 한국 시간 기준 오늘 날짜 'YYYY-MM-DD' */
+export function kstDate(now: Date): string {
+  return new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 /** 한국 시간 기준 내일 날짜 'YYYY-MM-DD' (Cron은 UTC로 돈다) */
@@ -82,5 +87,26 @@ export function unpaidPayload(splitId: string, perPerson: number): PushPayload {
     body: `1인당 ${perPerson.toLocaleString('ko-KR')}원 — 냈으면 [냈어요]를 눌러 두세요.`,
     url: pushPath(`/split/${splitId}`, 'split', 'unpaid'),
     tag: `split-${splitId}`,
+  };
+}
+
+// ─── 오늘의 음감 (매일 1번, 2026-11-12) ─────────────────────────
+
+/** 음감은 대상이 하나뿐 — push_topics.target_id에 넣는 고정 id (supabase/16_push_ear.sql) */
+export const EAR_TARGET_ID = '00000000-0000-0000-0000-000000000000';
+
+/** 하루 1건 */
+export function earEvent(date: string): string {
+  return `ear:${date}`;
+}
+
+/** 서버는 누가 풀었는지 모른다 → 구독자 전원에게 "아직 안 풀었으면" 문구로 */
+export function earPayload(language: string): PushPayload {
+  const ja = language === 'ja';
+  return {
+    title: ja ? '🎧 今日の音感、まだ解いてない？' : '🎧 오늘의 음감 아직 안 풀었어요',
+    body: ja ? '5問・1分で終わります。連続記録をつなごう。' : '5문제, 1분이면 끝나요. 연속 기록을 이어 가세요.',
+    url: pushPath('/ear', 'ear', 'daily'),
+    tag: 'ear-daily',
   };
 }

@@ -3,13 +3,15 @@
 > **읽는 법 (사람·Claude Code·Cowork 공통)**: 작업 시작 땐 **맨 위부터 첫 `---` 줄까지("현재 상태", 약 30줄)만** 읽는다(전체 약 70KB — 통째 읽기 금지).
 > 할 일·보류 상세는 "## 진행 중 / 다음 작업", 과거 상세는 아래 날짜 로그를 필요할 때 grep으로. 에이전트 인수인계·규칙은 `docs/HANDOFF.md`.
 
-## 현재 상태 (최종 갱신 2026-11-08)
+## 현재 상태 (최종 갱신 2026-11-12)
 
 **운영**: https://www.musicspotfest.com — main 자동 배포(Vercel). 최신 머지 PR·열린 PR은 `git log --oneline -3`·`gh pr list`로 확인(번호를 여기 적지 않음 — 금방 낡는다)
 
 **지금 운영에 있는 핵심 흐름 (재방문 루프, 11-06 출시)**
 연습실 검색 → 상세에서 근처 비교·후보 담기 또는 **"📣 멤버한테 물어보기"(문의 카드·이름 옆·문의하고 돌아왔을 때 1회 넛지, 11-08)** → `/vote/[id]` 단톡방 투표(로그인 없음) → 만든 사람이 결정(다른 기기는 관리 링크 `#k=`) → 상세 문의·예약 / 밴드 일정 저장 → 다음 합주 때 옛 투표 링크·**캘린더 하루 전 알림의 메모 링크(11-08)**·"최근 본·찜·진행 중인 투표" 스트립(홈·검색 + **지역·상세 착지 페이지, 11-08**)으로 재방문
 (PR 열림, 11-08) 결정된 투표·상세 요금 줄 "🧮 합주비 계산" → `/split/[id]` 정산 링크(1인당 금액·[냈어요] 체크, 로그인·송금 없음) → "다음 합주 정하기"로 새 투표(이전 투표에 이어짐)
+
+(PR 열림, 11-12) **오늘의 음감 `/ear`** — 매일 같은 5문제(로그인 없음, 하루 1번) → 결과 공유(카톡·링크) → 연속 기록 → 다음 날 20시대 "아직 안 풀었어요" 푸시·홈 스트립 카드로 재방문. 합주실 찾기는 빈도가 낮아 "매일 올 이유"로 추가(Cowork 11-12 제안 ①). 하단 탭 커뮤니티 자리를 음감으로 바꿈
 
 **기준 수치 (11-05~06, 운영 DB)**
 - 공개 연습실 799곳(전부 spacecloud) · 가입자 12명
@@ -22,6 +24,7 @@
 | 언제 | 무엇 | 누가 |
 |---|---|---|
 | 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`, 머지되면 `split_*`) | 에이전트 쿼리 → 사용자 판단 |
+| 11-26 무렵 | 오늘의 음감 유지·중단: `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수(PR 머지 후 2주). 머지 직후 아이폰 소리 확인 | 에이전트 쿼리 → 사용자 판단 |
 | 진행 중 | 알림 = 웹 푸시(11-08 결정). PR 1·2 머지, VAPID 키 등록(11-08) · PR 3(전날·미납 Cron) **PR 열림** → 사용자가 `CRON_SECRET` 등록 → 실제 기기·첫 Cron(20:00~20:59 KST) 확인 | 에이전트 → 사용자 |
 | 2주 뒤 | 알림 판정: 허용률(`push_permission`/`push_prompt_view`)·알림 유입(`utm_source=push`) vs 캘린더 유입(`utm_source=calendar`) — `docs/PLAN_notifications.md` PR 4(투표 응답·결정 즉시 발송) → PR 3(전날·미납, Hobby Cron 하루 1번) | 에이전트 → 사용자 승인 |
 | 결정 대기 | Cowork 전환 전략 ②~⑤(가입 시점·카카오톡 채널 알림·3팀 시딩·네이버/ChatGPT 유입) — `docs/HANDOFF.md` 11-08 항목. 카카오톡 채널 보유 여부 답 필요 | 사용자 |
@@ -31,7 +34,7 @@
 
 **보류 (조건이 오면 꺼냄)**: 관리자 로그인 시도 제한·`/api/translate` 호출 제한(가입자 50명 넘으면) · 주간 점수 리셋 Cron(8마디 트랙 활동이 생기면) · 12마디 블루스 폼 · 실결제·`/partner`(B2B 계약 후)
 
-**QA 데이터**: `utm_campaign=codex_qa` 표시, 집계 때 QA 투표 `5845fd1a`·`ad15dff2`·`966f9741`·`e5ed78eb`·`437a2814`·`d6fe1ed5`·`afca2396`·`f197f24d`, QA 정산 `dfb7f039` 제외(지우지 않음). 이벤트 확인은 Supabase `user_events`
+**QA 데이터**: `utm_campaign=codex_qa` 표시, 집계 때 QA 투표 `5845fd1a`·`ad15dff2`·`966f9741`·`e5ed78eb`·`437a2814`·`d6fe1ed5`·`afca2396`·`f197f24d`, QA 정산 `dfb7f039`·QA 음감 구독 `1064f62f`(push_log `ear:2026-11-12`) 제외(지우지 않음). 이벤트 확인은 Supabase `user_events`
 **작업 규칙**: `docs/HANDOFF.md` "규칙"(전체는 `CLAUDE.md`·`docs/RULES.md`). 작업을 마치면 이 "현재 상태"도 갱신
 
 ---
@@ -899,3 +902,20 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - build 성공(`/api/cron/push-reminders` ƒ)
 - 미확인: ④ 실제 발송(24시간 지난 정산이 아직 없음 — 단위 테스트·코드 경로만), 운영 Cron 첫 실행
 - QA: 투표 `e2096421`(결정됨, 지우지 않음)
+
+## 2026-11-12 — 오늘의 음감 `/ear` 매일 5문제 (DB 변경 — `supabase/16_push_ear.sql`, 승인·백업 후 운영 적용)
+- 배경: 11-06~12 방문자 52명 중 다른 날 재방문 1명(Cowork). 합주실 찾기는 빈도가 낮다 → 매일 1분짜리 이유
+- 문제 `lib/ear/daily.ts`: KST 날짜 시드(FNV-1a → mulberry32)로 모두 같은 5문제 — ① 두 음 높낮이 ② 음정(장3·완전4·완전5·옥타브) ③ 장단조 ④ 코드(메이저·마이너·7·sus4) ⑤ 4마디 진행(I–IV–V–I, I–V–vi–IV, ii–V–I, I–vi–IV–V). 키·보기 순서도 시드
+- 소리 `lib/ear/synth.ts`: 오실레이터(삼각파+옥타브 사인)+엔벨로프, 마스터 게인 0.8 → 리미터. AudioContext·unlock은 `lib/ensemble-audio.ts`. 첫 재생은 탭 안에서, 들어야 보기가 열림, 다시 듣기
+- 기록 `lib/ear/streak.ts`(localStorage `ms_ear`, 60일): 하루 1번 잠금·연속/최고·공유 텍스트(점수·🟩🟥·🔥만, 정답 없음). 리뷰 다시 듣기는 허용
+- 입구: 하단 탭 커뮤니티→음감(A안, 사용자 선택) · 상단 메뉴 · ReturnStrip `ear` 카드(푼 적 있고 오늘 안 풀었을 때만) · 연습실 상세 리뷰 아래 카드. ja에서도 열림(사전 `lib/i18n/dict/ear-ja.ts`), `/search` 링크는 ja에서 숨김. sitemap·OG 이미지
+- 푸시: 결과 화면 "🔔 내일 문제 알림 받기"(`PushOptIn kind=ear`, 고정 target `0000…`) → 기존 Cron에 ⑤ 추가, 구독자 전원에게 하루 1번(`push_log` 이벤트 `ear:<날짜>`, 500개씩). 서비스 워커에서 "이미 풀었으면 숨기기"는 불가(userVisibleOnly — 안 보이면 크롬이 기본 알림을 띄우고 권한을 뺏을 수 있음) → 서버는 누가 풀었는지 모르므로 전원 발송
+- 이벤트 5종 `ear_start/answer/complete/share/entry_click` + 재방문 쿼리(`docs/ANALYTICS.md`)
+- 확인(로컬 → 운영 DB, `codex_qa`, GA·Amplitude·page_views 차단, 임시 VAPID·CRON_SECRET은 dev env로만, 끝나고 삭제)
+  - 운영 마이그레이션: CHECK에 ear·잘못된 ear target → invalid·anon/authenticated EXECUTE 유지. 백업은 적용 전 함수 정의·제약
+  - 5문제 풀이 → 새로고침해도 결과 잠금 · 공유 텍스트 · 스트립 카드 풀기 전 보임/푼 뒤 숨김 · 390/1440 가로 넘침 없음 · 상세 문의 바 그대로
+  - 사용자 "허용" → Cron 1회차 `ear sent 1`("🎧 오늘의 음감 아직 안 풀었어요" 표시) / 2회차 `skipped 1`
+  - `user_events`: 이벤트 5종 + `return_strip_click{kind:ear}`·`push_subscribe{kind:ear}` 같은 anon_id로 적재
+  - tsc 0, 테스트 87/87(새 12개), build 성공(`/ear` ƒ). `npm run lint`는 이전부터 설정 없음(대화형 프롬프트)
+- 미확인: 실제 아이폰 소리, 다음 날 연속 2(단위 테스트로만), 운영 Cron 첫 ear 발송
+- QA: 음감 구독 `1064f62f`(push_log `ear:2026-11-12` 1건) — 지우지 않음
