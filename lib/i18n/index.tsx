@@ -21,6 +21,7 @@ import { CORE_JA } from './dict/core-ja';
 import { BAND_JA } from './dict/band-ja';
 import { COMMUNITY_JA } from './dict/community-ja';
 import { EAR_JA } from './dict/ear-ja';
+import { NEWS_JA } from './dict/news-ja';
 
 export type { Locale } from './locale';
 
@@ -29,6 +30,7 @@ const DICT_JA: Record<string, string> = {
   ...BAND_JA,
   ...COMMUNITY_JA,
   ...EAR_JA,
+  ...NEWS_JA,
 };
 
 type Vars = Record<string, string | number>;
