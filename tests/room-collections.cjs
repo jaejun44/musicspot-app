@@ -25,9 +25,10 @@ const { studioBadges, sortByBandRank, danceOnlyLast, isDanceOnly } = loadLib('st
 const { pickCollection, getCollection, guCounts, collectionForRegion } = loadLib('room-collections');
 const { pickNearbyRooms } = loadLib('nearby-rooms');
 
-test('배지: 최대 2개, 밴드 > 드럼 > 피아노 > 보컬 > 녹음, 댄스 전용은 없음', () => {
+test('배지: 최대 2개, 밴드 > 드럼 > 피아노 > 녹음, 보컬은 표시 안 함, 댄스 전용은 없음', () => {
   assert.equal(studioBadges({ kinds: ['band', 'drum', 'piano', 'vocal'], band_rank: 0 }).join('|'), '🎸 밴드 합주|🥁 드럼');
-  assert.equal(studioBadges({ kinds: ['vocal', 'recording', 'piano'], band_rank: 1 }).join('|'), '🎹 피아노|🎤 보컬');
+  assert.equal(studioBadges({ kinds: ['vocal', 'recording', 'piano'], band_rank: 1 }).join('|'), '🎹 피아노|🎙️ 녹음');
+  assert.equal(studioBadges({ kinds: ['vocal'], band_rank: 1 }).length, 0);
   assert.equal(studioBadges({ kinds: ['vocal', 'dance'], band_rank: 2 }).length, 0);
   assert.equal(studioBadges({ kinds: [], band_rank: 1 }).length, 0);
   assert.ok(isDanceOnly({ band_rank: 2 }));
@@ -53,7 +54,7 @@ test('조합 페이지: 종류·구 조건으로 고르고 받은(품질) 순서
   ];
   assert.equal(ids(pickCollection(getCollection('seoul-band'), studios)), 'a,c');
   assert.equal(ids(pickCollection(getCollection('seoul-drum'), studios)), 'a');
-  assert.equal(ids(pickCollection(getCollection('seoul-piano'), studios)), 'b,d');
+  assert.equal(getCollection('seoul-piano'), undefined); // 2026-11-13 제외
   assert.equal(ids(pickCollection(getCollection('mapo-band'), [...studios, { id: 'f', address: '서울 강남구 1', band_rank: 0 }])), 'a,c');
   assert.equal(JSON.stringify(guCounts(studios)), JSON.stringify([{ gu: '마포구', count: 3 }, { gu: '강남구', count: 2 }]));
   assert.equal(collectionForRegion('mapo').slug, 'mapo-band');

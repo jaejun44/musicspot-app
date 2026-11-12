@@ -15,7 +15,7 @@
 
 (11-12 출시, PR #47) **밴드씬 뉴스 `/news`** — 인스타 카드뉴스(하루 2개)를 사이트에 쌓아 검색 유입·"매일 새로 볼 것"·인스타 프로필 링크 착지점으로. 76개 반영(이미지 380장 30.7MB), 홈 히어로 아래·지역 페이지·음감 결과·상단 메뉴 입구. 매일 반영은 `docs/NEWS_PUBLISH.md` 1줄(수동)
 
-(PR 열림, 11-13) **연습실 종류 구분** — 모든 목록에서 밴드 합주 가능한 곳이 먼저, 댄스 전용은 맨 뒤(지우지 않음)·검색 색인 제외. "🎸 밴드 합주" 칩·종류 배지·조합 페이지 `/rooms/seoul-band·seoul-drum·seoul-piano·mapo-band`
+(PR 열림, 11-13) **연습실 종류 구분** — 모든 목록에서 밴드 합주 가능한 곳이 먼저, 댄스 전용은 맨 뒤(지우지 않음)·검색 색인 제외. "🎸 밴드 합주" 칩·종류 배지·조합 페이지 `/rooms/seoul-band·seoul-drum·mapo-band`
 
 **기준 수치 (11-05~06, 운영 DB)**
 - 공개 연습실 799곳(전부 spacecloud) — 밴드 합주 가능 170 · 그 외 449 · 댄스 전용 180(11-12 분류) · 가입자 12명
@@ -964,23 +964,23 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - 분류 `scripts/studio_rules.py` `classify_kinds`·`band_rank`(테스트 `scripts/test_studio_rules.py` ← `tests/studio-kinds.cjs`): 이름·options·notes·price_info 글자 + category 태그(보컬·녹음·댄스) + has_drum
   - band = 합주·밴드(현악·클래식·앙상블 합주 제외) 또는 has_drum / drum / piano(피아노·건반·업라이트) / vocal / recording / dance(댄스·안무·발레·무용·춤 연습·전신거울, 또는 댄스 태그 — 단 글자에 음악 표현이 있으면 태그만으론 아님). 부정("드럼 없음"·"합주 불가")은 같은 구절에서 제외
   - band_rank 0 = band·drum / 2 = dance이고 band·drum·piano 없음(댄스+보컬 다목적실 포함) / 1 = 그 외. 공개 170 / 449 / 180(사용자 승인)
-- DB: `studios.kinds text[]`·`band_rank smallint`(CHECK·인덱스). 값 채우기 `scripts/update_studio_kinds.py --plan → --apply --backup`(전체 1,008행 중 861행, 실패 0, 백업: 세션 스크래치패드 `backup_studio_kinds_20261112.json`). updated_at·is_published 안 건드림
+- DB: `studios.kinds text[]`·`band_rank smallint`(CHECK·인덱스). 값 채우기 `scripts/update_studio_kinds.py --plan → --apply --backup`(전체 1,008행 중 861행, 실패 0, 백업: `~/Desktop/Music-Spot/backups/2026-11_studios/2026-11-12_studio_kinds_backup.json` + 계획 `…_plan.json`, 되돌리는 법은 같은 폴더 README). updated_at·is_published 안 건드림
   - 월간 최신화 `refresh_spacecloud.py`는 원래 이 칸을 안 건드림 → 요금 안내가 바뀌면 다시 계산하도록 추가(달라질 때만, 백업 키 포함). 새로 넣는 `import_merged.py`도 같은 규칙
   - `nearby_studios` RPC(04)는 앱에서 안 불러 그대로
 - 정렬: 기본은 `band_rank` 오름차순 먼저 → 기존 기준(품질·거리). `/search` 텍스트(서버 order)·GPS·지역 페이지(서울 `selectRegionRooms` 안정 정렬, 서울 밖 쿼리 order)·상세 근처 비교·비공개 연습실 대안(`pickNearbyRooms`). 가격순은 전체를 받아 가격대로 정렬하고 댄스 전용만 맨 뒤(`danceOnlyLast`). 홈 HOT은 band_rank 0만
-- 필터 칩 "🎸 밴드 합주"(band_rank 0, URL `band=1`, 드럼 칩과 함께 동작). 배지(카드·상세 정보) 최대 2개 밴드 합주 > 드럼 > 피아노 > 보컬 > 녹음, 댄스 전용은 없음(기존 드럼 배지를 대체). 목록 구분선 "아래는 개인 연습·보컬·댄스용 연습실이에요"(`components/BandDivider.tsx`, 가격순엔 없음)
+- 필터 칩 "🎸 밴드 합주"(band_rank 0, URL `band=1`, 드럼 칩과 함께 동작). 배지(카드·상세 정보) 최대 2개 밴드 합주 > 드럼 > 피아노 > 녹음, 댄스 전용은 없음(기존 드럼 배지를 대체). 보컬은 분류 태그 때문에 618곳에 붙어 화면 표시만 뺌(kinds 값은 그대로, 11-13 사용자 요청). 목록 구분선 "아래는 개인 연습·보컬·댄스용 연습실이에요"(`components/BandDivider.tsx`, 가격순엔 없음)
 - 색인: band_rank 2 상세 `noindex, follow` + 사이트맵 제외. 지역 페이지 요약·FAQ·통계는 댄스 전용을 빼고 "밴드 합주 가능 N곳" 따로. **지역 색인 기준은 그대로(전체 수 8곳)** — 빼고 세면 26개 중 9개(압구정·선릉·성수·건대·혜화·종로·강북·양재·화곡)가 빠져 사용자가 유지 결정
   - 밴드 합주 0곳 지역(선릉·건대·혜화·강북)은 요약 아래 "이 동네에는 밴드 합주 가능한 곳이 아직 없어요" + 가까운 동네 중 밴드용이 있는 지역 링크 3개(제목·색인 그대로)
-- 조합 페이지 `/rooms/[slug]`(`lib/room-collections.ts`, ISR, ja 차단, 사이트맵, `/region` 목록 위 입구): 서울 합주실(밴드 100) · 서울 드럼 42 · 서울 피아노 187 · 마포 밴드 합주실 17(주소 기준). 8곳 미만이면 자동 noindex. `/region/mapo`는 제목을 "마포 연습실"로 바꾸고 서로 링크(같은 검색어 경쟁 방지, 사용자 요청)
+- 조합 페이지 `/rooms/[slug]`(`lib/room-collections.ts`, ISR, ja 차단, 사이트맵, `/region` 목록 위 입구): 서울 합주실(밴드 100) · 서울 드럼 42 · 마포 밴드 합주실 17(주소 기준). 서울 피아노(187)는 만들었다가 머지 전 제외(11-13 사용자 요청 — 밴드 플랫폼 방향과 거리). 8곳 미만이면 자동 noindex. `/region/mapo`는 제목을 "마포 연습실"로 바꾸고 서로 링크(같은 검색어 경쟁 방지, 사용자 요청)
 - 이벤트: `studio_view`에 선택 `band_rank`, `filter_apply`에 `band`. 전후 비교 쿼리 `docs/ANALYTICS.md`
 - **되돌리기**(컬럼은 남겨도 무해)
   - 정렬: `hooks/useStudios.ts`의 `.order('band_rank'…)`·`sortByBandRank`·`danceOnlyLast` / `lib/region-select.ts` `selectRegionRooms`의 `sortByBandRank` / `app/region/[slug]/page.tsx` 서울 밖 쿼리 `.order('band_rank')` / `lib/nearby-rooms.ts` `sortByBandRank` / `components/HotRooms.tsx` `.eq('band_rank', 0)`
   - noindex: `app/room/[id]/page.tsx` generateMetadata의 `data.band_rank === 2` 줄 + `app/sitemap.ts`의 `.lt('band_rank', 2)`
-  - 값 되돌리기: 백업 JSON의 kinds·band_rank를 그대로 update
+  - 값 되돌리기: 백업 폴더 README의 스크립트(kinds·band_rank를 이전 값으로 update)
 - 확인(로컬 → 운영 DB, `codex_qa`, 분석 차단)
   - 로컬 Postgres 18 SQL 2번 OK, 잘못된 값 CHECK 거부 · 운영 반영 후 공개 0=170·1=449·2=180(미리보기와 같음)
   - `/search` 기본: 밴드용 170곳 뒤 171번째에 구분선, 가격순 끝은 댄스 전용, 밴드 칩 → 전부 밴드 합주, 밴드+드럼 동작 · 홍대 지역: 밴드 10곳 뒤 구분선
   - 댄스 전용 상세 HTML `noindex, follow`·사이트맵 없음, 밴드용 상세는 robots 없음·사이트맵 있음 · `/rooms` 4개 200, 없는 slug 404
   - 390·1440 `/rooms`·`/region`·지역·상세·검색 가로 넘침 없음 · `studio_view {band_rank}`·`filter_apply {band}` 적재
-  - tsc 0 · 테스트 96/96 · build 성공(`/rooms/[slug]` ● 4개)
+  - tsc 0 · 테스트 96/96 · build 성공(`/rooms/[slug]` ● 3개)
 - 미확인: 실제 사용자 행동 변화(2주 뒤 쿼리), 분류 오분류 일부(글자 기준 — 예: "합주,오케스트라"는 밴드로 봄)

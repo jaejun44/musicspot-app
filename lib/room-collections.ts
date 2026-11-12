@@ -41,13 +41,6 @@ export const COLLECTIONS: RoomCollection[] = [
     searchHref: '/search?q=서울&has_drum=1',
   },
   {
-    slug: 'seoul-piano',
-    title: '서울 피아노 연습실',
-    noun: '피아노가 있는 곳',
-    match: (s) => hasKind(s, 'piano') && bandRank(s) < 2,
-    searchHref: '/search?q=서울',
-  },
-  {
     slug: 'mapo-band',
     title: '마포 밴드 합주실',
     noun: '밴드 합주 가능한 곳',

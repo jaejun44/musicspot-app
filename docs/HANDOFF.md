@@ -16,9 +16,9 @@
 ## 기록
 
 ### 2026-11-13 — Claude Code — 연습실 종류 구분: 밴드용 우선, 댄스 전용은 뒤로 (Cowork 11-12 사전 점검 처리)
-- 한 일: 공개 799곳을 밴드 합주 170 · 그 외 449 · 댄스 전용 180으로 분류(승인) → `studios.kinds·band_rank`(18_studio_kinds.sql, 861행 반영·백업). 모든 목록 밴드용 먼저·댄스 전용 맨 뒤, "🎸 밴드 합주" 칩·배지·구분선, 댄스 전용 상세 noindex·사이트맵 제외, 조합 페이지 4개(`/rooms/seoul-band·drum·piano·mapo-band`), /region/mapo 제목 "마포 연습실"로. Cowork 사전 점검 항목은 처리돼 정리함
+- 한 일: 공개 799곳을 밴드 합주 170 · 그 외 449 · 댄스 전용 180으로 분류(승인) → `studios.kinds·band_rank`(18_studio_kinds.sql, 861행 반영, 백업 `backups/2026-11_studios/2026-11-12_studio_kinds_backup.json`). 모든 목록 밴드용 먼저·댄스 전용 맨 뒤, "🎸 밴드 합주" 칩·배지·구분선, 댄스 전용 상세 noindex·사이트맵 제외, 조합 페이지 3개(`/rooms/seoul-band·seoul-drum·mapo-band`, 피아노는 머지 전 제외), /region/mapo 제목 "마포 연습실"로. Cowork 사전 점검 항목은 처리돼 정리함
 - 바뀐 파일: `scripts/studio_rules.py`·`update_studio_kinds.py`·`refresh_spacecloud.py`·`import_merged.py` · `lib/studio-kinds.ts`·`room-collections.ts`·`region-select.ts`·`nearby-rooms.ts` · `hooks/useStudios.ts` · `app/rooms/`·지역·상세·검색·HOT·사이트맵 · 테스트 3개 — 브랜치 `studio-kinds` PR
-- 확인한 것: 운영 분포 = 미리보기, 검색 구분선 171번째·가격순 댄스 끝·칩 동작, noindex·사이트맵, 390/1440 넘침 없음, tsc 0·테스트 96/96·build 성공. 지역 색인 기준은 사용자 결정으로 그대로(빼면 9개 빠짐)
+- 확인한 것: 운영 분포 = 미리보기, 검색 구분선 171번째·가격순 댄스 끝·칩 동작, noindex·사이트맵, 390/1440 넘침 없음, tsc 0·테스트·build 성공. 배지에서 보컬은 표시 안 함(kinds 그대로). 지역 색인 기준은 사용자 결정으로 그대로(빼면 9개 빠짐)
 - 받는 쪽: 사용자
 - 요청: ① PR 머지 승인 ② 머지 2주 뒤 `docs/ANALYTICS.md` "밴드용 상세 조회 비율 · 세션당 상세 조회" 전후 비교(배포일 기준) — 그때 지역 색인 기준을 바꿀지도
 - 상태: 열림

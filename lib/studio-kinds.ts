@@ -5,7 +5,6 @@ const BADGES: { kind: string; label: string }[] = [
   { kind: 'band', label: '🎸 밴드 합주' },
   { kind: 'drum', label: '🥁 드럼' },
   { kind: 'piano', label: '🎹 피아노' },
-  { kind: 'vocal', label: '🎤 보컬' },
   { kind: 'recording', label: '🎙️ 녹음' },
 ];
 
@@ -18,7 +17,7 @@ export function isDanceOnly(s: Pick<Studio, 'band_rank'>): boolean {
   return bandRank(s) === 2;
 }
 
-/** 카드·상세 배지 최대 2개. 댄스 전용은 배지 없음 */
+/** 카드·상세 배지 최대 2개(밴드 합주 > 드럼 > 피아노 > 녹음). 보컬은 분류 태그 때문에 대부분에 붙어 표시하지 않는다(kinds 값은 그대로). 댄스 전용은 배지 없음 */
 export function studioBadges(s: Pick<Studio, 'kinds' | 'band_rank'>, max = 2): string[] {
   if (isDanceOnly(s)) return [];
   const kinds = new Set(s.kinds ?? []);
