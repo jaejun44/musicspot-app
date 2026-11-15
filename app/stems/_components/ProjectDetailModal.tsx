@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { X, Play, Pause, Music, Trash2, Pencil, Download, Video, ExternalLink, Share2 } from 'lucide-react';
@@ -13,6 +14,7 @@ import { track } from '@/lib/analytics';
 import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 import { createAudioContext, resumeContext, loadTracksAligned, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 import { useT, useIsJapanMode } from '@/lib/i18n';
+import { hasJamBacking, renderProjectBacking, resolveJamBacking } from '@/lib/jam/backing';
 
 interface StemTrack {
   id: string;
@@ -35,9 +37,11 @@ interface Props {
   onUpdate: () => void;
   onEdit?: (p: StemProject) => void;
   onDelete?: (id: string) => void;
+  /** 백킹 잼에서 올리고 막 넘어왔을 때(?uploaded=1) — "내 마디 자랑하기"를 바로 보여 준다 */
+  initialJustUploaded?: boolean;
 }
 
-export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete }: Props) {
+export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete, initialJustUploaded = false }: Props) {
   const t = useT();
   const isJapanMode = useIsJapanMode();
   const router = useRouter();
@@ -46,7 +50,17 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   const isOwner = !!user && user.id === project.creator_id;
   const [loadingTracks, setLoadingTracks] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [justUploaded, setJustUploaded] = useState(false);
+  const [justUploaded, setJustUploaded] = useState(initialJustUploaded);
+  // 백킹 잼 반주(jam_slug가 있는 프로젝트만). 음원이 아니라 재생할 때 합성한다
+  const isJam = hasJamBacking(project);
+  const jamResolved = isJam ? resolveJamBacking(project) : null;
+  const [backingMuted, setBackingMuted] = useState(false);
+  const [backingFailed, setBackingFailed] = useState(isJam && !jamResolved);
+  const jamBacking = useCallback(async () => {
+    const buf = await renderProjectBacking(project);
+    if (!buf) setBackingFailed(true);
+    return buf;
+  }, [project]);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   // 전체 합주 듣기 (여러 트랙 동시 재생 — Web Audio)
@@ -130,6 +144,12 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     );
     const count = sections.reduce((n, s) => n + s.length, 0);
     if (count === 0) { stopEnsemble(); return; }
+    // 백킹 잼: 섹션마다 같은 8마디 반주(음소거 토글이면 안 깔기). 못 만들면 테이크만 재생
+    if (isJam && !backingMuted) {
+      const jam = await jamBacking();
+      if (ensembleCtxRef.current !== ctx) return;
+      if (jam) sections.forEach((sec) => sec.unshift(jam));
+    }
 
     ensembleHandleRef.current = playSequence(sections, ctx, ctx.currentTime + 0.1);
     setEnsembleState('playing');
@@ -393,7 +413,25 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   {project.genre}
                 </span>
               )}
+              {isJam && (
+                <span
+                  className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
+                  style={{ fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  🎧 {t('백킹 잼 반주 포함')}
+                </span>
+              )}
             </div>
+            {isJam && project.jam_slug && (
+              <Link
+                href={`/jam/${project.jam_slug}${project.jam_prog ? `?p=${encodeURIComponent(project.jam_prog)}` : ''}`}
+                onClick={() => track('jam_entry_click', { from: 'stems' })}
+                className="mt-2 inline-flex min-h-[44px] items-center text-[13px] font-bold text-[#0A0A0A] underline underline-offset-4"
+                style={{ fontFamily: 'Pretendard, sans-serif' }}
+              >
+                🎸 {t('이 반주로 나도 치기')} →
+              </Link>
+            )}
             {project.description && (
               <p
                 className="text-[12px] text-[#0A0A0A]/60 mt-2 font-bold leading-relaxed"
@@ -675,8 +713,31 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                 </div>
               )}
 
+              {/* 백킹 잼: 반주를 끄고 테이크만 들을 수 있게 */}
+              {isJam && audioTracks.length >= 1 && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBackingMuted((m) => !m);
+                      if (ensembleState !== 'idle') stopEnsemble();
+                    }}
+                    aria-pressed={!backingMuted}
+                    className={`min-h-[44px] px-3 rounded-[12px] border-[2px] border-[#0A0A0A] text-[13px] font-bold ${backingMuted ? 'bg-white text-[#0A0A0A]/50 line-through' : 'bg-[#F5FF4F] text-[#0A0A0A]'}`}
+                    style={{ fontFamily: 'Pretendard, sans-serif' }}
+                  >
+                    🎧 {t('반주')} {backingMuted ? 'OFF' : 'ON'}
+                  </button>
+                  {backingFailed && (
+                    <p role="status" className="text-[13px] font-bold text-[#FF3D77]" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                      {t('반주를 불러오지 못했어요')}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* 전체 곡 듣기 — 섹션 순차 + 섹션 내 동시. 맨 아래에서 완성된 곡을 듣는 페이오프 */}
-              {audioTracks.length >= 2 && (
+              {(audioTracks.length >= 2 || (isJam && audioTracks.length >= 1)) && (
                 <motion.button
                   whileTap={{ scale: 0.97, y: 2 }}
                   onClick={toggleEnsemble}
@@ -751,6 +812,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   latestSection={latestSection}
                   layerBackingUrls={layerBackingUrls}
                   orderedSectionUrls={orderedSectionUrls}
+                  jamBacking={isJam && !backingMuted ? jamBacking : undefined}
                   onUploaded={() => {
                     // 트랙 업로드 = 릴레이 패스 1회. pass_count 원자적 증가 (fire-and-forget)
                     void supabase.rpc('increment_pass_count', { p_project_id: project.id });

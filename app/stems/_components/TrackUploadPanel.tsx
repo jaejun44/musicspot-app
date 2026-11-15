@@ -6,13 +6,13 @@ import { Upload, Mic, Square, Video, Guitar, Play, Pause } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import JamRecorder, { type JamMode } from './JamRecorder';
+import { INSTRUMENTS } from '@/lib/instruments';
 import AudioTrimmer, { type TrimHandle } from './AudioTrimmer';
 import { acquireMic } from '@/lib/mic';
 import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playEnsemble, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 import { useT } from '@/lib/i18n';
 import { track, incrementUserProperty } from '@/lib/analytics';
 
-const INSTRUMENTS = ['보컬', '기타', '베이스', '드럼', '건반', '현악기', '관악기', '기타악기'];
 /** Storage에 실제로 올라가는 파일(잘라낸 8마디 또는 녹음물)의 상한. */
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
 /** 브라우저에서 구간을 잘라내기 위해 받아들이는 원본 파일의 상한. */
@@ -41,6 +41,8 @@ interface Props {
   layerBackingUrls?: string[];
   /** 섹션 순서대로 묶은 전체 오디오 URL — 이어붙이기 미리듣기(전곡+내 트랙)에 사용. */
   orderedSectionUrls?: string[][];
+  /** 백킹 잼 프로젝트의 반주 8마디(합성). 녹음·미리듣기에서 섹션마다 깐다. 없으면 기존과 같음 */
+  jamBacking?: () => Promise<AudioBuffer | null>;
 }
 
 export default function TrackUploadPanel({
@@ -52,6 +54,7 @@ export default function TrackUploadPanel({
   latestSection = 0,
   layerBackingUrls = [],
   orderedSectionUrls = [],
+  jamBacking,
 }: Props) {
   const t = useT();
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
@@ -148,6 +151,8 @@ export default function TrackUploadPanel({
     if (jamMode === 'layer') {
       // 쌓기: 최근 섹션 반주 + 내 트랙을 동시 재생
       const buffers = await loadTracks([...layerBackingUrls, myUrl], ctx);
+      const jam = jamBacking ? await jamBacking() : null;
+      if (jam) buffers.unshift(jam);
       if (jamCtxRef.current !== ctx) return;
       if (buffers.length === 0) { stopJamPreview(); return; }
       jamHandleRef.current = playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
@@ -164,6 +169,10 @@ export default function TrackUploadPanel({
       );
       const mine = aligned[i];
       if (mine) sections.push([mine]);
+      // 백킹 잼 프로젝트: 섹션마다 같은 8마디 반주
+      const jam = jamBacking ? await jamBacking() : null;
+      if (jam) sections.forEach((sec) => sec.unshift(jam));
+      if (jamCtxRef.current !== ctx) return;
       const flatCount = sections.reduce((n, s) => n + s.length, 0);
       if (flatCount === 0) { stopJamPreview(); return; }
       jamHandleRef.current = playSequence(sections, ctx, ctx.currentTime + 0.1);
@@ -481,6 +490,7 @@ export default function TrackUploadPanel({
             bpm={bpm}
             layerBackingUrls={layerBackingUrls}
             hasPrevious={latestSection > 0}
+            jamBacking={jamBacking}
             onRecorded={(blob, m) => {
               setJamMode(m);
               setRecordedBlob(blob);

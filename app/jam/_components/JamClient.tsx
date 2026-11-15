@@ -21,9 +21,11 @@ import {
 import { dailyJam } from '@/lib/jam/daily';
 import type { Part } from '@/lib/jam/engine';
 import { useJamPlayer, type JamNotice } from './useJamPlayer';
+import TakePanel from './TakePanel';
+import JamTakesList from './JamTakesList';
 
-export const FONT = { fontFamily: 'Pretendard, sans-serif' };
-export const CARD = 'bg-white rounded-[20px] border-[3px] border-[#0A0A0A]';
+import { CARD, FONT } from './ui';
+export { CARD, FONT };
 const SHADOW = { boxShadow: '4px 4px 0 #0A0A0A' };
 
 const PARTS: { id: Part; label: string; icon: string }[] = [
@@ -112,8 +114,9 @@ export default function JamClient({ slug }: { slug: string }) {
   const keyLabel = useKeyLabel();
   const combo = parseSlug(slug) as JamCombo;
   const { key, style } = combo;
+  // 진행 id는 저장되므로 인덱스는 전체 목록 기준. 화면 목록에는 숨긴 진행을 빼되, 지금 고른 것은 보인다
   const progs = style.progressions[key.mode];
-  const [progIdx, setProgIdx] = useState(0);
+  const [progIdx, setProgIdx] = useState(() => Math.max(0, progs.findIndex((p) => !p.hiddenForNewTakes)));
   const [isDaily, setIsDaily] = useState(false);
   const [ios, setIos] = useState(false);
   const prog = progs[progIdx];
@@ -270,11 +273,25 @@ export default function JamClient({ slug }: { slug: string }) {
         </div>
       </section>
 
+      {/* 녹음 → 8마디로 올리기 */}
+      <TakePanel
+        combo={combo}
+        progression={prog}
+        bpm={jam.bpm}
+        muted={jam.muted}
+        onBeforeRecord={() => jam.playing && jam.stop()}
+        onRestoreProgression={(id) => {
+          const i = progs.findIndex((p) => p.id === id);
+          if (i >= 0) setProgIdx(i);
+        }}
+      />
+      <JamTakesList slug={slug} />
+
       {/* 진행 */}
       <section className={`${CARD} p-5`} style={SHADOW}>
         <h2 className="text-[15px] font-bold text-[#0A0A0A]">{t('코드 진행')}</h2>
         <div className="mt-2 grid gap-2">
-          {progs.map((p, i) => (
+          {progs.map((p, i) => (p.hiddenForNewTakes && i !== progIdx ? null : (
             <button
               key={p.id}
               type="button"
@@ -287,7 +304,7 @@ export default function JamClient({ slug }: { slug: string }) {
               <span className="block">{progressionChords(key, p).slice(0, 4).map((c) => chordLabel(c, key.flats)).join(' – ')}</span>
               <span className="block text-[12px] text-[#0A0A0A]/60">{p.label}</span>
             </button>
-          ))}
+          )))}
         </div>
       </section>
 

@@ -95,3 +95,42 @@ test('조합 페이지 제목·설명은 모두 다르다', () => {
   assert.equal(new Set(metas.map((m) => m.description)).size, COMBOS.length);
   assert.equal(metas[COMBOS.findIndex((c) => c.slug === 'a-minor-blues')].title, 'A 마이너 블루스 백킹 트랙 — 브라우저에서 바로 연주 | Music Spot');
 });
+
+// 진행 id는 stem_projects.jam_prog에 저장된다 — 바꾸거나 지우면 이미 올라온 프로젝트의 반주가 사라진다.
+// 진행을 없애야 하면 지우지 말고 hiddenForNewTakes: true. 새 진행은 아래 목록 끝에 추가한다(순서·이름 변경 금지).
+const LOCKED_PROGRESSION_IDS = {
+  blues: { major: ['I7-IV7-I7-V7', 'I7-V7-IV7'], minor: ['im7-ivm7-V7', 'im7-VI7-V7'] },
+  rock: { major: ['I-V-vi-IV', 'I-IV-V-I', 'I-IV-vi-V'], minor: ['i-VI-III-VII', 'i-VII-VI-VII', 'i-iv-VI-VII'] },
+  funk: { major: ['I-IV-vamp', 'ii-V-I'], minor: ['im7-IV7', 'im7-ivm7'] },
+  metal: { minor: ['i-VI-VII-i', 'i-VII-VI-VII'] },
+  ballad: { major: ['I-vi-IV-V', 'I-V-vi-IV', 'ii-V-I'], minor: ['i-VI-III-VII', 'i-iv-VII-III'] },
+  'pop-punk': { major: ['I-V-vi-IV', 'I-vi-IV-V'], minor: ['i-VI-III-VII', 'i-VII-VI-VII'] },
+};
+
+test('진행 id 고정: 있던 id는 같은 자리에 그대로(지우기·이름 바꾸기 금지, 새 id는 끝에만)', () => {
+  for (const [slug, modes] of Object.entries(LOCKED_PROGRESSION_IDS)) {
+    const style = STYLES.find((s) => s.slug === slug);
+    assert.ok(style, `스타일 ${slug}가 사라짐`);
+    for (const [mode, ids] of Object.entries(modes)) {
+      const now = JSON.parse(JSON.stringify(style.progressions[mode].map((p) => p.id))); // vm realm → 평범한 배열
+      assert.deepEqual(now.slice(0, ids.length), ids, `${slug} ${mode} 진행 id가 바뀜 — 지우지 말고 hiddenForNewTakes로`);
+      assert.equal(new Set(now).size, now.length, `${slug} ${mode} 진행 id 중복`);
+      for (const id of now) assert.match(id, /^[A-Za-z0-9-]{1,32}$/, `${id}: DB CHECK(stem_projects_jam_prog_format)와 다름`);
+    }
+  }
+});
+
+test('음감 5번 진행 4개는 모두 어느 스타일의 장조 진행에 있다(오늘의 잼 녹음이 항상 카탈로그 id로 저장됨)', () => {
+  for (const id of ['I-IV-V-I', 'I-V-vi-IV', 'ii-V-I', 'I-vi-IV-V']) {
+    const owners = STYLES.filter((s) => s.progressions.major.some((p) => p.id === id && !p.hiddenForNewTakes));
+    assert.ok(owners.length >= 1, `${id}를 가진 스타일 없음`);
+  }
+});
+
+test('findProgression: 숨긴 진행도 찾고, 없는 id는 null · visibleProgressions는 숨긴 것 제외', () => {
+  const combo = parseSlug('a-minor-rock');
+  assert.equal(cat.findProgression(combo, 'i-VII-VI-VII').id, 'i-VII-VI-VII');
+  assert.equal(cat.findProgression(combo, 'no-such'), null);
+  assert.equal(cat.findProgression(combo, null), null);
+  assert.equal(cat.visibleProgressions(combo).length, combo.style.progressions.minor.filter((p) => !p.hiddenForNewTakes).length);
+});

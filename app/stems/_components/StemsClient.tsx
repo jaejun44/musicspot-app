@@ -66,6 +66,12 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
     }
   }
 
+  // 백킹 잼에서 올리고 넘어오면(?uploaded=1) 상세의 "내 마디 자랑하기"를 바로 보여 준다
+  const [fromJamUpload, setFromJamUpload] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('uploaded') === '1') setFromJamUpload(true);
+  }, []);
+
   // 공유 링크로 진입 시 해당 프로젝트 모달 자동 오픈
   useEffect(() => {
     if (!initialProjectId || projects.length === 0 || openedDeepLink.current === initialProjectId) return;
@@ -115,6 +121,10 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
           track_count: row.stem_tracks?.[0]?.count ?? 0,
           share_count: row.share_count ?? 0,
           pass_count: row.pass_count ?? 0,
+          jam_slug: row.jam_slug,
+          jam_bpm: row.jam_bpm,
+          jam_prog: row.jam_prog,
+          jam_mutes: row.jam_mutes,
         } satisfies StemProject));
         setProjects(mapped);
 
@@ -409,6 +419,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
         <ProjectDetailModal
           project={selectedProject}
           user={user}
+          initialJustUploaded={fromJamUpload && selectedProject.id === initialProjectId}
           onClose={() => setSelectedProject(null)}
           onUpdate={fetchProjects}
           onEdit={(p) => { setSelectedProject(null); handleEditProject(p); }}

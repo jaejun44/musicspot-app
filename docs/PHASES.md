@@ -3,7 +3,7 @@
 > **읽는 법 (사람·Claude Code·Cowork 공통)**: 작업 시작 땐 **맨 위부터 첫 `---` 줄까지("현재 상태", 약 30줄)만** 읽는다(전체 약 70KB — 통째 읽기 금지).
 > 할 일·보류 상세는 "## 진행 중 / 다음 작업", 과거 상세는 아래 날짜 로그를 필요할 때 grep으로. 에이전트 인수인계·규칙은 `docs/HANDOFF.md`.
 
-## 현재 상태 (최종 갱신 2026-11-15)
+## 현재 상태 (최종 갱신 2026-11-16)
 
 **운영**: https://www.musicspotfest.com — main 자동 배포(Vercel). 최신 머지 PR·열린 PR은 `git log --oneline -3`·`gh pr list`로 확인(번호를 여기 적지 않음 — 금방 낡는다)
 
@@ -17,7 +17,9 @@
 
 (PR 열림, 11-13) **연습실 종류 구분** — 모든 목록에서 밴드 합주 가능한 곳이 먼저, 댄스 전용은 맨 뒤(지우지 않음)·검색 색인 제외. "🎸 밴드 합주" 칩·종류 배지·조합 페이지 `/rooms/seoul-band·seoul-drum·mapo-band`
 
-(PR 열림, 11-15) **백킹 잼 `/jam`** — 키×스타일(블루스·락·펑크·메탈·발라드·팝펑크)로 드럼·베이스·코드 8마디 반주를 브라우저에서 합성(샘플·의존성 없음). 조합 페이지 132개(`/jam/a-minor-blues` 등, 정적·사이트맵), 날짜로 바뀌는 "오늘의 잼"(음감 5번 문제와 같은 진행·같은 조). 입구: 상단 메뉴 "백킹 잼"·홈 카드·음감 결과 맨 위·재방문 스트립. 집에서 매일 연습하는 사람을 위한 "매일 올 이유" + 2단계 8마디 첫 주자 후보
+(11-15 출시, PR #50) **백킹 잼 `/jam`** — 키×스타일(블루스·락·펑크·메탈·발라드·팝펑크)로 드럼·베이스·코드 8마디 반주를 브라우저에서 합성(샘플·의존성 없음). 조합 페이지 132개(`/jam/a-minor-blues` 등, 정적·사이트맵), 날짜로 바뀌는 "오늘의 잼"(음감 5번 문제와 같은 진행·같은 조). 입구: 상단 메뉴 "백킹 잼"·홈 카드·음감 결과 맨 위·재방문 스트립. 집에서 매일 연습하는 사람을 위한 "매일 올 이유" + 2단계 8마디 첫 주자 후보
+
+(PR 열림·아이폰 확인 전 머지 금지, 11-16) **백킹 잼 2단계** — `/jam/[slug]`에서 반주 위에 녹음(카운트인 1마디 → 8마디 자동 정지) → 미리듣기·싱크 ±300ms·음량 → [8마디로 올리기](로그인은 여기서만, 비로그인이면 IndexedDB 임시 보관 → 로그인 → 복원). 반주는 음원이 아니라 `stem_projects.jam_slug·jam_bpm·jam_prog·jam_mutes`로 저장해 재생 때 합성(점수·참여자 수에 안 잡힘). 8마디 카드·상세에 "🎧 백킹 잼 반주 포함"·"이 반주로 나도 치기", 쌓기·이어붙이기에도 섹션마다 같은 반주
 
 **기준 수치 (11-05~06, 운영 DB)**
 - 공개 연습실 799곳(전부 spacecloud) — 밴드 합주 가능 170 · 그 외 449 · 댄스 전용 180(11-12 분류) · 가입자 12명
@@ -33,6 +35,7 @@
 | 진행 중 | 밴드씬 뉴스: 인스타 프로필 링크를 `/news?utm_source=instagram&utm_medium=bio&utm_campaign=news`로 교체 · 카드뉴스 게시 작업 마지막 단계에 `--only … --apply` 1줄 추가(매일 운영 DB 쓰기) · 공식 자료 39개 공개 유지(요청 오면 SQL 1줄로 비공개) · 사이트맵 재시도가 반복되면 그때 분할 · 2주 뒤 "밴드씬 뉴스 재방문" 쿼리 | 사용자 |
 | 머지 2주 뒤 | 연습실 종류 구분 판정: `docs/ANALYTICS.md` "밴드용 상세 조회 비율 · 세션당 상세 조회" 전후 비교 + `filter_apply(band)`. 지역 색인 기준(댄스 전용 포함 8곳)을 바꿀지도 이때 | 에이전트 쿼리 → 사용자 판단 |
 | 머지 2주 뒤 | 백킹 잼 판정: `docs/ANALYTICS.md` "백킹 잼 판정"(60초 이상 재생한 사람·다른 날 2회 이상 재생·검색 유입 세션) → 2단계(반주 위 녹음 → 8마디 업로드) 진행 여부 | 에이전트 쿼리 → 사용자 판단 |
+| 후속(결정 대기) | **8마디 점수가 오르지 않음**(11-15 발견): 점수 트리거 `update_challenge_score_on_track`는 `stem_tracks.challenge_score > 0`일 때만 `user_challenge_score`를 올리는데 기본값 0이고 업로드(`TrackUploadPanel`)가 값을 넣지 않음 → 지금 모든 업로드가 0점. 이 값을 쓰는 곳: Amplitude 유저 속성 `challenge_score`(`lib/analytics/context.ts` — 게다가 없는 컬럼 `score`를 읽음, 실제는 `total_score`), 관리자 점수 분포(`app/admin`). 업로드 때 점수를 넣을지·얼마로 할지 정책 결정 필요 | 사용자 결정 → 에이전트 |
 | 11-26 무렵 | 오늘의 음감 유지·중단: `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수(PR 머지 후 2주). 머지 직후 아이폰 소리 확인 | 에이전트 쿼리 → 사용자 판단 |
 | 진행 중 | 알림 = 웹 푸시(11-08 결정). PR 1·2 머지, VAPID 키 등록(11-08) · PR 3(전날·미납 Cron) **PR 열림** → 사용자가 `CRON_SECRET` 등록 → 실제 기기·첫 Cron(20:00~20:59 KST) 확인 | 에이전트 → 사용자 |
 | 2주 뒤 | 알림 판정: 허용률(`push_permission`/`push_prompt_view`)·알림 유입(`utm_source=push`) vs 캘린더 유입(`utm_source=calendar`) — `docs/PLAN_notifications.md` PR 4(투표 응답·결정 즉시 발송) → PR 3(전날·미납, Hobby Cron 하루 1번) | 에이전트 → 사용자 승인 |
@@ -1008,4 +1011,24 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - tsc 0 · `node --test tests/*.cjs` 104/104 · build 93초 성공(`/jam/[slug]` ● 132개). 빌드 중 `/sitemap.xml` 60초 초과 재시도 1번(기존 현상 — 잼 경로는 조회 없이 목록만)
   - 운영 빌드: 조합 200, `c-major-metal`·`a-minor-blues-120` 404, 사이트맵 `/jam` 133개
 - 미확인: 실기기(아이폰 무음 스위치·안드로이드)에서 실제 기타와 같이 치기, 메탈·발라드·팝펑크 음색(귀), 박자 밀림 자동 정지 실제 발생, 탭 닫을 때 `jam_stop` 전송(최선 — 과소 추정)
+
+## 2026-11-16 — 백킹 잼 2단계: 반주 위에 녹음해서 8마디로 올리기 (DB 변경 — `supabase/19_stem_jam.sql`·`20_stem_jam_prog.sql`, 승인 후 운영 적용)
+- 배경: 8마디 최근 30일 업로드 0건(첫 주자 없음). 1단계 반주 위에 친 연주를 그대로 8마디 첫 트랙으로 → 혼자 온 사람도 첫 주자. Stage 1
+- DB(운영 적용, 로컬 Postgres 18 2회 검증): `stem_projects`에 nullable `jam_slug text`·`jam_bpm smallint`·`jam_mutes smallint`(끈 파트 비트: 1 드럼·2 베이스·4 코드)·`jam_prog text`(진행 id) + CHECK 6개(형식·40~240·slug/bpm/prog 짝·mutes 0~7은 slug 있을 때만) + 부분 인덱스 `(jam_slug, created_at desc)`. 정책·권한 변경 없음(기존 insert_own 등). 운영 확인: 기존 5행 전부 NULL, anon insert 401(42501)
+  - 진행 id는 SQL 승인 뒤 빈틈 발견(조합마다 진행 2~3개라 slug만으론 반주 복원 불가) → 사용자 결정으로 `jam_prog` 추가(20). id는 바꾸지 않음 — `tests/jam-catalog.cjs`에 전체 목록 고정, 없앨 땐 `hiddenForNewTakes`. 오늘의 잼 진행 4개는 모두 카탈로그 스타일에 있음(테스트)
+- 반주: 음원 저장 없음. `lib/jam/backing.ts` `resolveJamBacking`(순수)·`renderProjectBacking`(OfflineAudioContext로 정확히 8마디, 같은 조합은 캐시) — 못 찾으면 null → "반주를 불러오지 못했어요" + 테이크만 재생. 8마디 상세 합주 재생·`TrackUploadPanel` 미리듣기(쌓기·이어붙이기)·`JamRecorder` 녹음에 섹션마다 같은 반주를 끼움. 반주 없는 프로젝트는 분기를 안 타 그대로
+- 녹음: `JamRecorder` 로직을 `hooks/useTakeRecorder.ts`로 옮김(화면·동작 그대로, 취소 시 기존처럼 녹음분 전달 — 백킹 잼만 `cancel(true)`로 버림). `/jam` `TakePanel`: 녹음 직전 iOS `audioSession`을 'play-and-record'로, 끝나면 원래 값(`lib/jam/session.ts`, /ear·/stems 코드 그대로) · 반주는 녹음 때 BPM·음소거·진행으로 렌더해 카운트인 끝에 ctx 시간으로 재생
+- 가공 `lib/jam/take.ts`(순수, `tests/jam-take.cjs`): 모노 믹스 → 싱크(+늦춤·−당김, ±300ms·10ms) → 음량(0~200%) → 정확히 8마디 → 16bit 모노 WAV
+- 올리기: 프로젝트(제목 "<키> <스타일> · 백킹 잼", key_signature `Am` 형식, 장르) → 저장소 `<프로젝트>/<내 id>/<시각>.wav`(두 번째 폴더가 내 id라 실패 시 `stems_auth_delete`로 지울 수 있음 — 기존 경로 `<프로젝트>/<id>_<시각>`은 못 지움) → `stem_tracks` 1행(section 1). 실패하면 파일 삭제 → 프로젝트 삭제, 못 지운 파일은 `jam_upload_error.orphan_path`. 성공하면 기존 이벤트·`increment_pass_count` 그대로 + `/stems/<id>?uploaded=1`(상세 "내 마디 자랑하기" 바로 표시). 개발 서버 전용 `?qa_fail=track`으로 트랙 실패를 흉내
+- 비로그인: 가공 전 샘플·설정을 IndexedDB `ms_jam_take`에만 → `/login?returnTo=/jam/<slug>?p=<진행>&resume=1` → 돌아오면 복원(자동 업로드 안 함). 성공 때·24시간 지나면 삭제
+- 표시: 8마디 카드·상세 "🎧 백킹 잼 반주 포함" + "이 반주로 나도 치기 → /jam/<slug>?p=" · 상세 반주 ON/OFF 토글 · `/jam/[slug]` "이 반주로 올라온 테이크" 최신 5개(없으면 "첫 테이크를 남겨 보세요")
+- 점수: 사용자 결정 (A) — 트리거·업로드 점수 부분 안 건드림. `stem_tracks.challenge_score` 기본 0이라 지금 모든 업로드가 0점(후속 과제, 다음 할 일 표)
+- 확인(로컬, 가짜 마이크 Chrome, `codex_qa`, 분석 차단)
+  - `/jam/a-minor-blues` 녹음: 카운트인 4·3·2·1 → 1/8~8/8 → 자동 정지(1→8마디 18.3초, 계산 18.26) → 미리듣기 화면. 디코딩 20.82초·48kHz
+  - 싱크 +100ms → 테스트로 4410샘플(100ms) 지연·길이 8마디 그대로·WAV 샘플 수 일치
+  - 비로그인 [올리기] → `/login?returnTo=…resume=1` → 그 주소로 돌아오면 싱크 100·음량·악기 그대로 복원, `resume` 주소에서 지워짐, 자동 업로드 없음
+  - 기존 프로젝트(트랙 1개) 상세: 반주 표시·토글 없음, 목록 5개 그대로
+  - 이벤트 운영 적재(anon_id): `jam_record_start/done/error(mic)`·`jam_take_preview`·`jam_upload_click{logged_in:false}`·`jam_resume`
+  - tsc 0 · 테스트 114/114 · build 91초 성공(`/jam/[slug]` 첫 로드 351→360kB)
+- 미확인: 로그인 상태 올리기·실패 정리·쌓기 녹음(OAuth만이라 로컬 자동화 불가 — 사용자 결정 필요), 아이폰 실기기 전체(무음 스위치 녹음·이어폰·싱크·올리기)
 

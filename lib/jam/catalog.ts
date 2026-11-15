@@ -80,6 +80,11 @@ export interface Progression {
   scales: ScaleId[];
   /** 블루스·도리안처럼 조 밖의 음(♭7 등)을 일부러 쓰는 진행 — 테스트에서 근음만 조 안인지 본다 */
   modal?: boolean;
+  /**
+   * 진행 id는 stem_projects.jam_prog에 저장되므로 바꾸거나 지우지 않는다(tests/jam-catalog.cjs에 목록 고정).
+   * 없애야 하면 이 값을 true로 — 새 녹음·진행 선택에서는 숨기고, 이미 올라온 프로젝트 재생은 그대로
+   */
+  hiddenForNewTakes?: boolean;
 }
 
 const x2 = (four: [number, Quality][]): [number, Quality][] => [...four, ...four];
@@ -293,3 +298,15 @@ export function comboMeta(combo: JamCombo): { title: string; description: string
       `추천 스케일은 ${key.name} ${SCALES[scale].label}(${notes}), 기타 6번 줄 ${fret === 0 ? '개방·12' : fret}프렛에서 시작해 보세요. 로그인 없이 바로 재생.`,
   };
 }
+
+/** 새 녹음·진행 선택에 보일 진행(숨긴 진행 제외) */
+export function visibleProgressions(combo: JamCombo): Progression[] {
+  return combo.style.progressions[combo.key.mode].filter((p) => !p.hiddenForNewTakes);
+}
+
+/** 저장된 진행 id → 진행(숨긴 것 포함). 못 찾으면 null */
+export function findProgression(combo: JamCombo, id: string | null | undefined): Progression | null {
+  if (!id) return null;
+  return combo.style.progressions[combo.key.mode].find((p) => p.id === id) ?? null;
+}
+

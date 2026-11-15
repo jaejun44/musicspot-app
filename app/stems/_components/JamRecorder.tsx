@@ -5,15 +5,12 @@
 // → 8마디 길이 지나면 자동 정지 → 녹음된 단독 webm blob 을 onRecorded 로 전달(기존 업로드 경로 재사용).
 // 레벨 A: 레이턴시 보정 없음. 단순 동시 start.
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mic, Square } from 'lucide-react';
-import { createAudioContext, resumeContext, loadTracks, playEnsemble, type EnsembleHandle } from '@/lib/ensemble-audio';
-import { scheduleCountIn, eightBarsDuration, type CountInHandle } from '@/lib/metronome';
-import { acquireMic } from '@/lib/mic';
+import { loadTracks } from '@/lib/ensemble-audio';
+import { useTakeRecorder, TAKE_BARS, TAKE_COUNT_IN_BEATS } from '@/hooks/useTakeRecorder';
 import { useT } from '@/lib/i18n';
-
-type Phase = 'idle' | 'preparing' | 'countin' | 'recording' | 'done' | 'error';
 
 export type JamMode = 'layer' | 'extend';
 
@@ -25,169 +22,41 @@ interface Props {
   /** 기존 트랙이 있는지. false면 첫 주자(모드 선택 무의미, 카운트인+녹음만). */
   hasPrevious: boolean;
   onRecorded: (blob: Blob, mode: JamMode) => void;
+  /**
+   * 백킹 잼 프로젝트면 반주 8마디(합성). 쌓기·이어붙이기 모두 깐다(이어붙인 섹션에도 같은 반주).
+   * 없거나 null을 돌려주면 기존과 똑같이 동작
+   */
+  jamBacking?: () => Promise<AudioBuffer | null>;
 }
 
-const BARS = 8;
-const BEATS_PER_BAR = 4;
-const COUNT_IN_BEATS = 4;
+const BARS = TAKE_BARS;
+const COUNT_IN_BEATS = TAKE_COUNT_IN_BEATS;
 
-export default function JamRecorder({ projectId, bpm, layerBackingUrls, hasPrevious, onRecorded }: Props) {
+export default function JamRecorder({ bpm, layerBackingUrls, hasPrevious, onRecorded, jamBacking }: Props) {
   const t = useT();
-  const [phase, setPhase] = useState<Phase>('idle');
-  const [countNumber, setCountNumber] = useState(0);
-  const [currentBar, setCurrentBar] = useState(0);
-  const [error, setError] = useState('');
   // 기본값: 이어붙이기(확장) — "8마디 추가"의 자연스러운 모델. 첫 주자는 어차피 동일.
   const [mode, setMode] = useState<JamMode>('extend');
+  const rec = useTakeRecorder(bpm);
+  const { phase, countNumber, currentBar, error, totalSec } = rec;
 
-  // 정리 대상 refs
-  const ctxRef = useRef<AudioContext | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const ensembleRef = useRef<EnsembleHandle | null>(null);
-  const countInRef = useRef<CountInHandle | null>(null);
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const totalSec = eightBarsDuration(bpm, BARS, BEATS_PER_BAR);
   const isFirstRunner = !hasPrevious;
-  // 쌓기 모드일 때만 반주를 깐다(같은 8마디 위에 겹침). 이어붙이기는 새 섹션이라 반주 없음.
+  // 쌓기 모드일 때만 이전 트랙을 깐다(같은 8마디 위에 겹침). 이어붙이기는 새 섹션이라 이전 트랙 없음.
   const backingUrls = mode === 'layer' ? layerBackingUrls : [];
 
-  const cleanup = useCallback((closeCtx: boolean) => {
-    timersRef.current.forEach((t) => clearTimeout(t));
-    timersRef.current = [];
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    countInRef.current?.cancel();
-    countInRef.current = null;
-    ensembleRef.current?.stop();
-    ensembleRef.current = null;
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      try {
-        recorderRef.current.stop();
-      } catch {
-        /* 무시 */
-      }
-    }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    if (closeCtx && ctxRef.current) {
-      try {
-        void ctxRef.current.close();
-      } catch {
-        /* 무시 */
-      }
-      ctxRef.current = null;
-    }
-  }, []);
-
-  // unmount 시 마이크·컨텍스트 확실히 정리
-  useEffect(() => {
-    return () => cleanup(true);
-  }, [cleanup]);
-
-  async function handleStart() {
-    if (phase === 'preparing' || phase === 'countin' || phase === 'recording') return;
-    setError('');
-    setCurrentBar(0);
-    setCountNumber(0);
-    setPhase('preparing');
-
-    // 1) 마이크 (secure context 체크 + 원인별 메시지는 공통 유틸에서)
-    const mic = await acquireMic();
-    if ('error' in mic) {
-      setError(mic.error);
-      setPhase('error');
-      return;
-    }
-    const stream = mic.stream;
-    streamRef.current = stream;
-
-    // 2) AudioContext (사용자 제스처 내부 — 클릭 핸들러 호출 스택)
-    const ctx = createAudioContext();
-    ctxRef.current = ctx;
-    await resumeContext(ctx);
-
-    // 3) 반주 로드 (쌓기 모드 + 깔 트랙 있을 때만)
-    let buffers: AudioBuffer[] = [];
-    if (backingUrls.length > 0) {
-      buffers = await loadTracks(backingUrls, ctx);
-    }
-
-    // 마이크 준비 중 unmount/중단됐는지 확인
-    if (ctxRef.current !== ctx) return;
-
-    // 4) MediaRecorder 준비
-    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-      ? 'audio/webm;codecs=opus'
-      : MediaRecorder.isTypeSupported('audio/webm')
-      ? 'audio/webm'
-      : '';
-    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-    recorderRef.current = recorder;
-    chunksRef.current = [];
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-    recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-      ensembleRef.current?.stop();
-      ensembleRef.current = null;
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      setPhase('done');
-      onRecorded(blob, isFirstRunner ? 'extend' : mode);
-    };
-
-    // 5) 카운트인 예약 → endTime(ctx 시간) 확보
-    setPhase('countin');
-    const countIn = scheduleCountIn(ctx, bpm, COUNT_IN_BEATS, (remaining) => setCountNumber(remaining));
-    countInRef.current = countIn;
-    const startAt = countIn.endTime;
-    const startDelayMs = (startAt - ctx.currentTime) * 1000;
-
-    // 6) 카운트인 끝나는 순간: 합주 재생(ctx 시간 정밀) + 녹음 시작(setTimeout 근사)
-    if (buffers.length > 0) {
-      ensembleRef.current = playEnsemble(buffers, ctx, startAt);
-    }
-    timersRef.current.push(
-      setTimeout(() => {
-        if (recorderRef.current && recorderRef.current.state === 'inactive') {
-          recorderRef.current.start();
-        }
-        setPhase('recording');
-        setCurrentBar(1);
-        // 마디 진행바 갱신
-        const barMs = (60 / Math.max(bpm, 1)) * BEATS_PER_BAR * 1000;
-        intervalRef.current = setInterval(() => {
-          setCurrentBar((b) => Math.min(BARS, b + 1));
-        }, barMs);
-      }, Math.max(0, startDelayMs))
-    );
-
-    // 7) 8마디 길이 후 자동 정지
-    timersRef.current.push(
-      setTimeout(() => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-        if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-          recorderRef.current.stop(); // onstop → onRecorded
-        }
-      }, Math.max(0, startDelayMs + totalSec * 1000))
-    );
+  function handleStart() {
+    const recordMode: JamMode = isFirstRunner ? 'extend' : mode;
+    void rec.start({
+      loadBacking: async (ctx) => {
+        const buffers = backingUrls.length > 0 ? await loadTracks(backingUrls, ctx) : [];
+        const jam = jamBacking ? await jamBacking() : null;
+        return jam ? [jam, ...buffers] : buffers;
+      },
+      onRecorded: (blob) => onRecorded(blob, recordMode),
+    });
   }
 
   function handleCancel() {
-    cleanup(false);
-    setPhase('idle');
-    setCountNumber(0);
-    setCurrentBar(0);
+    rec.cancel();
   }
 
   // ---- UI ----

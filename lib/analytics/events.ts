@@ -19,7 +19,7 @@ export type EntrySource = 'list' | 'deeplink' | 'share' | 'feed' | 'profile' | '
 export type ShareChannel = 'copy' | 'x' | 'line' | 'kakao' | 'native';
 
 /** 8마디 업로드 경로. TrackUploadPanel의 UploadMode와 1:1 대응 */
-export type UploadSource = 'file' | 'record' | 'youtube' | 'jam';
+export type UploadSource = 'file' | 'record' | 'youtube' | 'jam' | 'backing_jam';
 
 /** 온라인 잼 방 정보가 열린 곳 */
 export type JamSource = 'dm' | 'session';
@@ -114,7 +114,20 @@ export type EventSchema = {
   jam_stop: { slug: string; seconds: number };
   jam_control: { slug: string; type: 'bpm' | 'key' | 'mute' | 'countin' };
   /** 백킹 잼으로 들어온 입구. hub = /jam 허브에서 조합 페이지로 */
-  jam_entry_click: { from: 'nav' | 'home' | 'ear' | 'strip' | 'hub' };
+  jam_entry_click: { from: 'nav' | 'home' | 'ear' | 'strip' | 'hub' | 'stems' };
+  // 백킹 잼 2단계: 반주 위에 녹음 → 8마디로 올리기 (2026-11-16)
+  jam_record_start: { slug: string; bpm: number };
+  jam_record_done: { slug: string };
+  /** reason: 마이크 오류·디코딩 실패 등 코드값만 */
+  jam_record_error: { slug: string; reason: 'mic' | 'decode' | 'empty' };
+  /** 미리듣기 재생. offset_ms = 그때 싱크 값 */
+  jam_take_preview: { slug: string; offset_ms: number };
+  jam_upload_click: { slug: string; logged_in: boolean };
+  jam_upload_done: { slug: string; project_id: string };
+  /** stage: 어디서 실패했나. orphan_path = 지우지 못하고 남은 저장소 파일 경로(있을 때만) */
+  jam_upload_error: { slug: string; stage: 'project' | 'storage' | 'track' | 'save_local'; orphan_path?: string };
+  /** 로그인 후 돌아와 임시 보관 테이크 복원 */
+  jam_resume: { slug: string };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */
