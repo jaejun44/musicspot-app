@@ -72,8 +72,16 @@ class ParseCaption(unittest.TestCase):
         self.assertEqual(parse_caption(NEW)["credit"], "사진: Raph_PH, Craig Hawkins (Wikimedia Commons, CC) — 과거 공연 사진")
         self.assertTrue(parse_caption(OLD)["credit"].startswith("비주얼:"))
         for line in ("이미지: King Gnu 공식 MV 캡처", "사진·재킷: BAND-MAID 공식", "표지 사진: Jessica Yurko",
-                     "출처·사진·투어 포스터: Nuclear Blast", "재킷: Maarten Donders"):
+                     "출처·사진·투어 포스터: Nuclear Blast", "재킷: Maarten Donders",
+                     "📷 Photo credit: Download Festival, Bring Me The Horizon 공식 SNS"):
             self.assertEqual(parse_caption(f"제목\n본문\n{line}\n")["credit"], line, line)
+
+    def test_english_labels(self):
+        p = parse_caption("제목\n본문\n\n📌 Source: Coachella 공식 발표, NME\n📷 Photo credit: Coachella 공식 SNS\n\n#coachella\n")
+        self.assertEqual(p["credit"], "📷 Photo credit: Coachella 공식 SNS")
+        self.assertEqual(p["source_lines"], ["📌 Source: Coachella 공식 발표, NME"])
+        self.assertEqual(p["body"], "본문")
+        self.assertEqual(classify_credit(p["credit"]), "official")
 
     def test_missing_photo_credit_detected(self):
         p = parse_caption(NO_CREDIT)

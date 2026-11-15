@@ -16,8 +16,9 @@ HASHTAG_RE = re.compile(r"#[^\s#]+")
 
 # 이미지 표기로 인정하는 라벨(2026-11-12 사용자 결정: 변형 표기 인정 — 사진·이미지·비주얼과 재킷·포스터 등 공식 자료 표기).
 # 이 중 하나라도 있어야 가져온다. 표기가 전혀 없으면 건너뛴다
-CREDIT_KEYS = ("사진", "이미지", "비주얼", "재킷", "포스터", "썸네일", "아트워크", "일러스트", "그래픽")
-SOURCE_KEYS = ("출처", "보도")
+# 2026-11-15부터 영문 라벨("📷 Photo credit:", "📌 Source:")도 쓰여서 영문 키를 추가(대소문자 무시)
+CREDIT_KEYS = ("사진", "이미지", "비주얼", "재킷", "포스터", "썸네일", "아트워크", "일러스트", "그래픽", "photo", "image", "credit")
+SOURCE_KEYS = ("출처", "보도", "source")
 
 
 def _label(line: str) -> str | None:
@@ -34,7 +35,7 @@ def is_hashtag_line(line: str) -> bool:
 
 def is_credit_line(line: str) -> bool:
     label = _label(line)
-    return bool(label) and any(k in label for k in CREDIT_KEYS)
+    return bool(label) and any(k in label.lower() for k in CREDIT_KEYS)
 
 
 # 이미지 출처 분류(news_posts.image_source_kind). 섞여 있으면 공식 자료(official)가 이긴다 — 나중에 official만 내리기 위해
@@ -57,7 +58,7 @@ def classify_credit(credit: str) -> str:
 def is_source_line(line: str) -> bool:
     label = _label(line)
     # "출처·사진: …"처럼 둘 다면 저작자 표기 쪽으로 보낸다(출처 목록에는 URL만 따로 모음)
-    return bool(label) and any(k in label for k in SOURCE_KEYS) and not is_credit_line(line)
+    return bool(label) and any(k in label.lower() for k in SOURCE_KEYS) and not is_credit_line(line)
 
 
 def is_bare_url_line(line: str) -> bool:
