@@ -5,6 +5,7 @@ import { fetchSeoulStudios } from '@/lib/region-rooms';
 import { selectRegionRooms, isIndexable } from '@/lib/region-select';
 import { fetchAllNewsSlugs } from '@/lib/news';
 import { COLLECTIONS, MIN_ROOMS_FOR_COLLECTION_INDEX, pickCollection } from '@/lib/room-collections';
+import { COMBOS } from '@/lib/jam/catalog';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.musicspotfest.com';
 
@@ -23,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/stems`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
     { url: `${SITE_URL}/ear`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.6 },
     { url: `${SITE_URL}/news`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
+    { url: `${SITE_URL}/jam`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
   ];
 
   // 지역 SEO 페이지 (롱테일 검색 유입). 연습실이 적어 noindex인 서울 지역은 뺀다
@@ -116,5 +118,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...regionRoutes, ...collectionRoutes, ...studioRoutes, ...postRoutes, ...stemRoutes, ...newsRoutes];
+  // 백킹 잼 키×스타일 조합(정적 목록)
+  const jamRoutes: MetadataRoute.Sitemap = COMBOS.map((c) => ({
+    url: `${SITE_URL}/jam/${c.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.5,
+  }));
+
+  return [...staticRoutes, ...regionRoutes, ...collectionRoutes, ...studioRoutes, ...postRoutes, ...stemRoutes, ...newsRoutes, ...jamRoutes];
 }

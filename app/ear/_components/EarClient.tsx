@@ -21,6 +21,7 @@ import {
 import PushOptIn from '@/components/PushOptIn';
 import { EAR_TARGET_ID } from '@/lib/push-messages';
 import EarShare from './EarShare';
+import { dailyJam } from '@/lib/jam/daily';
 
 const FONT = { fontFamily: 'Pretendard, sans-serif' };
 const CARD = 'bg-white rounded-[20px] border-[3px] border-[#0A0A0A]';
@@ -160,6 +161,8 @@ export default function EarClient() {
   useEffect(() => () => stopSound(), []);
 
   const quiz = useMemo(() => (today ? buildDailyQuiz(today) : []), [today]);
+  // 결과 화면 맨 위 입구: 5번 문제와 같은 진행·같은 조의 오늘의 잼
+  const todayJam = useMemo(() => (today ? dailyJam(today) : null), [today]);
   const day: EarDay = (today && record.days[today]) || { picks: [], marks: [] };
   const done = isDone(day);
   const streak = today ? currentStreak(record, today) : 0;
@@ -233,6 +236,14 @@ export default function EarClient() {
         </section>
 
         <div className="grid gap-3">
+          <Link
+            href={todayJam ? `/jam/${todayJam.slug}?p=${encodeURIComponent(todayJam.progression.id)}` : '/jam'}
+            onClick={() => track('jam_entry_click', { from: 'ear' })}
+            className={`${CARD} block px-5 py-4 text-[15px] font-bold text-[#0A0A0A] bg-[#F5FF4F]`}
+            style={{ boxShadow: '4px 4px 0 #0A0A0A' }}
+          >
+            🎸 {t('오늘 들은 진행으로 같이 치기')} →
+          </Link>
           {!isJapanMode && (
             <Link
               href="/search"

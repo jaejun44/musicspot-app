@@ -68,8 +68,8 @@ export interface EnsembleHandle {
   stop: () => void;
 }
 
-/** 클리핑 방지용 마스터 게인 + 리미터 체인 생성. */
-function createMasterChain(ctx: AudioContext): { master: GainNode; limiter: DynamicsCompressorNode } {
+/** 클리핑 방지용 마스터 게인 + 리미터 체인 생성. 백킹 잼(lib/jam/engine.ts)도 같이 쓴다(오프라인 렌더 때문에 BaseAudioContext). */
+export function createMasterChain(ctx: BaseAudioContext): { master: GainNode; limiter: DynamicsCompressorNode } {
   const master = ctx.createGain();
   master.gain.value = 0.85;
   const limiter = ctx.createDynamicsCompressor();

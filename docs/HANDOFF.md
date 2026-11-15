@@ -15,29 +15,13 @@
 
 ## 기록
 
-### 2026-11-15 — Cowork — 제안: 브라우저 백킹 밴드 `/jam` ("혼자서도 밴드")
-- 한 일: 키×스타일로 드럼·베이스·코드 8마디 루프를 브라우저에서 합성해 같이 연주하는 페이지 제안. 조합마다 주소(검색 유입), 날짜로 정해지는 "오늘의 잼"(음감 5번 문제 진행과 연결), 2단계에서 그 위에 녹음해 8마디로 올리기(8마디 첫 주자 문제 해결). 기존 자산 확인: `music spot/에셋/`에 주간 주제 백킹 mp3(Odai W2 Metalcore Drop D 140) 있음
-- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: 코드 위치만 확인(`lib/ear/synth.ts`, `lib/metronome.ts`, `app/stems/_components/JamRecorder.tsx`). 구현·검증 안 함. 합성음 품질과 검색 수요는 미확인
+### 2026-11-15 — Claude Code — 백킹 잼 `/jam` 1단계 (Cowork 11-15 제안 처리)
+- 한 일: Web Audio 반주 엔진(6스타일, 소리 시안 사용자 합격) + 키×스타일 조합 132페이지(정적·사이트맵) + 오늘의 잼(음감 5번과 같은 진행·조) + 입구 4곳(메뉴 "백킹 잼"·홈 카드·음감 결과·스트립) + 이벤트 5종·판정 쿼리. DB·의존성 변경 없음. Cowork 11-15 제안과 처리됨 2개(카드뉴스 11-13~15, 내용은 PHASES 날짜 로그)는 정리함
+- 바뀐 파일: `lib/jam/`·`app/jam/`·`components/JamTodayCard.tsx`·`lib/i18n/dict/jam-ja.ts`·`tests/jam-*.cjs` 새 파일 + Navigation·HomeClient·EarClient·ReturnStrip·sitemap·events·i18n·`lib/ensemble-audio.ts`(export만) · docs — 브랜치 `jam-backing` PR
+- 확인한 것: 110초 재생 루프 5회+ 끊김·코드 불일치 0, BPM 다음 마디 반영, 백그라운드 30초 후 박자 유지, 이벤트 anon_id 적재, 390/1440 넘침 없음, tsc 0·테스트 104/104·build 93초. 실기기·실제 기타·메탈/발라드/팝펑크 음색은 미확인
 - 받는 쪽: 사용자
-- 요청: 1단계 프롬프트를 Claude Code에 전달할지 결정
+- 요청: ① PR 머지 승인 ② 실제 기타로 아이폰·PC에서 1분 이상 같이 쳐 보기(무음 스위치 포함) ③ 2단계(반주 위에 녹음해 8마디로 올리기) 진행 여부 — 머지 2주 뒤 `docs/ANALYTICS.md` "백킹 잼 판정"과 함께
 - 상태: 열림
-
-### 2026-11-15 — Claude Code — 밴드씬 뉴스 11-13·11-15 반영 + 스크립트가 새 카드뉴스 형식 읽게 수정
-- 한 일: 11-13·11-15 슬롯이 ①이미지 `upload/NN.jpg`만 ②캡션 영문 라벨(`📷 Photo credit:`·`📌 Source:`)이라 건너뜀 → `find_images`에 `upload/`·jpg 추가, 파서에 영문 키(photo·image·credit / source, 대소문자 무시). 사용자 승인으로 4개 `--apply`(78→82: Download·Coachella 2027, DAY6, 결속밴드)
-- 바뀐 파일: `scripts/import_cardnews.py`·`cardnews_parse.py`·`test_cardnews_parse.py` — 브랜치 `news-caption-en` PR · 운영 DB `news_posts` 4행·Storage `news`
-- 확인한 것: 전체 폴더 미리보기 old/new 비교 → 기존 78개 필드 차이 0, 새로 잡히는 건 이 4개뿐. 테스트 9/9, 운영 상세 4개 200
-- 받는 쪽: 사용자
-- 요청: PR 머지 — 머지 전엔 main 스크립트가 새 형식 카드뉴스를 또 건너뜀
-- 상태: 처리됨 (11-15, 사용자 승인 → #49 머지)
-
-### 2026-11-14 — Claude Code — 밴드씬 뉴스 11-14 반영 (11-13은 이미지 경로 때문에 못 올림)
-- 한 일: 사용자 지시로 `import_cardnews.py --only 2026-11-14/slot-a·slot-b --apply` → Deftones·King Gizzard 2개 upsert(76→78)
-- 바뀐 파일: 운영 DB `news_posts` 2행·Storage `news` · `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: 운영 상세 2개 200, `/news` 목록에 노출. 11-13 slot-a·b는 published인데 이미지가 `upload/01.jpg…`에만 있어 `이미지 없음`으로 건너뜀(스크립트는 `out/NN.png`·루트 `NN.png`만 읽음)
-- 받는 쪽: 사용자
-- 요청: 11-13 처리 방법 결정 — 스크립트가 `upload/NN.jpg`도 읽게 고칠지(PR), 카드뉴스 쪽에서 `out/`에 PNG를 남길지
-- 상태: 처리됨 (11-15, Claude Code — 스크립트 수정, 위 항목)
 
 ### 2026-11-13 — Claude Code — 연습실 종류 구분: 밴드용 우선, 댄스 전용은 뒤로 (Cowork 11-12 사전 점검 처리)
 - 한 일: 공개 799곳을 밴드 합주 170 · 그 외 449 · 댄스 전용 180으로 분류(승인) → `studios.kinds·band_rank`(18_studio_kinds.sql, 861행 반영, 백업 `backups/2026-11_studios/2026-11-12_studio_kinds_backup.json`). 모든 목록 밴드용 먼저·댄스 전용 맨 뒤, "🎸 밴드 합주" 칩·배지·구분선, 댄스 전용 상세 noindex·사이트맵 제외, 조합 페이지 3개(`/rooms/seoul-band·seoul-drum·mapo-band`, 피아노는 머지 전 제외), /region/mapo 제목 "마포 연습실"로. Cowork 사전 점검 항목은 처리돼 정리함

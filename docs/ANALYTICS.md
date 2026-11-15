@@ -172,6 +172,13 @@ track('challenge_upload_complete', {
   - `news_entry_click {from: home|region|ear|nav}`: 입구 클릭 — 홈 히어로 아래 최신 2개 / 지역 페이지 연습실 목록 아래 최신 2개 / 음감 결과 화면 링크 / 상단 메뉴 "뉴스"
   - `news_outbound_click {slug, to: instagram|source|search|ear|stems}`: 상세에서 나가는 링크(인스타 원본·출처 링크·하단 입구 3개)
   - **입구별 유입** = `news_entry_click` from별. **상세 → 다른 기능** = `news_outbound_click(to=search|ear|stems)` / `news_view`
+- 백킹 잼 `/jam` (2026-11-15 추가, 브라우저 반주 — `app/jam/`·`lib/jam/`, 기록은 localStorage `ms_jam`(마지막 재생일)만. 깔때기 Stage 1(플레이어 유입))
+  - `jam_view {slug}`: 조합 페이지(`/jam/<key>-<style>`) 열람 1회. 검색 유입 판정용(공통 속성 `referrer_host`). 허브 `/jam`은 보내지 않는다
+  - `jam_play {slug, bpm, is_daily}`: [재생] 탭. is_daily = 오늘의 잼 조합·진행으로 틀었나(허브 오늘의 잼 카드는 항상 true)
+  - `jam_stop {slug, seconds}`: 정지(직접·페이지 이동·키 이동·박자 밀림 자동 정지 모두). seconds = 이번 재생 시간(정수 초)
+  - `jam_control {slug, type: bpm|key|mute|countin}`: 조절. bpm은 슬라이더를 놓고 0.8초 뒤 1회, key는 반음 ±1 이동
+  - `jam_entry_click {from: nav|home|ear|strip|hub}`: 입구 — 상단 메뉴 "백킹 잼" / 홈 히어로 아래 오늘의 잼 카드 / 음감 결과 맨 위 "오늘 들은 진행으로 같이 치기" / ReturnStrip 잼 카드(`return_strip_click {kind: jam}`도 같이) / 허브에서 조합 페이지로
+  - `return_strip_*`에 `kind: jam` 추가: 잼을 재생한 적 있고 오늘은 아직 안 친 브라우저에만 카드 1장
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
@@ -331,6 +338,26 @@ select count(*) readers,
 from (select anon, count(*) days from d group by anon) t;
 ```
 - 인스타에서 온 사람은 `utm_source=instagram`(프로필 링크에 붙이면) 또는 referrer로 따로 본다
+
+### 백킹 잼 판정 (2026-11-15 추가)
+① 60초 이상 재생한 사람 ② 서로 다른 날(KST) 2번 이상 재생한 사람(anon_id 기준) ③ 검색으로 조합 페이지에 들어온 세션.
+```sql
+with e as (
+  select event_type, session_id, props, props->>'anon_id' anon, (created_at at time zone 'Asia/Seoul')::date kst_day
+  from user_events
+  where event_type in ('jam_play', 'jam_stop', 'jam_view') and created_at >= now() - interval '14 days'
+    and coalesce(props->>'utm_campaign', '') <> 'codex_qa'          -- QA 제외
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 봇 제외
+)
+select
+  (select count(distinct anon) from e where event_type = 'jam_stop' and (props->>'seconds')::int >= 60) played_60s_people,
+  (select count(*) from (select anon from e where event_type = 'jam_play' and anon is not null
+                          group by anon having count(distinct kst_day) >= 2) t)                       played_2plus_days,
+  (select count(distinct session_id) from e where event_type = 'jam_view'
+     and props->>'referrer_host' ~* '(google|naver|daum|bing|yahoo)')                                 search_landing_sessions;
+```
+- ①은 한 번 재생 기준(멈췄다 다시 틀면 따로 센다). 탭을 그냥 닫으면 `jam_stop`이 안 남을 수 있어 과소 추정 쪽
+- ③ 조합별로 보려면 `group by props->>'slug'`
 
 ### 밴드용 상세 조회 비율 · 세션당 상세 조회 (2026-11-12 추가, 연습실 종류 구분 전후 비교)
 배포일(KST)을 `:cut`에 넣는다. `band_rank`는 지금 `studios` 값을 붙여 배포 전 기간도 같은 기준으로 센다.
