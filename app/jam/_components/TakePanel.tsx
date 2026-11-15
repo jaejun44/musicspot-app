@@ -7,12 +7,12 @@ import { track, incrementUserProperty } from '@/lib/analytics';
 import { useT } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { useTakeRecorder, TAKE_BARS } from '@/hooks/useTakeRecorder';
-import { createAudioContext, playEnsemble, type EnsembleHandle } from '@/lib/ensemble-audio';
+import { createAudioContext, createMasterChain } from '@/lib/ensemble-audio';
 import { eightBarsDuration } from '@/lib/metronome';
 import { unlockEarAudio } from '@/lib/ear/synth';
 import { findProgression, noteName, progressionChords, type JamCombo, type Progression } from '@/lib/jam/catalog';
 import { mutesToMask, renderJamLoop, maskToMutes, type JamSpec, type Part } from '@/lib/jam/engine';
-import { enterRecordSession } from '@/lib/jam/session';
+import { currentSessionType, enterRecordSession, sessionModeFromUrl } from '@/lib/jam/session';
 import {
   OFFSET_MAX_MS,
   OFFSET_MIN_MS,
@@ -28,6 +28,17 @@ import { CARD } from './ui';
 
 const SHADOW = { boxShadow: '4px 4px 0 #0A0A0A' };
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
+/** 이보다 작으면(−50dBFS) 마이크 소리가 안 들어온 것으로 본다 */
+const SILENT_PEAK_DB = -50;
+
+function peakDb(samples: Float32Array): number {
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const a = Math.abs(samples[i]);
+    if (a > peak) peak = a;
+  }
+  return peak > 0 ? Math.round(20 * Math.log10(peak)) : -120;
+}
 /** 8마디 장르 칸(자유 입력)에 넣을 이름 */
 const GENRE: Record<string, string> = { blues: '블루스', rock: '록', funk: '펑크', metal: '메탈', ballad: '발라드', 'pop-punk': '팝펑크' };
 
@@ -79,7 +90,8 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [restored, setRestored] = useState(false);
-  const preview = useRef<{ handle: EnsembleHandle; timer: ReturnType<typeof setTimeout> } | null>(null);
+  /** takeGain = 미리듣기 중 내 테이크 음량(슬라이더를 움직이면 바로 반영) */
+  const preview = useRef<{ stop: () => void; takeGain: GainNode; timer: ReturnType<typeof setTimeout> } | null>(null);
   const backingCache = useRef<{ key: string; buf: Promise<AudioBuffer> } | null>(null);
 
   const specFor = useCallback(
@@ -127,7 +139,7 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
   const stopPreview = useCallback(() => {
     if (!preview.current) return;
     clearTimeout(preview.current.timer);
-    preview.current.handle.stop();
+    preview.current.stop();
     preview.current = null;
     setPreviewing(false);
   }, []);
@@ -140,29 +152,40 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
     setMessage('');
     setRestored(false);
     const settings = { bpm, progId: progression.id, mutes: mutesToMask(muted) };
+    const sessMode = sessionModeFromUrl();
     let restore: () => void = () => {};
+    let sessionDuring = 'none';
     track('jam_record_start', { slug, bpm });
     void rec.start({
       beforeMic: () => {
-        restore = enterRecordSession();
+        restore = enterRecordSession(sessMode);
+        sessionDuring = currentSessionType();
       },
       afterStop: () => restore(),
       loadBacking: async () => [await renderJamLoop({ style: combo.style.id, bpm, chords: progressionChords(combo.key, progression) }, muted)],
-      onRecorded: async (blob) => {
+      onRecorded: async (blob, info) => {
+        const diag = { mime: info.mime, track_muted: info.trackMuted ?? undefined, track_state: info.trackState ?? undefined, session: sessionDuring, sess_mode: sessMode };
         try {
           const { samples, sampleRate } = await decodeTake(blob);
           if (samples.length < sampleRate * 0.5) {
-            track('jam_record_error', { slug, reason: 'empty' });
+            track('jam_record_error', { slug, reason: 'empty', ...diag });
             setMessage(t('녹음된 소리가 없어요. 다시 녹음해 주세요.'));
+            return;
+          }
+          const peak_db = peakDb(samples);
+          if (peak_db < SILENT_PEAK_DB) {
+            console.warn('[jam] 테이크에 소리가 거의 없음', { peak_db, ...diag });
+            track('jam_record_error', { slug, reason: 'silent', peak_db, ...diag });
+            setMessage(t('마이크 소리가 들어오지 않았어요. 마이크를 가리지 않았는지 확인하고 다시 녹음해 주세요.'));
             return;
           }
           setTake({ samples, sampleRate, ...settings });
           setOffsetMs(0);
           setGain(1);
-          track('jam_record_done', { slug });
+          track('jam_record_done', { slug, peak_db, ...diag });
         } catch (e) {
           console.error('[jam] 테이크 디코딩 실패', e);
-          track('jam_record_error', { slug, reason: 'decode' });
+          track('jam_record_error', { slug, reason: 'decode', ...diag });
           setMessage(t('녹음을 읽지 못했어요. 다시 녹음해 주세요.'));
         }
       },
@@ -182,7 +205,7 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
     if (!take) return;
     if (previewing) return stopPreview();
     const ctx = await unlockEarAudio(); // 재생은 음감과 같은 세션(무음 스위치 무시)
-    const samples = processed(take);
+    const samples = processTake(take.samples, take.sampleRate, offsetMs, eightBarsDuration(take.bpm), 1); // 음량은 아래 GainNode로(바로 반영)
     const takeBuf = ctx.createBuffer(1, samples.length, take.sampleRate);
     takeBuf.getChannelData(0).set(samples);
     let backing: AudioBuffer | null = null;
@@ -191,11 +214,43 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
     } catch (e) {
       console.error('[jam] 미리듣기 반주 렌더 실패 — 테이크만 재생', e);
     }
-    const handle = playEnsemble(backing ? [backing, takeBuf] : [takeBuf], ctx, ctx.currentTime + 0.1);
+    // playEnsemble과 같은 마스터 체인. 테이크만 GainNode를 하나 더 거친다
+    const { master, limiter } = createMasterChain(ctx);
+    const takeGain = ctx.createGain();
+    takeGain.gain.value = gain;
+    takeGain.connect(master);
+    const when = ctx.currentTime + 0.1;
+    const sources = [backing, takeBuf].flatMap((buf) => {
+      if (!buf) return [];
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(buf === takeBuf ? takeGain : master);
+      src.start(when);
+      return [src];
+    });
+    const stop = () => {
+      for (const src of sources) {
+        try {
+          src.stop();
+        } catch {
+          /* 이미 끝난 소스 */
+        }
+        src.disconnect();
+      }
+      takeGain.disconnect();
+      master.disconnect();
+      limiter.disconnect();
+    };
     const timer = setTimeout(stopPreview, (eightBarsDuration(take.bpm) + 0.4) * 1000);
-    preview.current = { handle, timer };
+    preview.current = { stop, takeGain, timer };
     setPreviewing(true);
     track('jam_take_preview', { slug, offset_ms: offsetMs });
+  }
+
+  function changeGain(v: number) {
+    setGain(v);
+    const p = preview.current;
+    if (p) p.takeGain.gain.setTargetAtTime(v, p.takeGain.context.currentTime, 0.02); // 듣는 중이면 바로
   }
 
   function changeOffset(v: number) {
@@ -416,7 +471,7 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
               <span>{t('내 테이크 음량')}</span>
               <span>{Math.round(gain * 100)}%</span>
             </label>
-            <input id="jam-gain" type="range" min={0} max={200} step={5} value={Math.round(gain * 100)} onChange={(e) => setGain(Number(e.target.value) / 100)} className="mt-2 w-full h-11 accent-[#FF3D77]" />
+            <input id="jam-gain" type="range" min={0} max={200} step={5} value={Math.round(gain * 100)} onChange={(e) => changeGain(Number(e.target.value) / 100)} className="mt-2 w-full h-11 accent-[#FF3D77]" />
           </div>
 
           <div>

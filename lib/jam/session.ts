@@ -7,13 +7,33 @@
  */
 type AudioSessionNavigator = Navigator & { audioSession?: { type: string } };
 
-/** 탭 핸들러 안에서(await 전에) 부른다. 돌려받은 함수로 되돌린다 */
-export function enterRecordSession(): () => void {
+/**
+ * 녹음 세션 전략. 기본 par. auto·keep은 아이폰 무음 녹음 원인 확인용(QA 주소 ?sess=auto|keep, 2026-11-16)
+ * - par: 'play-and-record'로 바꾼다
+ * - auto: 'auto'로 돌려 브라우저가 고르게 한다
+ * - keep: 건드리지 않는다
+ */
+export type SessionMode = 'par' | 'auto' | 'keep';
+
+export function sessionModeFromUrl(): SessionMode {
+  if (typeof window === 'undefined') return 'par';
+  const v = new URLSearchParams(window.location.search).get('sess');
+  return v === 'auto' || v === 'keep' ? v : 'par';
+}
+
+/** 지금 audioSession.type (API 없으면 'none') */
+export function currentSessionType(): string {
   const session = typeof navigator === 'undefined' ? undefined : (navigator as AudioSessionNavigator).audioSession;
-  if (!session) return () => {};
+  return session ? session.type : 'none';
+}
+
+/** 탭 핸들러 안에서(await 전에) 부른다. 돌려받은 함수로 되돌린다 */
+export function enterRecordSession(mode: SessionMode = 'par'): () => void {
+  const session = typeof navigator === 'undefined' ? undefined : (navigator as AudioSessionNavigator).audioSession;
+  if (!session || mode === 'keep') return () => {};
   const prev = session.type;
   try {
-    session.type = 'play-and-record';
+    session.type = mode === 'auto' ? 'auto' : 'play-and-record';
   } catch (e) {
     console.warn('[jam] audioSession play-and-record 설정 실패', e);
   }

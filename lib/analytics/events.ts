@@ -11,6 +11,19 @@
 
 // ─── 공통 값 타입 ────────────────────────────────────────────────
 /** 텍스트 길이를 그대로 보내지 않고 버킷으로 (개인정보·카디널리티 방어) */
+/**
+ * 백킹 잼 녹음 진단값(오디오 내용은 보내지 않는다 — 숫자·기기 상태만). 아이폰 무음 녹음 원인 추적용(2026-11-16)
+ * peak_db = 테이크 최대 레벨(dBFS, 정수), session = 녹음 중 audioSession.type, sess_mode = 세션 전략
+ */
+export interface JamTakeDiag {
+  peak_db?: number;
+  mime?: string;
+  track_muted?: boolean;
+  track_state?: string;
+  session?: string;
+  sess_mode?: string;
+}
+
 export type LengthBucket = 'short' | 'medium' | 'long';
 
 /** 해당 화면에 어떤 경로로 들어왔는가 */
@@ -117,9 +130,9 @@ export type EventSchema = {
   jam_entry_click: { from: 'nav' | 'home' | 'ear' | 'strip' | 'hub' | 'stems' };
   // 백킹 잼 2단계: 반주 위에 녹음 → 8마디로 올리기 (2026-11-16)
   jam_record_start: { slug: string; bpm: number };
-  jam_record_done: { slug: string };
-  /** reason: 마이크 오류·디코딩 실패 등 코드값만 */
-  jam_record_error: { slug: string; reason: 'mic' | 'decode' | 'empty' };
+  jam_record_done: { slug: string } & JamTakeDiag;
+  /** reason: 마이크 오류·디코딩 실패·소리 없음(silent) 등 코드값만 */
+  jam_record_error: { slug: string; reason: 'mic' | 'decode' | 'empty' | 'silent' } & Partial<JamTakeDiag>;
   /** 미리듣기 재생. offset_ms = 그때 싱크 값 */
   jam_take_preview: { slug: string; offset_ms: number };
   jam_upload_click: { slug: string; logged_in: boolean };

@@ -15,11 +15,18 @@ export const TAKE_BARS = 8;
 export const TAKE_BEATS_PER_BAR = 4;
 export const TAKE_COUNT_IN_BEATS = 4;
 
+/** 정지 순간의 녹음기·마이크 상태(아이폰 무음 녹음 진단용) */
+export interface RecordInfo {
+  mime: string;
+  trackMuted: boolean | null;
+  trackState: string | null;
+}
+
 export interface StartOptions {
   /** 카운트인 끝에 함께 틀 반주(없으면 빈 배열). ctx는 녹음용 컨텍스트 */
   loadBacking: (ctx: AudioContext) => Promise<AudioBuffer[]>;
-  /** 녹음이 끝나면(자동 정지) 호출 */
-  onRecorded: (blob: Blob) => void;
+  /** 녹음이 끝나면(자동 정지) 호출. info = 진단용(녹음 형식·마이크 트랙 상태) */
+  onRecorded: (blob: Blob, info: RecordInfo) => void;
   /** 마이크를 열기 직전(사용자 탭과 같은 흐름) — 백킹 잼의 iOS 오디오 세션 전환용 */
   beforeMic?: () => void;
   /** 녹음이 끝나거나 취소·오류로 정리될 때 — beforeMic에서 바꾼 것을 되돌린다 */
@@ -144,13 +151,15 @@ export function useTakeRecorder(bpm: number) {
       };
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const track = streamRef.current?.getAudioTracks()[0];
+        const info: RecordInfo = { mime: recorder.mimeType || '', trackMuted: track ? track.muted : null, trackState: track ? track.readyState : null };
         ensembleRef.current?.stop();
         ensembleRef.current = null;
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
         runAfterStop();
         setPhase('done');
-        opts.onRecorded(blob);
+        opts.onRecorded(blob, info);
       };
 
       // 5) 카운트인 예약 → endTime(ctx 시간) 확보
