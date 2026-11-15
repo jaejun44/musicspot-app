@@ -79,3 +79,35 @@ export function readWavInfo(buf: ArrayBuffer): { sampleRate: number; channels: n
   const channels = v.getUint16(22, true);
   return { sampleRate: v.getUint32(24, true), channels, samples: v.getUint32(40, true) / 2 / channels };
 }
+
+// ─── 자동 음량 맞춤 (올리기 전 가공 — 미리듣기도 이 결과로) ─────────────
+/** 테이크 최대 레벨을 이 값까지 끌어올린다(dBFS) */
+export const NORMALIZE_TARGET_DB = -3;
+/** 최대 레벨이 이보다 작으면 거의 무음 — 증폭하지 않고 다시 녹음하게 한다(dBFS) */
+export const SILENT_PEAK_DB = -50;
+
+/** 최대 레벨(dBFS, 소수 1자리). 완전 무음은 -Infinity */
+export function peakDb(samples: Float32Array): number {
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const a = Math.abs(samples[i]);
+    if (a > peak) peak = a;
+  }
+  return peak > 0 ? Math.round(200 * Math.log10(peak)) / 10 : -Infinity;
+}
+
+/**
+ * 작게 녹음된 테이크만 최대 레벨 −3dB까지 키운다(이미 크면 그대로 — 줄이지 않음).
+ * 거의 무음(−50dB 미만)이면 null — 잡음만 키우게 되므로 증폭하지 않는다.
+ * @returns samples = 맞춘 샘플(키우지 않았으면 원본 그대로), boostDb = 키운 양
+ */
+export function normalizeTake(samples: Float32Array): { samples: Float32Array; peakDb: number; boostDb: number } | null {
+  const p = peakDb(samples);
+  if (!(p >= SILENT_PEAK_DB)) return null;
+  if (p >= NORMALIZE_TARGET_DB) return { samples, peakDb: p, boostDb: 0 };
+  const boostDb = NORMALIZE_TARGET_DB - p;
+  const g = Math.pow(10, boostDb / 20);
+  const out = new Float32Array(samples.length);
+  for (let i = 0; i < samples.length; i++) out[i] = samples[i] * g;
+  return { samples: out, peakDb: p, boostDb: Math.round(boostDb * 10) / 10 };
+}

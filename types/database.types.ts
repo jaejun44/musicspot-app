@@ -993,6 +993,7 @@ export type Database = {
           id: string
           is_open: boolean
           jam_bpm: number | null
+          jam_gain: number | null
           jam_mutes: number | null
           jam_prog: string | null
           jam_slug: string | null
@@ -1019,6 +1020,7 @@ export type Database = {
           id?: string
           is_open?: boolean
           jam_bpm?: number | null
+          jam_gain?: number | null
           jam_mutes?: number | null
           jam_prog?: string | null
           jam_slug?: string | null
@@ -1045,6 +1047,7 @@ export type Database = {
           id?: string
           is_open?: boolean
           jam_bpm?: number | null
+          jam_gain?: number | null
           jam_mutes?: number | null
           jam_prog?: string | null
           jam_slug?: string | null

@@ -1031,4 +1031,10 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
   - 이벤트 운영 적재(anon_id): `jam_record_start/done/error(mic)`·`jam_take_preview`·`jam_upload_click{logged_in:false}`·`jam_resume`
   - tsc 0 · 테스트 114/114 · build 91초 성공(`/jam/[slug]` 첫 로드 351→360kB)
 - 미확인: 로그인 상태 올리기·실패 정리·쌓기 녹음(OAuth만이라 로컬 자동화 불가 — 사용자 결정 필요), 아이폰 실기기 전체(무음 스위치 녹음·이어폰·싱크·올리기)
+- 사용자 1차 확인 반영(11-16, DB `supabase/21_stem_jam_gain.sql` 승인 후 운영 적용 — `jam_gain smallint` 반주 음량 %, NULL=100, 0~200·jam_slug 있을 때만)
+  - PC: "내 테이크 음량"이 다음 재생부터만 + 마스터 리미터에 눌려 차이가 안 들림 → 미리듣기에서 반주·테이크를 각자 GainNode로 연결해 슬라이더가 즉시 반영. 테이크 음량은 원래도 올리는 WAV에 곱해짐(`processTake`, 테스트 추가)
+  - 아이폰(iOS 18.7): 처음 두 번 "녹음이 안 됨" → 다시 녹음하니 정상 기록(최대 −21dB, 마이크 트랙 정상, 세션 play-and-record). 녹음 레벨이 작은데 반주(RMS −17dB 안팎)는 커서 묻힌 것으로 판단
+  - 자동 음량 맞춤 `normalizeTake`(take.ts, 순수·테스트): 최대 레벨이 −3dB보다 작으면 −3dB까지 키움(크면 그대로). −50dB 미만은 증폭하지 않고 "녹음된 소리가 거의 없어요. 마이크를 확인해 주세요" + `jam_record_error{silent}`. 미리듣기·올리기 모두 맞춘 샘플로
+  - 반주 음량 슬라이더(0~200%) 추가. 녹음 미리듣기·올린 프로젝트의 반주 기본값 50%(`TAKE_BACKING_GAIN_DEFAULT`, 반주 RMS −17dB vs −3dB로 맞춘 기타 RMS −18~−23dB) — `/jam` 연주 화면 반주는 그대로. 올릴 때 `jam_gain` 명시 저장 → 8마디 재생·쌓기 녹음 반주에도 같은 음량
+  - 녹음 진단값 `jam_record_done/error`에 peak_db·boost_db·mime·마이크 트랙 상태·audioSession 타입(소리 내용은 안 보냄). QA용 `?sess=auto|keep`(기본 play-and-record)
 

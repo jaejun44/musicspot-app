@@ -18,4 +18,6 @@ export interface StemProject {
   jam_bpm?: number | null;
   jam_prog?: string | null;
   jam_mutes?: number | null;
+  /** 반주 음량 %(0~200), null = 100 */
+  jam_gain?: number | null;
 }

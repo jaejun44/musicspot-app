@@ -10,6 +10,8 @@ export interface JamProjectFields {
   jam_bpm?: number | null;
   jam_prog?: string | null;
   jam_mutes?: number | null;
+  /** 반주 음량 %(0~200). null·없음 = 100 */
+  jam_gain?: number | null;
 }
 
 export interface ResolvedBacking {
@@ -38,9 +40,33 @@ export function resolveJamBacking(p: JamProjectFields): ResolvedBacking | null {
   };
 }
 
+/**
+ * 테이크를 녹음해 올릴 때 반주 음량 기본값(배수). 반주 RMS가 −17dB 안팎이라 −3dB로 맞춘 기타 테이크(RMS −18~−23dB)가
+ * 묻히지 않게 −6dB. /jam 연주 화면 반주 음량은 그대로(이 값은 녹음 미리듣기·올린 프로젝트에만). 2026-11-16
+ */
+export const TAKE_BACKING_GAIN_DEFAULT = 0.5;
+
+/** 순수: 저장된 반주 음량 % → 배수(0~2). null·이상값은 1 */
+export function jamGainFactor(pct: number | null | undefined): number {
+  if (pct == null || !Number.isFinite(pct)) return 1;
+  return Math.max(0, Math.min(200, pct)) / 100;
+}
+
+/** 버퍼 음량을 곱한 사본(1이면 원본 그대로) */
+function scaled(buf: AudioBuffer, factor: number): AudioBuffer {
+  if (factor === 1) return buf;
+  const out = new AudioBuffer({ length: buf.length, numberOfChannels: buf.numberOfChannels, sampleRate: buf.sampleRate });
+  for (let c = 0; c < buf.numberOfChannels; c++) {
+    const src = buf.getChannelData(c);
+    const dst = out.getChannelData(c);
+    for (let i = 0; i < src.length; i++) dst[i] = src[i] * factor;
+  }
+  return out;
+}
+
 const cache = new Map<string, Promise<AudioBuffer>>();
 
-/** 브라우저 전용: 반주 8마디 버퍼(같은 조합은 한 번만 렌더). 못 만들면 null */
+/** 브라우저 전용: 반주 8마디 버퍼(같은 조합은 한 번만 렌더, 저장된 반주 음량 반영). 못 만들면 null */
 export async function renderProjectBacking(p: JamProjectFields): Promise<AudioBuffer | null> {
   const r = resolveJamBacking(p);
   if (!r) {
@@ -55,7 +81,7 @@ export async function renderProjectBacking(p: JamProjectFields): Promise<AudioBu
     job.catch(() => cache.delete(key));
   }
   try {
-    return await job;
+    return scaled(await job, jamGainFactor(p.jam_gain));
   } catch (e) {
     console.error('[jam] 반주 렌더 실패', e);
     return null;

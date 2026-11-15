@@ -17,6 +17,8 @@
  */
 export interface JamTakeDiag {
   peak_db?: number;
+  /** 자동 음량 맞춤으로 키운 양(dB) */
+  boost_db?: number;
   mime?: string;
   track_muted?: boolean;
   track_state?: string;

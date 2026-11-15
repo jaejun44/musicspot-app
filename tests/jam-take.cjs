@@ -87,3 +87,36 @@ test('카탈로그에 없는 조합·진행이면 null(화면은 반주 없이 �
   assert.equal(backing.resolveJamBacking({ jam_slug: 'z-minor-rock', jam_bpm: 120, jam_prog: 'i-VII-VI-VII' }), null);
   assert.equal(backing.resolveJamBacking({ jam_slug: 'a-minor-rock', jam_bpm: 120, jam_prog: 'gone' }), null);
 });
+
+test('반주 음량 %: null·없음은 100%, 0~200으로 자름', () => {
+  assert.equal(backing.jamGainFactor(null), 1);
+  assert.equal(backing.jamGainFactor(undefined), 1);
+  assert.equal(backing.jamGainFactor(60), 0.6);
+  assert.equal(backing.jamGainFactor(0), 0);
+  assert.equal(backing.jamGainFactor(250), 2);
+  assert.equal(backing.jamGainFactor(-5), 0);
+});
+
+test('자동 음량 맞춤: 작으면 −3dB까지 키우고, 크면 그대로, 거의 무음이면 null', () => {
+  const quiet = new Float32Array([0, 0.1, -0.05, 0]); // −20dB
+  const n = take.normalizeTake(quiet);
+  assert.equal(n.peakDb, -20);
+  assert.equal(n.boostDb, 17);
+  assert.ok(Math.abs(Math.max(...n.samples) - Math.pow(10, -3 / 20)) < 1e-6);
+  assert.equal(quiet[1], Math.fround(0.1), '원본은 건드리지 않음');
+
+  const loud = new Float32Array([0, 0.9, -0.2]);
+  const l = take.normalizeTake(loud);
+  assert.equal(l.boostDb, 0);
+  assert.equal(l.samples, loud, '이미 크면 그대로(줄이지 않음)');
+
+  assert.equal(take.normalizeTake(new Float32Array([0, 0.002, -0.001])), null, '−54dB → 증폭 안 함');
+  assert.equal(take.normalizeTake(new Float32Array(100)), null, '완전 무음');
+  assert.ok(take.normalizeTake(new Float32Array([0.0032])) !== null, '−49.9dB는 맞춤 대상');
+});
+
+test('테이크 음량 슬라이더는 올리는 파일(processTake)에 곱해진다', () => {
+  const s = new Float32Array(10).fill(0.25);
+  const out = take.processTake(s, 10, 0, 1, 1.5);
+  assert.ok(Math.abs(out[0] - 0.375) < 1e-6);
+});

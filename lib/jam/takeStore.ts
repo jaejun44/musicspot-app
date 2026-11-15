@@ -15,6 +15,8 @@ export interface PendingTake {
   mutes: number;
   offsetMs: number;
   gain: number;
+  /** 반주 음량 배수(0~2). 이 필드가 생기기 전 보관분은 없음 → 1 */
+  backingGain?: number;
   instrument: string;
   sampleRate: number;
   /** 가공 전 모노 샘플(싱크·음량을 돌아와서 다시 조절할 수 있게) */

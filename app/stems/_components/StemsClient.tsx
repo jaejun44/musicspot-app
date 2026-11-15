@@ -125,6 +125,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
           jam_bpm: row.jam_bpm,
           jam_prog: row.jam_prog,
           jam_mutes: row.jam_mutes,
+          jam_gain: row.jam_gain,
         } satisfies StemProject));
         setProjects(mapped);
 
