@@ -25,7 +25,7 @@ export type UploadSource = 'file' | 'record' | 'youtube' | 'jam';
 export type JamSource = 'dm' | 'session';
 
 /** 홈·검색 상단 재방문 스트립의 목록 종류 */
-export type ReturnStripKind = 'recent' | 'favorite' | 'vote' | 'ear';
+export type ReturnStripKind = 'recent' | 'favorite' | 'vote' | 'ear' | 'jam';
 /** 스트립이 붙은 화면 (2026-11-08 추가) */
 export type ReturnStripPlacement = 'home' | 'search' | 'region' | 'room';
 
@@ -105,6 +105,16 @@ export type EventSchema = {
   news_entry_click: { from: 'home' | 'region' | 'ear' | 'nav' };
   /** 상세에서 밖(또는 다른 기능)으로 나가는 링크 */
   news_outbound_click: { slug: string; to: 'instagram' | 'source' | 'search' | 'ear' | 'stems' };
+  // 백킹 잼 /jam — 브라우저 반주 (2026-11-15). 재방문 판정은 jam_play를 서로 다른 날 한 anon_id 수
+  /** 조합 페이지 열람(검색 유입 판정용 — referrer_host 공통 속성) */
+  jam_view: { slug: string };
+  /** 재생 시작. is_daily = 오늘의 잼 조합·진행으로 틀었나 */
+  jam_play: { slug: string; bpm: number; is_daily: boolean };
+  /** 정지(직접·페이지 이동·박자 밀림). seconds = 이번 재생 시간(초, 정수) */
+  jam_stop: { slug: string; seconds: number };
+  jam_control: { slug: string; type: 'bpm' | 'key' | 'mute' | 'countin' };
+  /** 백킹 잼으로 들어온 입구. hub = /jam 허브에서 조합 페이지로 */
+  jam_entry_click: { from: 'nav' | 'home' | 'ear' | 'strip' | 'hub' };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */

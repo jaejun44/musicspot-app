@@ -29,20 +29,23 @@ export default function Navigation() {
   }
 
   // 일본 모드에서는 연습실 관련 메뉴(연습실 찾기, 예약 기반 '마이') 숨김
-  const menuItems: { label: string; path: string; jaHidden?: boolean; trackAs?: 'band_matching' | 'community' | 'ear' | 'news' }[] = [
+  const menuItems: { label: string; path: string; jaHidden?: boolean; trackAs?: 'band_matching' | 'community' | 'ear' | 'news' | 'jam' }[] = [
     { label: t('연습실'), path: '/search', jaHidden: true },
     { label: t('밴드찾기'), path: '/band-matching', trackAs: 'band_matching' as const },
     { label: t('내 밴드'), path: '/my-band' },
     { label: t('8마디'), path: '/stems' },
     { label: t('음감'), path: '/ear', trackAs: 'ear' as const },
+    // 밴드찾기 > '온라인 잼'(SonoBus 방)과 헷갈리지 않게 '백킹 잼'으로
+    { label: t('백킹 잼'), path: '/jam', trackAs: 'jam' as const },
     { label: t('뉴스'), path: '/news', trackAs: 'news' as const },
     { label: t('피드'), path: '/feed' },
     { label: t('커뮤니티'), path: '/community', trackAs: 'community' as const },
     { label: t('마이'), path: '/my-bookings', jaHidden: true },
   ].filter((item) => !(isJapanMode && item.jaHidden));
 
-  function trackMenu(trackAs?: 'band_matching' | 'community' | 'ear' | 'news') {
+  function trackMenu(trackAs?: 'band_matching' | 'community' | 'ear' | 'news' | 'jam') {
     if (trackAs === 'ear') track('ear_entry_click', { from: 'tab' });
+    else if (trackAs === 'jam') track('jam_entry_click', { from: 'nav' });
     else if (trackAs === 'news') track('news_entry_click', { from: 'nav' });
     else if (trackAs) trackComingSoonClick(trackAs);
   }

@@ -11,6 +11,8 @@ import { Studio } from '@/types/studio';
 import StudioMiniCard from '@/app/my-bookings/_components/StudioMiniCard';
 import { kstToday } from '@/lib/ear/daily';
 import { currentStreak, hasPlayed, isDone, loadRecord } from '@/lib/ear/streak';
+import { dailyJam, type DailyJam } from '@/lib/jam/daily';
+import { loadLastJamDate } from '@/lib/jam/storage';
 
 const MAX_ITEMS = 6;
 /** 투표는 하나씩 RPC로 읽으므로 최근 것만 */
@@ -19,11 +21,12 @@ const MAX_VOTES = 5;
 const LABEL: Record<ReturnStripKind, string> = {
   vote: '진행 중인 투표',
   ear: '오늘의 음감',
+  jam: '오늘의 잼',
   recent: '최근 본 연습실',
   favorite: '찜한 연습실',
 };
 
-const ICON: Record<ReturnStripKind, string> = { vote: '🗳️', ear: '🎧', recent: '👀', favorite: '❤️' };
+const ICON: Record<ReturnStripKind, string> = { vote: '🗳️', ear: '🎧', jam: '🎸', recent: '👀', favorite: '❤️' };
 
 /** 음감을 푼 적 있고 오늘 문제는 아직이면 [연속 기록] 1개, 아니면 빈 목록 */
 function earCard(): number[] {
@@ -31,6 +34,14 @@ function earCard(): number[] {
   const today = kstToday(new Date());
   if (!hasPlayed(record) || isDone(record.days[today])) return [];
   return [currentStreak(record, today)];
+}
+
+/** 백킹 잼을 재생한 적 있고 오늘은 아직이면 [오늘의 잼] 1개, 아니면 빈 목록 */
+function jamCard(): DailyJam[] {
+  const last = loadLastJamDate();
+  const today = kstToday(new Date());
+  if (!last || last === today) return [];
+  return [dailyJam(today)];
 }
 
 /** 진행 중(마감·결정 전, 다음 투표로 넘어가지 않은) 내 투표 */
@@ -61,7 +72,7 @@ interface Props {
  * 목록이 비면 아무것도 그리지 않는다. 비공개로 바뀐 연습실은 조회에서 빠진다(눌러도 갈 곳이 없으므로).
  */
 export default function ReturnStrip({ placement, excludeId }: Props) {
-  const [lists, setLists] = useState<{ vote: Vote[]; ear: number[]; recent: Studio[]; favorite: Studio[] } | null>(null);
+  const [lists, setLists] = useState<{ vote: Vote[]; ear: number[]; jam: DailyJam[]; recent: Studio[]; favorite: Studio[] } | null>(null);
   const [studioMap, setStudioMap] = useState<Map<string, Studio>>(new Map());
   const [kind, setKind] = useState<ReturnStripKind>('recent');
   const viewed = useRef(new Set<ReturnStripKind>());
@@ -85,11 +96,13 @@ export default function ReturnStrip({ placement, excludeId }: Props) {
       if (!alive) return;
       const pick = (list: string[]) =>
         list.filter((id) => id !== excludeId).map((id) => map.get(id)).filter(Boolean) as Studio[];
-      const next = { vote: votes, ear: earCard(), recent: pick(recentIds), favorite: pick(favoriteIds) };
+      const next = { vote: votes, ear: earCard(), jam: jamCard(), recent: pick(recentIds), favorite: pick(favoriteIds) };
       setStudioMap(map);
       setLists(next);
-      // 진행 중인 투표 → 오늘 안 푼 음감 → 최근 본 순으로 할 일이 분명하다
-      setKind(next.vote.length > 0 ? 'vote' : next.ear.length > 0 ? 'ear' : next.recent.length > 0 ? 'recent' : 'favorite');
+      // 진행 중인 투표 → 오늘 안 푼 음감 → 오늘 안 친 잼 → 최근 본 순으로 할 일이 분명하다
+      setKind(
+        next.vote.length > 0 ? 'vote' : next.ear.length > 0 ? 'ear' : next.jam.length > 0 ? 'jam' : next.recent.length > 0 ? 'recent' : 'favorite',
+      );
     })();
     return () => {
       alive = false;
@@ -105,7 +118,7 @@ export default function ReturnStrip({ placement, excludeId }: Props) {
   }, [kind, count, placement]);
 
   if (!lists) return null;
-  const kinds = (['vote', 'ear', 'recent', 'favorite'] as const).filter((k) => lists[k].length > 0);
+  const kinds = (['vote', 'ear', 'jam', 'recent', 'favorite'] as const).filter((k) => lists[k].length > 0);
   if (kinds.length === 0) return null;
 
   return (
@@ -164,6 +177,25 @@ export default function ReturnStrip({ placement, excludeId }: Props) {
                   <p className="mt-2 text-[12px] font-bold text-[#0A0A0A]">오늘 문제 풀기 →</p>
                 </Link>
               ))
+            : kind === 'jam'
+            ? lists.jam.map((d) => (
+                <Link
+                  key="jam"
+                  href={`/jam/${d.slug}?p=${encodeURIComponent(d.progression.id)}`}
+                  onClick={() => {
+                    track('return_strip_click', { kind: 'jam', placement });
+                    track('jam_entry_click', { from: 'strip' });
+                  }}
+                  className="w-[200px] flex-shrink-0 bg-[#FFF8F0] rounded-[16px] border-[3px] border-[#0A0A0A] p-3"
+                  style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Pretendard, sans-serif' }}
+                >
+                  <p className="text-[12px] font-bold text-[#FF3D77]">🎸 백킹 잼</p>
+                  <p className="mt-1 text-[14px] font-bold text-[#0A0A0A] break-keep">
+                    오늘의 잼 · {d.key.name} {d.key.mode === 'major' ? '메이저' : '마이너'} {d.style.label}
+                  </p>
+                  <p className="mt-2 text-[12px] font-bold text-[#0A0A0A]">반주 틀고 같이 치기 →</p>
+                </Link>
+              ))
             : kind === 'vote'
             ? lists.vote.map((vote) => {
                 const first = studioMap.get(vote.studio_ids[0]);
@@ -186,7 +218,7 @@ export default function ReturnStrip({ placement, excludeId }: Props) {
                   </Link>
                 );
               })
-            : lists[kind].map((studio, i) => (
+            : lists[kind as 'recent' | 'favorite'].map((studio, i) => (
                 <div
                   key={studio.id}
                   className="w-[148px] flex-shrink-0"

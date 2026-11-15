@@ -13,6 +13,7 @@ import ThemeSongPlayer from '@/components/ThemeSongPlayer';
 import WelcomeSheet from '@/components/WelcomeSheet';
 import ReturnStrip from '@/components/ReturnStrip';
 import NewsLatest from '@/components/NewsLatest';
+import JamTodayCard from '@/components/JamTodayCard';
 import { useIsJapanMode } from '@/lib/i18n';
 
 export default function HomeClient() {
@@ -41,7 +42,9 @@ export default function HomeClient() {
       {!isJapanMode && <ReturnStrip placement="home" />}
       <HeroSection />
       {/* 매일 새로 볼 것: 밴드씬 뉴스 최신 2개 (ja에서도 보임 — 글은 한국어 그대로) */}
-      <div className="relative z-10 px-4 sm:px-6 py-6 max-w-5xl mx-auto">
+      <div className="relative z-10 px-4 sm:px-6 py-6 max-w-5xl mx-auto space-y-6">
+        {/* 매일 바뀌는 반주 — 뉴스 위 1장 */}
+        <JamTodayCard />
         <NewsLatest from="home" />
       </div>
       {!isJapanMode && (
