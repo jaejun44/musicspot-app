@@ -5,7 +5,7 @@ Music Spot — 인스타 카드뉴스 → /news 웹 보관 (2026-11-12)
 가져오는 조건(전부): manifest status == "published" · post_url 있음 · caption.txt 있음 · 이미지 1장 이상 ·
 캡션에 이미지 표기(사진·이미지·비주얼·재킷·포스터 등 라벨 줄, scripts/cardnews_parse.py)
 표기는 cc / original / official 로 분류해 image_source_kind에 저장(나중에 official만 내릴 수 있게)
-이미지: out/NN.png(최신) 또는 슬롯 루트 NN.png(옛 슬롯) → WebP(가로 1080, 장당 200KB 목표) → Storage 공개 버킷 news
+이미지: out/NN.png(최신) · 슬롯 루트 NN.png(옛 슬롯) · upload/NN.jpg(11-13~ 업로드용만 남은 슬롯) → WebP(가로 1080, 장당 200KB 목표) → Storage 공개 버킷 news
 DB: public.news_posts, source_key(<날짜>/<슬롯>) 기준 upsert — 여러 번 돌려도 중복 없음. is_published는 덮어쓰지 않는다
 
 사용법:
@@ -33,14 +33,14 @@ from cardnews_parse import build_sources, classify_credit, make_slug, parse_capt
 BUCKET = "news"
 TARGET_WIDTH = 1080
 TARGET_BYTES = 200 * 1024
-IMG_RE = re.compile(r"^(\d{2})\.png$")
+IMG_RE = re.compile(r"^(\d{2})\.(png|jpe?g)$", re.I)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 KIND_NAMES = {"cc": "a Wikimedia·CC 사진", "original": "b MUSIC SPOT 자체 그래픽", "official": "c 레이블·밴드 공식 자료"}
 
 
 def find_images(slot_dir: str) -> list[str]:
-    """out/NN.png가 있으면 그것, 없으면 슬롯 루트 NN.png. 번호 순"""
-    for d in (os.path.join(slot_dir, "out"), slot_dir):
+    """out/ → 슬롯 루트 → upload/ 순으로 처음 이미지(NN.png·NN.jpg)가 있는 폴더. 번호 순"""
+    for d in (os.path.join(slot_dir, "out"), slot_dir, os.path.join(slot_dir, "upload")):
         if os.path.isdir(d):
             files = sorted(f for f in os.listdir(d) if IMG_RE.match(f))
             if files:
