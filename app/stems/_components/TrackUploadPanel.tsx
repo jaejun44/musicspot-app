@@ -9,7 +9,8 @@ import JamRecorder, { type JamMode } from './JamRecorder';
 import { INSTRUMENTS } from '@/lib/instruments';
 import AudioTrimmer, { type TrimHandle } from './AudioTrimmer';
 import { acquireMic } from '@/lib/mic';
-import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playEnsemble, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
+import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playEnsemble, playSequence, type EnsembleHandle, type MixHandle } from '@/lib/ensemble-audio';
+import { encodeWavMono16, layerMix, mixToMono, normalizeTake, peakLinear, LAYER_BASE_MIN } from '@/lib/jam/take';
 import { useT } from '@/lib/i18n';
 import { track, incrementUserProperty } from '@/lib/analytics';
 
@@ -43,6 +44,31 @@ interface Props {
   orderedSectionUrls?: string[][];
   /** 백킹 잼 프로젝트의 반주 8마디(합성). 녹음·미리듣기에서 섹션마다 깐다. 없으면 기존과 같음 */
   jamBacking?: () => Promise<AudioBuffer | null>;
+  /**
+   * 백킹 잼 프로젝트면 true — 함께 녹음에 자동 음량 맞춤 + "기존 합주/내 연주" 음량 조절, WAV로 올림.
+   * 반주를 꺼서 jamBacking이 없어도 true. 일반 프로젝트(false)는 기존 동작 그대로
+   */
+  jamProject?: boolean;
+}
+
+/** 함께 녹음 테이크(백킹 잼 프로젝트만): 음량 맞춘 모노 샘플 */
+interface LayerTake {
+  samples: Float32Array;
+  sampleRate: number;
+  peak: number;
+}
+
+async function decodeLayerTake(blob: Blob): Promise<LayerTake | null> {
+  const ctx = createAudioContext();
+  try {
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    const mono = mixToMono(Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i)));
+    const norm = normalizeTake(mono);
+    if (!norm) return null;
+    return { samples: norm.samples, sampleRate: buf.sampleRate, peak: peakLinear(norm.samples) };
+  } finally {
+    void ctx.close().catch(() => {});
+  }
 }
 
 export default function TrackUploadPanel({
@@ -55,11 +81,16 @@ export default function TrackUploadPanel({
   layerBackingUrls = [],
   orderedSectionUrls = [],
   jamBacking,
+  jamProject = false,
 }: Props) {
   const t = useT();
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const [file, setFile] = useState<File | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  // 백킹 잼 프로젝트 함께 녹음: 음량 맞춘 테이크 + 두 음량(기존 합주·내 연주)
+  const [layerTake, setLayerTake] = useState<LayerTake | null>(null);
+  const [baseGain, setBaseGain] = useState(1);
+  const [mineGain, setMineGain] = useState(1);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [instrument, setInstrument] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -127,7 +158,7 @@ export default function TrackUploadPanel({
   // JAM 합주 미리듣기 (반주 + 방금 녹음 동시 재생)
   const [jamPreviewState, setJamPreviewState] = useState<'idle' | 'loading' | 'playing'>('idle');
   const jamCtxRef = useRef<AudioContext | null>(null);
-  const jamHandleRef = useRef<EnsembleHandle | null>(null);
+  const jamHandleRef = useRef<EnsembleHandle | MixHandle | null>(null);
   const jamTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function stopJamPreview() {
@@ -147,20 +178,31 @@ export default function TrackUploadPanel({
     jamCtxRef.current = ctx;
     await resumeContext(ctx);
 
+    // 백킹 잼 프로젝트: 내 연주는 음량 맞춘 샘플로, "기존"·"내 연주" 두 버스로 나눠 재생(슬라이더 즉시 반영)
+    let mineBuf: AudioBuffer | null = null;
+    if (jamProject && layerTake) {
+      mineBuf = ctx.createBuffer(1, layerTake.samples.length, layerTake.sampleRate);
+      mineBuf.getChannelData(0).set(layerTake.samples);
+    }
+    const mix = mineBuf && layerTake ? layerMix(baseGain, mineGain, layerTake.peak) : null;
+    const mixOpts = mineBuf && mix ? { mine: mineBuf, baseGain: mix.previewBase, mineGain: mix.previewMine } : null;
+
     let totalDur = 0;
     if (jamMode === 'layer') {
       // 쌓기: 최근 섹션 반주 + 내 트랙을 동시 재생
-      const buffers = await loadTracks([...layerBackingUrls, myUrl], ctx);
+      const buffers = await loadTracks(mineBuf ? layerBackingUrls : [...layerBackingUrls, myUrl], ctx);
+      if (mineBuf) buffers.push(mineBuf);
       const jam = jamBacking ? await jamBacking() : null;
       if (jam) buffers.unshift(jam);
       if (jamCtxRef.current !== ctx) return;
       if (buffers.length === 0) { stopJamPreview(); return; }
-      jamHandleRef.current = playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
+      jamHandleRef.current = mixOpts ? playSequence([buffers], ctx, ctx.currentTime + 0.1, mixOpts) : playEnsemble(buffers, ctx, ctx.currentTime + 0.1);
       totalDur = Math.max(...buffers.map((b) => b.duration));
     } else {
       // 이어붙이기: 기존 전곡(섹션 순서대로) 다음에 내 트랙을 이어 재생
       const flat = orderedSectionUrls.flat();
-      const aligned = await loadTracksAligned([...flat, myUrl], ctx);
+      const aligned = await loadTracksAligned(mineBuf ? flat : [...flat, myUrl], ctx);
+      if (mineBuf) aligned.push(mineBuf);
       if (jamCtxRef.current !== ctx) return;
       // aligned 를 섹션 구조 + 마지막 내 트랙으로 재구성 (실패분 제외)
       let i = 0;
@@ -175,7 +217,7 @@ export default function TrackUploadPanel({
       if (jamCtxRef.current !== ctx) return;
       const flatCount = sections.reduce((n, s) => n + s.length, 0);
       if (flatCount === 0) { stopJamPreview(); return; }
-      jamHandleRef.current = playSequence(sections, ctx, ctx.currentTime + 0.1);
+      jamHandleRef.current = mixOpts ? playSequence(sections, ctx, ctx.currentTime + 0.1, mixOpts) : playSequence(sections, ctx, ctx.currentTime + 0.1);
       totalDur = sections.reduce((sum, s) => sum + Math.max(0, ...s.map((b) => b.duration)), 0);
     }
 
@@ -345,6 +387,14 @@ export default function TrackUploadPanel({
       source = trimmed ?? file!;
       ext = trimmed ? 'wav' : file!.name.split('.').pop() ?? 'mp3';
       contentType = trimmed ? 'audio/wav' : file!.type;
+    } else if (jamProject && uploadMode === 'jam' && layerTake) {
+      // 백킹 잼 프로젝트 함께 녹음: 음량 맞춤 × (내 연주/기존) 비율을 곱한 16bit WAV — 미리듣기와 같은 균형
+      const { ratio } = layerMix(baseGain, mineGain, layerTake.peak);
+      const out = new Float32Array(layerTake.samples.length);
+      for (let i = 0; i < out.length; i++) out[i] = layerTake.samples[i] * ratio;
+      source = new Blob([encodeWavMono16(out, layerTake.sampleRate)], { type: 'audio/wav' });
+      ext = 'wav';
+      contentType = 'audio/wav';
     } else {
       source = recordedBlob!;
       ext = 'webm';
@@ -396,6 +446,7 @@ export default function TrackUploadPanel({
     setFile(null);
     setTrimUnavailable(false);
     setRecordedBlob(null);
+    setLayerTake(null);
     setPreview(null);
     setInstrument('');
     setUploading(false);
@@ -468,6 +519,41 @@ export default function TrackUploadPanel({
               </motion.button>
             )}
 
+            {/* 백킹 잼 프로젝트: 두 음량 — 듣는 중 바로 반영, 올리는 파일에도 같은 균형 */}
+            {jamProject && layerTake && (() => {
+              const mix = layerMix(baseGain, mineGain, layerTake.peak);
+              const apply = (b: number, m: number) => {
+                setBaseGain(b);
+                setMineGain(m);
+                const h = jamHandleRef.current;
+                if (h && 'setGains' in h) {
+                  const nx = layerMix(b, m, layerTake.peak);
+                  h.setGains(nx.previewBase, nx.previewMine);
+                }
+              };
+              return (
+                <div className="w-full space-y-2" style={{ fontFamily: 'Pretendard, sans-serif' }}>
+                  <div>
+                    <label htmlFor="layer-base-gain" className="flex justify-between text-[12px] font-bold text-[#0A0A0A]">
+                      <span>{t('기존 합주 음량')}</span>
+                      <span>{Math.round(baseGain * 100)}%</span>
+                    </label>
+                    <input id="layer-base-gain" type="range" min={LAYER_BASE_MIN * 100} max={100} step={5} value={Math.round(baseGain * 100)} onChange={(e) => apply(Number(e.target.value) / 100, mineGain)} className="w-full h-11 accent-[#41C66B]" />
+                  </div>
+                  <div>
+                    <label htmlFor="layer-mine-gain" className="flex justify-between text-[12px] font-bold text-[#0A0A0A]">
+                      <span>{t('내 연주 음량')}</span>
+                      <span>{Math.round(mineGain * 100)}%</span>
+                    </label>
+                    <input id="layer-mine-gain" type="range" min={0} max={200} step={5} value={Math.round(mineGain * 100)} onChange={(e) => apply(baseGain, Number(e.target.value) / 100)} className="w-full h-11 accent-[#41C66B]" />
+                  </div>
+                  {mix.capped && (
+                    <p className="text-[12px] font-bold text-[#0A0A0A]/60 break-keep">{t('내 연주가 이미 가장 큰 소리예요. 더 키워도 소리가 깨지지 않게 여기서 멈춰요')}</p>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* 단독 미리듣기 (내 마이크 소리만 담김) */}
             <div className="w-full">
               <p className="text-[12px] font-bold text-[#0A0A0A]/40 mb-1 text-center" style={{ fontFamily: 'Pretendard, sans-serif' }}>
@@ -477,7 +563,7 @@ export default function TrackUploadPanel({
             </div>
 
             <button
-              onClick={() => { stopJamPreview(); setRecordedBlob(null); setPreview(null); setUploadError(''); }}
+              onClick={() => { stopJamPreview(); setRecordedBlob(null); setLayerTake(null); setPreview(null); setUploadError(''); }}
               className="text-[12px] font-bold text-[#0A0A0A]/40 underline"
               style={{ fontFamily: 'Pretendard, sans-serif' }}
             >
@@ -491,11 +577,33 @@ export default function TrackUploadPanel({
             layerBackingUrls={layerBackingUrls}
             hasPrevious={latestSection > 0}
             jamBacking={jamBacking}
-            onRecorded={(blob, m) => {
+            onRecorded={async (blob, m) => {
               setJamMode(m);
-              setRecordedBlob(blob);
-              setPreview(URL.createObjectURL(blob));
               setUploadError('');
+              if (!jamProject) {
+                setRecordedBlob(blob);
+                setPreview(URL.createObjectURL(blob));
+                return;
+              }
+              // 백킹 잼 프로젝트: 작게 녹음됐으면 −3dB까지 키우고, 거의 무음이면 다시 녹음하게
+              try {
+                const lt = await decodeLayerTake(blob);
+                if (!lt) {
+                  console.warn('[stems] 함께 녹음에 소리가 거의 없음 — 증폭하지 않음');
+                  setUploadError(t('녹음된 소리가 거의 없어요. 마이크를 확인해 주세요'));
+                  return;
+                }
+                setLayerTake(lt);
+                setBaseGain(1);
+                setMineGain(1);
+                setRecordedBlob(blob);
+                setPreview(URL.createObjectURL(new Blob([encodeWavMono16(lt.samples, lt.sampleRate)], { type: 'audio/wav' })));
+              } catch (e) {
+                console.error('[stems] 함께 녹음 디코딩 실패 — 원본 그대로', e);
+                setLayerTake(null);
+                setRecordedBlob(blob);
+                setPreview(URL.createObjectURL(blob));
+              }
             }}
           />
         )

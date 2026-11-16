@@ -120,3 +120,19 @@ test('테이크 음량 슬라이더는 올리는 파일(processTake)에 곱해�
   const out = take.processTake(s, 10, 0, 1, 1.5);
   assert.ok(Math.abs(out[0] - 0.375) < 1e-6);
 });
+
+test('함께 녹음 음량: 파일 배수 = 내 연주/기존, 16bit가 깨지지 않게 상한', () => {
+  const p = Math.pow(10, -3 / 20); // 음량 맞춤 뒤 최대 레벨
+  const a = take.layerMix(1, 1, p);
+  assert.equal(a.ratio, 1);
+  assert.equal(a.capped, false);
+  const b = take.layerMix(0.8, 1, p); // 1.25배 → 상한(1.41) 안
+  assert.ok(Math.abs(b.ratio - 1.25) < 1e-9);
+  assert.ok(Math.abs(b.previewMine - 1) < 1e-9, '미리듣기 내 연주 = 슬라이더 그대로');
+  const c = take.layerMix(0.5, 1, p); // 2배 → 1.41에서 멈춤
+  assert.equal(c.capped, true);
+  assert.ok(Math.abs(c.ratio * p - 1) < 1e-9, '최대 레벨이 정확히 1');
+  assert.ok(Math.abs(c.previewMine - c.ratio * 0.5) < 1e-9, '미리듣기도 파일과 같은 균형');
+  assert.equal(take.layerMix(0, 1, p).previewBase, take.LAYER_BASE_MIN);
+  assert.equal(take.layerMix(1, 0.5, p).ratio, 0.5);
+});

@@ -84,8 +84,11 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [restored, setRestored] = useState(false);
-  /** takeGain·backingGain = 미리듣기 중 음량(슬라이더를 움직이면 바로 반영) */
-  const preview = useRef<{ stop: () => void; takeGain: GainNode; backingGain: GainNode; timer: ReturnType<typeof setTimeout> } | null>(null);
+  /**
+   * 미리듣기(8마디 반복). takeGain·backingGain = 음량 슬라이더 즉시 반영,
+   * swapTake = 싱크를 바꾸면 테이크만 새 싱크로 같은 위치에서 다시 이어 재생
+   */
+  const preview = useRef<{ stop: () => void; takeGain: GainNode; backingGain: GainNode; swapTake: (offsetMs: number) => void } | null>(null);
   const backingCache = useRef<{ key: string; buf: Promise<AudioBuffer> } | null>(null);
 
   const specFor = useCallback(
@@ -133,7 +136,6 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
 
   const stopPreview = useCallback(() => {
     if (!preview.current) return;
-    clearTimeout(preview.current.timer);
     preview.current.stop();
     preview.current = null;
     setPreviewing(false);
@@ -202,9 +204,14 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
     if (!take) return;
     if (previewing) return stopPreview();
     const ctx = await unlockEarAudio(); // 재생은 음감과 같은 세션(무음 스위치 무시)
-    const samples = processTake(take.samples, take.sampleRate, offsetMs, eightBarsDuration(take.bpm), 1); // 음량은 아래 GainNode로(바로 반영)
-    const takeBuf = ctx.createBuffer(1, samples.length, take.sampleRate);
-    takeBuf.getChannelData(0).set(samples);
+    const loopSec = eightBarsDuration(take.bpm);
+    /** 음량은 아래 GainNode로(바로 반영). 싱크만 샘플에 */
+    const takeBufFor = (off: number) => {
+      const samples = processTake(take.samples, take.sampleRate, off, loopSec, 1);
+      const buf = ctx.createBuffer(1, samples.length, take.sampleRate);
+      buf.getChannelData(0).set(samples);
+      return buf;
+    };
     let backing: AudioBuffer | null = null;
     try {
       backing = await backingFor(take);
@@ -220,30 +227,45 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
     backingNode.gain.value = backingGain;
     backingNode.connect(master);
     const when = ctx.currentTime + 0.1;
-    const sources = [backing, takeBuf].flatMap((buf) => {
-      if (!buf) return [];
+    // 8마디를 멈출 때까지 반복 — 들으면서 싱크·음량을 맞춘다
+    const startLoop = (buf: AudioBuffer, dest: AudioNode, at: number, pos: number) => {
       const src = ctx.createBufferSource();
       src.buffer = buf;
-      src.connect(buf === takeBuf ? takeGain : backingNode);
-      src.start(when);
-      return [src];
-    });
-    const stop = () => {
-      for (const src of sources) {
-        try {
-          src.stop();
-        } catch {
-          /* 이미 끝난 소스 */
-        }
-        src.disconnect();
+      src.loop = true;
+      src.loopEnd = buf.duration;
+      src.connect(dest);
+      src.start(at, pos);
+      return src;
+    };
+    const stopSrc = (src: AudioBufferSourceNode | null, at?: number) => {
+      if (!src) return;
+      try {
+        src.stop(at);
+      } catch {
+        /* 이미 끝난 소스 */
       }
+    };
+    const backingSrc = backing ? startLoop(backing, backingNode, when, 0) : null;
+    let takeSrc = startLoop(takeBufFor(offsetMs), takeGain, when, 0);
+    const swapTake = (off: number) => {
+      const at = Math.max(ctx.currentTime + 0.03, when); // 시작 전이면 반주와 같은 시각에
+      const pos = (at - when) % loopSec;
+      const old = takeSrc;
+      takeSrc = startLoop(takeBufFor(off), takeGain, at, pos);
+      stopSrc(old, at);
+      setTimeout(() => old.disconnect(), 200);
+    };
+    const stop = () => {
+      stopSrc(backingSrc);
+      stopSrc(takeSrc);
+      backingSrc?.disconnect();
+      takeSrc.disconnect();
       takeGain.disconnect();
       backingNode.disconnect();
       master.disconnect();
       limiter.disconnect();
     };
-    const timer = setTimeout(stopPreview, (eightBarsDuration(take.bpm) + 0.4) * 1000);
-    preview.current = { stop, takeGain, backingGain: backingNode, timer };
+    preview.current = { stop, takeGain, backingGain: backingNode, swapTake };
     setPreviewing(true);
     track('jam_take_preview', { slug, offset_ms: offsetMs });
   }
@@ -260,9 +282,17 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
     if (p) p.takeGain.gain.setTargetAtTime(v, p.takeGain.context.currentTime, 0.02); // 듣는 중이면 바로
   }
 
+  /** 최신 싱크 값(빠르게 연타해도 누른 만큼 — 렌더 전 값에 덧붙지 않게) */
+  const offsetRef = useRef(offsetMs);
+  offsetRef.current = offsetMs;
   function changeOffset(v: number) {
-    setOffsetMs(clampOffset(v)); // 다음 재생부터 반영
+    const next = clampOffset(v);
+    if (next === offsetRef.current) return;
+    offsetRef.current = next;
+    setOffsetMs(next);
+    preview.current?.swapTake(next); // 듣는 중이면 같은 위치에서 바로
   }
+  const nudgeOffset = (delta: number) => changeOffset(offsetRef.current + delta);
 
   async function upload() {
     if (!take || uploading) return;
@@ -455,7 +485,7 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
               </span>
             </label>
             <div className="mt-2 flex items-center gap-2">
-              <button type="button" onClick={() => changeOffset(offsetMs - OFFSET_STEP_MS)} className="w-11 h-11 shrink-0 rounded-[12px] border-[3px] border-[#0A0A0A] bg-white font-bold" aria-label={t('테이크 당기기')}>
+              <button type="button" onClick={() => nudgeOffset(-OFFSET_STEP_MS)} className="w-11 h-11 shrink-0 rounded-[12px] border-[3px] border-[#0A0A0A] bg-white font-bold" aria-label={t('테이크 당기기')}>
                 −
               </button>
               <input
@@ -468,11 +498,11 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
                 onChange={(e) => changeOffset(Number(e.target.value))}
                 className="flex-1 min-w-0 h-11 accent-[#FF3D77]"
               />
-              <button type="button" onClick={() => changeOffset(offsetMs + OFFSET_STEP_MS)} className="w-11 h-11 shrink-0 rounded-[12px] border-[3px] border-[#0A0A0A] bg-white font-bold" aria-label={t('테이크 늦추기')}>
+              <button type="button" onClick={() => nudgeOffset(OFFSET_STEP_MS)} className="w-11 h-11 shrink-0 rounded-[12px] border-[3px] border-[#0A0A0A] bg-white font-bold" aria-label={t('테이크 늦추기')}>
                 +
               </button>
             </div>
-            <p className="mt-1 text-[12px] text-[#0A0A0A]/60 break-keep">{t('내 연주가 반주보다 늦게 들리면 −, 빠르게 들리면 +. 다음 재생부터 반영돼요')}</p>
+            <p className="mt-1 text-[12px] text-[#0A0A0A]/60 break-keep">{t('들으면서 맞춰 보세요. 내 연주가 반주보다 늦게 들리면 −, 빠르게 들리면 +')}</p>
           </div>
 
           <div>

@@ -88,11 +88,7 @@ export const SILENT_PEAK_DB = -50;
 
 /** 최대 레벨(dBFS, 소수 1자리). 완전 무음은 -Infinity */
 export function peakDb(samples: Float32Array): number {
-  let peak = 0;
-  for (let i = 0; i < samples.length; i++) {
-    const a = Math.abs(samples[i]);
-    if (a > peak) peak = a;
-  }
+  const peak = peakLinear(samples);
   return peak > 0 ? Math.round(200 * Math.log10(peak)) / 10 : -Infinity;
 }
 
@@ -110,4 +106,33 @@ export function normalizeTake(samples: Float32Array): { samples: Float32Array; p
   const out = new Float32Array(samples.length);
   for (let i = 0; i < samples.length; i++) out[i] = samples[i] * g;
   return { samples: out, peakDb: p, boostDb: Math.round(boostDb * 10) / 10 };
+}
+
+// ─── 함께 녹음(백킹 잼 프로젝트) 음량 균형 ─────────────────────────────
+/** "기존 합주 음량" 슬라이더 최소(0이면 비율이 무한대라 의미 없음) */
+export const LAYER_BASE_MIN = 0.1;
+
+/**
+ * 함께 녹음의 두 음량 → 올리는 파일에 곱할 배수.
+ * 올린 뒤에는 기존 트랙·반주가 원래 음량(100%)으로 재생되므로, 파일에는 "기존 대비 내 연주" 비율(mine/base)을 곱한다.
+ * 16bit WAV라 최대 레벨이 1을 넘으면 깨지므로 1/peak에서 멈춘다(capped). 미리듣기도 이 결과 그대로 들려 준다.
+ * @param peak 내 테이크(음량 맞춤 뒤)의 최대 레벨(0~1, 선형)
+ */
+export function layerMix(baseGain: number, mineGain: number, peak: number): { ratio: number; capped: boolean; previewBase: number; previewMine: number } {
+  const base = Math.max(LAYER_BASE_MIN, Math.min(1, baseGain));
+  const mine = Math.max(0, Math.min(GAIN_MAX, mineGain));
+  const max = peak > 0 ? 1 / peak : Infinity;
+  const want = mine / base;
+  const ratio = Math.min(want, max);
+  return { ratio, capped: want > max + 1e-9, previewBase: base, previewMine: ratio * base };
+}
+
+/** 최대 레벨(선형 0~1) */
+export function peakLinear(samples: Float32Array): number {
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const a = Math.abs(samples[i]);
+    if (a > peak) peak = a;
+  }
+  return peak;
 }

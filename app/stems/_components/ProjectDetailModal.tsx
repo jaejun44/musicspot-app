@@ -813,6 +813,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   layerBackingUrls={layerBackingUrls}
                   orderedSectionUrls={orderedSectionUrls}
                   jamBacking={isJam && !backingMuted ? jamBacking : undefined}
+                  jamProject={isJam}
                   onUploaded={() => {
                     // 트랙 업로드 = 릴레이 패스 1회. pass_count 원자적 증가 (fire-and-forget)
                     void supabase.rpc('increment_pass_count', { p_project_id: project.id });
