@@ -9,6 +9,7 @@ import { COMBOS, KEYS, STYLES, chordLabel, comboSlug, progressionChords, type Mo
 import { dailyJam, type DailyJam } from '@/lib/jam/daily';
 import { CARD, ChordDisplay, FONT, NoticeText, useKeyLabel } from './JamClient';
 import { useJamPlayer } from './useJamPlayer';
+import RecentTakes from '@/components/RecentTakes';
 
 const SHADOW = { boxShadow: '4px 4px 0 #0A0A0A' };
 
@@ -89,6 +90,9 @@ export default function JamHubClient() {
       </header>
 
       {daily ? <TodayCard daily={daily} /> : <div className={`${CARD} h-[320px]`} style={SHADOW} aria-hidden />}
+
+      {/* 백킹 잼으로 올라온 최근 테이크 5개 — 0개면 안 보임 */}
+      <RecentTakes from="jam" />
 
       <section className={`${CARD} p-5 space-y-4`} style={SHADOW}>
         <h2 className="text-[16px] font-bold text-[#0A0A0A]">{t('직접 고르기')}</h2>

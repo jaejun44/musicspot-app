@@ -15,10 +15,9 @@ interface Props {
   index: number;
   onContact: (m: Musician) => void;
   currentUserId?: string;
-  currentUserName?: string;
 }
 
-export default function MusicianCard({ musician, index, onContact, currentUserId, currentUserName }: Props) {
+export default function MusicianCard({ musician, index, onContact, currentUserId }: Props) {
   const t = useT();
   const isRealUser = UUID_RE.test(musician.id);
   const isExample = musician.name.startsWith('[이용예시]');
@@ -54,14 +53,7 @@ export default function MusicianCard({ musician, index, onContact, currentUserId
         .insert({ follower_id: currentUserId!, following_id: musician.id });
       setIsFollowing(true);
       track('follow_toggle', { target_user_id: musician.id, action: 'follow' });
-      // 팔로우 대상에게 알림 삽입 (오류 무시)
-      supabase.from('notifications').insert({
-        user_id: musician.id,
-        type: 'follow',
-        title: '새 팔로워',
-        body: `${currentUserName ?? '누군가'}님이 회원님을 팔로우했습니다`,
-        payload: { follower_id: currentUserId },
-      }).then(() => {});
+      // 알림은 DB 트리거 trg_notify_user_follow가 만든다(여기서 또 만들면 2개씩 쌓였음, 11-17 제거)
     }
     setFollowLoading(false);
   }

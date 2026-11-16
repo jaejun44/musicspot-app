@@ -13,6 +13,8 @@ import {
   kstTomorrow,
   rehearsalReminderPayload,
   reminderEvent,
+  trackReplyEvent,
+  trackReplyPayload,
   responseEvent,
   unpaidPayload,
   voteDecidedPayload,
@@ -45,7 +47,7 @@ export function configureWebPush(): boolean {
   return true;
 }
 
-type PushKind = 'vote' | 'split' | 'ear';
+type PushKind = 'vote' | 'split' | 'ear' | 'stem';
 
 /** 음감 구독자는 전원이 한 대상이라 많아질 수 있다 — push_log upsert·발송을 이만큼씩 나눈다 */
 const EAR_BATCH = 500;
@@ -53,6 +55,8 @@ const EAR_BATCH = 500;
 interface Target {
   subscription_id: string;
   device_key: string;
+  /** 구독할 때 로그인해 있던 사람(8마디는 로그인 필수라 항상 있음) */
+  user_id: string | null;
   endpoint: string;
   p256dh: string;
   auth: string;
@@ -62,7 +66,7 @@ interface Target {
 
 interface TopicRow {
   subscription_id: string;
-  push_subscriptions: { device_key: string; endpoint: string; p256dh: string; auth: string; country: string; language: string } | null;
+  push_subscriptions: { device_key: string; user_id: string | null; endpoint: string; p256dh: string; auth: string; country: string; language: string } | null;
 }
 
 /** 대상(투표·정산)의 한 역할 구독 전부. 1,000행 배치(docs/DATA_ACCESS.md) */
@@ -72,7 +76,7 @@ async function fetchTargets(admin: SupabaseClient, kind: PushKind, targetId: str
   while (true) {
     const { data, error } = await admin
       .from('push_topics')
-      .select('subscription_id, push_subscriptions(device_key, endpoint, p256dh, auth, country, language)')
+      .select('subscription_id, push_subscriptions(device_key, user_id, endpoint, p256dh, auth, country, language)')
       .eq('kind', kind)
       .eq('target_id', targetId)
       .eq('role', role)
@@ -202,6 +206,41 @@ export async function notifyVoteDecided(admin: SupabaseClient, voteId: string, n
 
   const targets = await fetchTargets(admin, 'vote', voteId, 'member');
   return deliver(admin, targets, 'vote', voteId, decidedEvent(vote.decided_studio_id), voteDecidedPayload(voteId, studio?.name ?? null));
+}
+
+/**
+ * ③ 8마디에 새 트랙이 올라옴 → 그 프로젝트를 구독한 만든 사람·앞서 올린 사람(올린 본인 기기는 빼고).
+ * 같은 사람이 10분 안에 여러 번 올리거나 요청이 재시도돼도 push_log 키(올린 사람+10분 구간)로 1번만.
+ * 앱 안 알림(벨)은 DB 트리거 trg_notify_track_reply가 따로 만든다.
+ */
+export async function notifyTrackReply(admin: SupabaseClient, trackId: string, now = new Date()): Promise<NotifyResult> {
+  const { data: tr, error } = await admin
+    .from('stem_tracks')
+    .select('id, project_id, user_id, created_at')
+    .eq('id', trackId)
+    .maybeSingle();
+  if (error) throw new Error(`[push] 트랙 조회 실패 (${trackId}): ${error.message}`);
+  if (!tr || !tr.user_id) return { status: 'ignored', reason: 'not_found' };
+  if (now.getTime() - new Date(tr.created_at).getTime() > FRESH_MS) return { status: 'ignored', reason: 'stale' };
+
+  const { data: project, error: e2 } = await admin.from('stem_projects').select('id, title').eq('id', tr.project_id).maybeSingle();
+  if (e2) throw new Error(`[push] 프로젝트 조회 실패 (${tr.project_id}): ${e2.message}`);
+  if (!project) return { status: 'ignored', reason: 'not_found' };
+
+  const all = [...(await fetchTargets(admin, 'stem', project.id, 'creator')), ...(await fetchTargets(admin, 'stem', project.id, 'member'))];
+  const targets = all.filter((t) => t.user_id !== tr.user_id);
+  const event = trackReplyEvent(tr.user_id, now);
+  const result: NotifyResult = { status: 'sent', sent: 0, skipped: 0, gone: 0, failed: 0 };
+  for (const language of ['ko', 'ja'] as const) {
+    const group = targets.filter((t) => (t.language === 'ja' ? 'ja' : 'ko') === language);
+    const r = await deliver(admin, group, 'stem', project.id, event, trackReplyPayload(project.id, project.title, language));
+    if (r.status !== 'sent') continue;
+    result.sent += r.sent;
+    result.skipped += r.skipped;
+    result.gone += r.gone;
+    result.failed += r.failed;
+  }
+  return result;
 }
 
 // ─── 하루 1번 Cron (app/api/cron/push-reminders) ─────────────────

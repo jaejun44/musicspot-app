@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-import { configureWebPush, notifyVoteDecided, notifyVoteResponse } from '@/lib/push-server';
+import { configureWebPush, notifyTrackReply, notifyVoteDecided, notifyVoteResponse } from '@/lib/push-server';
 
-// 투표 응답·결정 직후 클라이언트가 부른다. 내용은 믿지 않고 서버가 DB를 다시 읽어 판단(lib/push-server.ts)
+// 투표 응답·결정, 8마디 트랙 업로드 직후 클라이언트가 부른다. 내용은 믿지 않고 서버가 DB를 다시 읽어 판단(lib/push-server.ts)
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: NextRequest) {
-  let body: { event?: unknown; vote_id?: unknown };
+  let body: { event?: unknown; vote_id?: unknown; track_id?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
-  const { event, vote_id: voteId } = body;
-  if ((event !== 'vote_response' && event !== 'vote_decided') || typeof voteId !== 'string' || !UUID.test(voteId)) {
+  const { event } = body;
+  const id = event === 'track_reply' ? body.track_id : body.vote_id;
+  if ((event !== 'vote_response' && event !== 'vote_decided' && event !== 'track_reply') || typeof id !== 'string' || !UUID.test(id)) {
     return NextResponse.json({ error: 'invalid' }, { status: 400 });
   }
   if (!configureWebPush()) {
@@ -22,7 +23,12 @@ export async function POST(req: NextRequest) {
   }
   try {
     const admin = createAdminClient();
-    const result = event === 'vote_response' ? await notifyVoteResponse(admin, voteId) : await notifyVoteDecided(admin, voteId);
+    const result =
+      event === 'track_reply'
+        ? await notifyTrackReply(admin, id)
+        : event === 'vote_response'
+          ? await notifyVoteResponse(admin, id)
+          : await notifyVoteDecided(admin, id);
     return NextResponse.json(result);
   } catch (e) {
     console.error('[push/notify] 발송 처리 실패', e);

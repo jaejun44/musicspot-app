@@ -68,8 +68,12 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
 
   // 백킹 잼에서 올리고 넘어오면(?uploaded=1) 상세의 "내 마디 자랑하기"를 바로 보여 준다
   const [fromJamUpload, setFromJamUpload] = useState(false);
+  // 최근 테이크의 [이어 치기]로 들어오면(?take=jam) 올리기 패널을 "함께"로 열고 그 자리로 내린다
+  const [fromContinue, setFromContinue] = useState(false);
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('uploaded') === '1') setFromJamUpload(true);
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('uploaded') === '1') setFromJamUpload(true);
+    if (q.get('take') === 'jam') setFromContinue(true);
   }, []);
 
   // 공유 링크로 진입 시 해당 프로젝트 모달 자동 오픈
@@ -79,6 +83,9 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
     // 공유 유입은 K-factor 분모 → 목록 클릭과 반드시 구분해서 기록
     if (target) {
       openedDeepLink.current = initialProjectId;
+      // 이어 치기 웹 푸시로 들어옴(lib/push-messages.ts trackReplyPayload) — 벨 알림은 NotificationDropdown에서 기록
+      const q = new URLSearchParams(window.location.search);
+      if (q.get('utm_source') === 'push' && q.get('utm_campaign') === 'stem') track('stem_notify_open', { project_id: target.id, channel: 'push' });
       openProject(target, 'deeplink');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -421,6 +428,7 @@ export default function StemsClient({ initialProjectId }: StemsClientProps = {})
           project={selectedProject}
           user={user}
           initialJustUploaded={fromJamUpload && selectedProject.id === initialProjectId}
+          initialContinue={fromContinue && selectedProject.id === initialProjectId}
           onClose={() => setSelectedProject(null)}
           onUpdate={fetchProjects}
           onEdit={(p) => { setSelectedProject(null); handleEditProject(p); }}

@@ -26,6 +26,9 @@ export interface JamTakeDiag {
   sess_mode?: string;
 }
 
+/** 웹 푸시 "알림 받기" 카드가 붙은 화면 (components/PushOptIn.tsx) */
+export type PushWhere = 'vote_creator' | 'vote_member' | 'split' | 'ear' | 'stem_upload' | 'stem_member';
+
 export type LengthBucket = 'short' | 'medium' | 'long';
 
 /** 해당 화면에 어떤 경로로 들어왔는가 */
@@ -103,9 +106,9 @@ export type EventSchema = {
   split_paid_toggle: { on: boolean };
   split_next_vote_click: Record<string, never>;
   /** 웹 푸시 "알림 받기" 카드 (docs/PLAN_notifications.md). where = 붙은 화면, permission = 카드가 보일 때 브라우저 권한 */
-  push_prompt_view: { where: 'vote_creator' | 'vote_member' | 'split' | 'ear'; permission: 'default' | 'denied' | 'granted' };
-  push_permission: { where: 'vote_creator' | 'vote_member' | 'split' | 'ear'; result: 'granted' | 'denied' };
-  push_subscribe: { kind: 'vote' | 'split' | 'ear'; where: 'vote_creator' | 'vote_member' | 'split' | 'ear' };
+  push_prompt_view: { where: PushWhere; permission: 'default' | 'denied' | 'granted' };
+  push_permission: { where: PushWhere; result: 'granted' | 'denied' };
+  push_subscribe: { kind: 'vote' | 'split' | 'ear' | 'stem'; where: PushWhere };
   // 오늘의 음감 /ear — 매일 5문제 (2026-11-12). 재방문 판정은 ear_complete를 서로 다른 날 한 anon_id 수
   ear_start: { streak: number };
   ear_answer: { index: number; type: 'higher' | 'interval' | 'quality' | 'chord' | 'progression'; correct: boolean };
@@ -143,6 +146,14 @@ export type EventSchema = {
   jam_upload_error: { slug: string; stage: 'project' | 'storage' | 'track' | 'save_local'; orphan_path?: string };
   /** 로그인 후 돌아와 임시 보관 테이크 복원 */
   jam_resume: { slug: string };
+  // 8마디 "올린 뒤의 고리" (2026-11-17) — 이어 치기 알림·최근 테이크
+  /** "누가 이어 치면 알림 받기"를 누른 결과. saved = 구독됨 */
+  stem_notify_optin: { project_id: string; result: 'saved' | 'denied' | 'not_member' | 'not_found' | 'limited' | 'invalid' | 'expired' | 'error' };
+  /** 이어 치기 알림을 눌러 들어옴. push = 웹 푸시(utm_source=push), bell = 앱 안 알림 */
+  stem_notify_open: { project_id: string; channel: 'push' | 'bell' };
+  /** 최근 테이크 목록이 보임(0개면 섹션이 없어 안 남음) */
+  recent_take_view: { from: 'home' | 'jam'; count: number };
+  recent_take_click: { from: 'home' | 'jam'; project_id: string; action: 'play' | 'continue' | 'jam' };
   /** 투표 링크 공유 (만든 사람 화면) */
   vote_share: { vote_id: string; channel: ShareChannel };
   /** 투표 페이지 열람. is_creator=false가 단톡방에서 링크를 연 멤버 */

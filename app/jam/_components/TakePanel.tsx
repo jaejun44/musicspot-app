@@ -26,6 +26,7 @@ import {
 import { TAKE_BACKING_GAIN_DEFAULT } from '@/lib/jam/backing';
 import { clearPendingTake, loadPendingTake, savePendingTake } from '@/lib/jam/takeStore';
 import { INSTRUMENTS } from '@/lib/instruments';
+import { TRACK_UPLOAD_SCORE } from '@/lib/challenge-score';
 import { CARD } from './ui';
 
 const SHADOW = { boxShadow: '4px 4px 0 #0A0A0A' };
@@ -398,6 +399,7 @@ export default function TakePanel({ combo, progression, bpm, muted, onBeforeReco
           instrument: instrument || null,
           track_order: 1,
           section: 1,
+          challenge_score: TRACK_UPLOAD_SCORE,
         });
     if (trackErr) {
       console.error('[jam] 트랙 저장 실패', trackErr);
