@@ -992,6 +992,11 @@ export type Database = {
           genre_tags: Json | null
           id: string
           is_open: boolean
+          jam_bpm: number | null
+          jam_gain: number | null
+          jam_mutes: number | null
+          jam_prog: string | null
+          jam_slug: string | null
           key_signature: string
           language: string
           mood_tags: Json | null
@@ -1014,6 +1019,11 @@ export type Database = {
           genre_tags?: Json | null
           id?: string
           is_open?: boolean
+          jam_bpm?: number | null
+          jam_gain?: number | null
+          jam_mutes?: number | null
+          jam_prog?: string | null
+          jam_slug?: string | null
           key_signature?: string
           language?: string
           mood_tags?: Json | null
@@ -1036,6 +1046,11 @@ export type Database = {
           genre_tags?: Json | null
           id?: string
           is_open?: boolean
+          jam_bpm?: number | null
+          jam_gain?: number | null
+          jam_mutes?: number | null
+          jam_prog?: string | null
+          jam_slug?: string | null
           key_signature?: string
           language?: string
           mood_tags?: Json | null

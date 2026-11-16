@@ -179,6 +179,9 @@ track('challenge_upload_complete', {
   - `jam_control {slug, type: bpm|key|mute|countin}`: 조절. bpm은 슬라이더를 놓고 0.8초 뒤 1회, key는 반음 ±1 이동
   - `jam_entry_click {from: nav|home|ear|strip|hub}`: 입구 — 상단 메뉴 "백킹 잼" / 홈 히어로 아래 오늘의 잼 카드 / 음감 결과 맨 위 "오늘 들은 진행으로 같이 치기" / ReturnStrip 잼 카드(`return_strip_click {kind: jam}`도 같이) / 허브에서 조합 페이지로
   - `return_strip_*`에 `kind: jam` 추가: 잼을 재생한 적 있고 오늘은 아직 안 친 브라우저에만 카드 1장
+  - 2단계 반주 위 녹음 → 8마디(2026-11-16, `app/jam/_components/TakePanel.tsx`): `jam_record_start {slug, bpm}` · `jam_record_done {slug, 진단값}` · `jam_record_error {slug, reason: mic|decode|empty|silent, 진단값}`(진단값 = peak_db·boost_db·mime·track_muted·track_state·session·sess_mode — 소리 내용 없음, 11-16 추가) · `jam_take_preview {slug, offset_ms}`(미리듣기 재생, 그때 싱크 값) · `jam_upload_click {slug, logged_in}` · `jam_upload_done {slug, project_id}` · `jam_upload_error {slug, stage: project|storage|track|save_local, orphan_path?}`(orphan_path = 지우지 못하고 남은 저장소 파일) · `jam_resume {slug}`(로그인 후 임시 보관 테이크 복원)
+  - 올리기 성공 때 기존 8마디 이벤트도 그대로: `challenge_create_complete`, `challenge_upload_start/complete {source: backing_jam}`(UploadSource에 `backing_jam` 추가), 유저 속성 `challenge_created_count`·`stem_track_count`, `increment_pass_count`
+  - `jam_entry_click`에 `from: stems`(8마디 카드·상세의 "이 반주로 나도 치기") 추가
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
@@ -358,6 +361,27 @@ select
 ```
 - ①은 한 번 재생 기준(멈췄다 다시 틀면 따로 센다). 탭을 그냥 닫으면 `jam_stop`이 안 남을 수 있어 과소 추정 쪽
 - ③ 조합별로 보려면 `group by props->>'slug'`
+
+### 백킹 잼 녹음 깔때기 (2026-11-16 추가, 2단계 판정)
+재생 → 녹음 시작 → 녹음 완료 → 올리기 클릭 → 올리기 완료의 단계별 사람 수(anon_id, 최근 14일).
+```sql
+with e as (
+  select event_type, props->>'anon_id' anon
+  from user_events
+  where event_type in ('jam_play', 'jam_record_start', 'jam_record_done', 'jam_upload_click', 'jam_upload_done')
+    and created_at >= now() - interval '14 days' and props->>'anon_id' is not null
+    and coalesce(props->>'utm_campaign', '') <> 'codex_qa'          -- QA 제외
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 봇 제외
+)
+select
+  count(distinct anon) filter (where event_type = 'jam_play')         s1_played,
+  count(distinct anon) filter (where event_type = 'jam_record_start') s2_record_start,
+  count(distinct anon) filter (where event_type = 'jam_record_done')  s3_record_done,
+  count(distinct anon) filter (where event_type = 'jam_upload_click') s4_upload_click,
+  count(distinct anon) filter (where event_type = 'jam_upload_done')  s5_upload_done
+from e;
+```
+- 로그인하러 갔다 오면 같은 브라우저라 anon_id가 같다(복원 `jam_resume`). 단계별 이탈 사유는 `jam_record_error.reason`·`jam_upload_error.stage`로
 
 ### 밴드용 상세 조회 비율 · 세션당 상세 조회 (2026-11-12 추가, 연습실 종류 구분 전후 비교)
 배포일(KST)을 `:cut`에 넣는다. `band_rank`는 지금 `studios` 값을 붙여 배포 전 기간도 같은 기준으로 센다.

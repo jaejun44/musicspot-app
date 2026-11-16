@@ -5,7 +5,9 @@ import { motion } from 'framer-motion';
 import { MoreVertical } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import type { StemProject } from '@/types/stem';
+import Link from 'next/link';
 import { useT } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 const KEY_COLORS: Record<string, string> = {
   C: '#FF3D77', D: '#4FC3F7', E: '#41C66B', F: '#F5FF4F',
@@ -153,7 +155,28 @@ export default function ProjectCard({ project, index, user, onOpen, onEdit, onDe
             {project.genre}
           </span>
         )}
+        {project.jam_slug && (
+          <span
+            className="px-2 py-0.5 bg-[#F5FF4F] border-[2px] border-[#0A0A0A] text-[#0A0A0A] text-[12px] font-bold rounded-[6px]"
+            style={{ fontFamily: 'Pretendard, sans-serif' }}
+          >
+            🎧 {t('백킹 잼 반주 포함')}
+          </span>
+        )}
       </div>
+      {project.jam_slug && (
+        <Link
+          href={`/jam/${project.jam_slug}${project.jam_prog ? `?p=${encodeURIComponent(project.jam_prog)}` : ''}`}
+          onClick={(e) => {
+            e.stopPropagation(); // 카드 클릭(상세 열기)과 분리
+            track('jam_entry_click', { from: 'stems' });
+          }}
+          className="mb-3 inline-flex min-h-[44px] items-center text-[13px] font-bold text-[#0A0A0A] underline underline-offset-4"
+          style={{ fontFamily: 'Pretendard, sans-serif' }}
+        >
+          🎸 {t('이 반주로 나도 치기')} →
+        </Link>
+      )}
 
       {/* 설명 */}
       {project.description && (

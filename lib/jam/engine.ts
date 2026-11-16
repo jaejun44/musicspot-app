@@ -756,3 +756,34 @@ export function startJam(ctx: AudioContext, spec: JamSpec, opts: JamOptions = {}
     },
   };
 }
+
+// ─── 음소거 비트마스크 (stem_projects.jam_mutes: 1 드럼 · 2 베이스 · 4 코드) ─────
+
+export const PART_BITS: Record<Part, number> = { drums: 1, bass: 2, chords: 4 };
+
+export function mutesToMask(muted: Record<Part, boolean>): number {
+  return (Object.keys(PART_BITS) as Part[]).reduce((m, p) => (muted[p] ? m | PART_BITS[p] : m), 0);
+}
+
+/** null·0 = 전부 켬 */
+export function maskToMutes(mask: number | null | undefined): Record<Part, boolean> {
+  const m = mask ?? 0;
+  return { drums: (m & 1) !== 0, bass: (m & 2) !== 0, chords: (m & 4) !== 0 };
+}
+
+// ─── 오프라인 렌더(8마디 반주 버퍼 — 녹음·미리듣기·8마디 재생용) ───────────
+
+/**
+ * 반주 8마디를 정확히 8마디 길이로 렌더링한다(꼬리 없음 — 이어붙인 섹션이 밀리지 않게).
+ * 0초 = 1마디 첫 박. 만든 AudioBuffer는 다른 AudioContext에서도 그대로 재생할 수 있다
+ */
+export async function renderJamLoop(spec: JamSpec, muted?: Record<Part, boolean>, sampleRate = 44100): Promise<AudioBuffer> {
+  const bars = spec.chords.length;
+  const bar = barDuration(spec.bpm);
+  const ctx = new OfflineAudioContext(2, Math.round(bar * bars * sampleRate), sampleRate);
+  const buses = createBuses(ctx);
+  if (muted) (Object.keys(PART_BITS) as Part[]).forEach((p) => muted[p] && (buses[p].gain.value = 0));
+  const sink: Sink = () => {};
+  for (let i = 0; i < bars; i++) scheduleBar(ctx, buses, spec, i, i * bar, spec.bpm, sink);
+  return ctx.startRendering();
+}

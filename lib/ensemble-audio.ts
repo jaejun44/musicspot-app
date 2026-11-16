@@ -96,10 +96,23 @@ export function playEnsemble(buffers: AudioBuffer[], ctx: AudioContext, startTim
  * sections[i] = 같은 8마디 블록에 쌓인(레이어) 버퍼들 → 동시 재생.
  * 섹션끼리는 이어붙임 → 앞 섹션 길이만큼 뒤로 밀어 순차 재생(곡이 길어짐).
  * @param startTime ctx.currentTime 기준 절대 시각.
+ * @param mix 있으면 "기존"·"내 연주" 두 음량 버스로 나눠 재생(백킹 잼 프로젝트 함께 녹음 미리듣기). 없으면 기존과 똑같다
  */
-export function playSequence(sections: AudioBuffer[][], ctx: AudioContext, startTime: number): EnsembleHandle {
+export function playSequence(sections: AudioBuffer[][], ctx: AudioContext, startTime: number): EnsembleHandle;
+export function playSequence(sections: AudioBuffer[][], ctx: AudioContext, startTime: number, mix: MixOptions): MixHandle;
+export function playSequence(sections: AudioBuffer[][], ctx: AudioContext, startTime: number, mix?: MixOptions): EnsembleHandle | MixHandle {
   const sources: AudioBufferSourceNode[] = [];
   const { master, limiter } = createMasterChain(ctx);
+  let base: GainNode | null = null;
+  let mine: GainNode | null = null;
+  if (mix) {
+    base = ctx.createGain();
+    base.gain.value = mix.baseGain;
+    base.connect(master);
+    mine = ctx.createGain();
+    mine.gain.value = mix.mineGain;
+    mine.connect(master);
+  }
 
   let when = Math.max(startTime, ctx.currentTime);
   for (const section of sections) {
@@ -107,7 +120,7 @@ export function playSequence(sections: AudioBuffer[][], ctx: AudioContext, start
     for (const buf of section) {
       const src = ctx.createBufferSource();
       src.buffer = buf;
-      src.connect(master);
+      src.connect(mix ? (buf === mix.mine ? mine! : base!) : master);
       src.start(when);
       sources.push(src);
       sectionDur = Math.max(sectionDur, buf.duration);
@@ -115,20 +128,40 @@ export function playSequence(sections: AudioBuffer[][], ctx: AudioContext, start
     when += sectionDur; // 다음 섹션은 이 섹션이 끝난 뒤
   }
 
-  return {
-    stop: () => {
-      for (const src of sources) {
-        try {
-          src.stop();
-        } catch {
-          /* 이미 정지/종료된 소스 무시 */
-        }
-        src.disconnect();
+  const stop = () => {
+    for (const src of sources) {
+      try {
+        src.stop();
+      } catch {
+        /* 이미 정지/종료된 소스 무시 */
       }
-      master.disconnect();
-      limiter.disconnect();
+      src.disconnect();
+    }
+    base?.disconnect();
+    mine?.disconnect();
+    master.disconnect();
+    limiter.disconnect();
+  };
+  if (!mix) return { stop };
+  return {
+    stop,
+    setGains: (baseGain: number, mineGain: number) => {
+      base!.gain.setTargetAtTime(baseGain, ctx.currentTime, 0.02);
+      mine!.gain.setTargetAtTime(mineGain, ctx.currentTime, 0.02);
     },
   };
+}
+
+export interface MixOptions {
+  /** "내 연주" 버스로 보낼 버퍼(나머지는 전부 "기존") */
+  mine: AudioBuffer;
+  baseGain: number;
+  mineGain: number;
+}
+
+export interface MixHandle extends EnsembleHandle {
+  /** 재생 중 두 버스 음량을 바로 바꾼다 */
+  setGains: (baseGain: number, mineGain: number) => void;
 }
 
 /** 섹션 순차 재생의 총 길이(초). 진행/정지 타이머용. */
