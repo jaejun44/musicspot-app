@@ -20,7 +20,8 @@
 - 바뀐 파일: `supabase/22_stem_loop.sql`·`23_notifications_insert_close.sql`·`lib/challenge-score.ts`·`components/RecentTakes.tsx`·`tests/challenge-score.cjs` 새 파일 + TrackUploadPanel·TakePanel·ProjectDetailModal·StemsClient·MusicianCard·BandMatchingClient·HomeClient·JamHubClient·PushOptIn·NotificationDropdown·useNotifications·push(-server·-messages)·api/push/notify·share-utm·analytics(context·events)·jam-ja·tests/push-messages · docs — 브랜치 `feat/stem-loop` PR
 - 확인한 것: 로컬 Postgres 22 = 26/26·23 = 15/15 각 2회, 운영 제약·트리거 적용 확인, 홈·`/jam` 최근 테이크(390/1440 넘침 없음·버튼 44px·0개면 숨김), 이벤트 anon_id 적재, 122/122·tsc 0·build. 로그인 2계정 실제 알림·푸시는 미확인. ⚠️ 유튜브 링크 업로드는 원래부터 실패(`file_url` NOT NULL)
 - 받는 쪽: 사용자
-- 요청: ① PR 머지(사용자) ② **머지·운영 배포 확인 뒤에** `23_notifications_insert_close.sql` 적용 승인(먼저 닫으면 옛 코드 브라우저에서 팔로우 알림 insert 오류) ③ 계정 2개로 실기기 확인(B 업로드 → A 벨 1개·푸시 1개, B 없음, 10분 안 재업로드 중복 없음) ④ QA 이벤트 삭제 여부(아래 보고의 id) ⑤ 유튜브 링크 업로드 고칠지
+- 요청: ① PR 머지 — 처리됨(11-17 #52) ② 23 적용 — 처리됨(11-17 배포 확인 뒤 승인·적용, 남 앞 insert 거부·팔로우 알림 1개 확인) ③ 계정 2개 실기기 확인(사용자, 아래 순서) ④ QA 이벤트 — 지우지 않음(8829·8830은 PHASES QA 데이터 줄) ⑤ 유튜브 링크 숨김 — 응답 5단계 해당 여부 답 대기
+- 실기기 확인 순서: 1) A로 로그인 → 내가 만든 8마디 상세(오디오 트랙 있는 것)에서 "🔔 누가 이어 치면 알림 받기" → 허용(아이폰은 홈 화면에 추가한 앱에서만 카드가 보임) 2) B(다른 폰·브라우저)로 로그인 → 홈 "방금 올라온 8마디"에서 A의 8마디 [이어 치기] → 상세가 "함께"로 열리는지 3) B가 녹음해서 올리기 4) A 폰에 푸시 1개("🎸 누가 내 8마디에 이어 쳤어요", 이름 없음) → 누르면 그 8마디 상세 5) A 벨에 알림 1개("B님이 내 8마디에 이어 쳤어요") → 누르면 상세, B 벨에는 없음 6) B가 10분 안에 한 번 더 올리기 → A에게 벨·푸시 추가 없음 7) 끝나면 QA로 만든 프로젝트·트랙을 알려 주기(점수 B +10씩·알림 행 확인 후 정리 여부 결정)
 - 상태: 열림
 
 ### 2026-11-16 — Cowork — HANDOFF 확인 + 다음 작업 프롬프트: 테이크 이후 고리(점수·응답 알림·최근 테이크)
