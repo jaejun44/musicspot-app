@@ -44,14 +44,9 @@ interface Props {
   orderedSectionUrls?: string[][];
   /** 백킹 잼 프로젝트의 반주 8마디(합성). 녹음·미리듣기에서 섹션마다 깐다. 없으면 기존과 같음 */
   jamBacking?: () => Promise<AudioBuffer | null>;
-  /**
-   * 백킹 잼 프로젝트면 true — 함께 녹음에 자동 음량 맞춤 + "기존 합주/내 연주" 음량 조절, WAV로 올림.
-   * 반주를 꺼서 jamBacking이 없어도 true. 일반 프로젝트(false)는 기존 동작 그대로
-   */
-  jamProject?: boolean;
 }
 
-/** 함께 녹음 테이크(백킹 잼 프로젝트만): 음량 맞춘 모노 샘플 */
+/** 함께 녹음 테이크: 음량 맞춘 모노 샘플(모든 8마디 프로젝트, 2026-11-16 사용자 결정) */
 interface LayerTake {
   samples: Float32Array;
   sampleRate: number;
@@ -81,13 +76,12 @@ export default function TrackUploadPanel({
   layerBackingUrls = [],
   orderedSectionUrls = [],
   jamBacking,
-  jamProject = false,
 }: Props) {
   const t = useT();
   const [uploadMode, setUploadMode] = useState<UploadMode>('file');
   const [file, setFile] = useState<File | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
-  // 백킹 잼 프로젝트 함께 녹음: 음량 맞춘 테이크 + 두 음량(기존 합주·내 연주)
+  // 함께 녹음: 음량 맞춘 테이크 + 두 음량(기존 합주·내 연주)
   const [layerTake, setLayerTake] = useState<LayerTake | null>(null);
   const [baseGain, setBaseGain] = useState(1);
   const [mineGain, setMineGain] = useState(1);
@@ -178,9 +172,9 @@ export default function TrackUploadPanel({
     jamCtxRef.current = ctx;
     await resumeContext(ctx);
 
-    // 백킹 잼 프로젝트: 내 연주는 음량 맞춘 샘플로, "기존"·"내 연주" 두 버스로 나눠 재생(슬라이더 즉시 반영)
+    // 함께 녹음: 내 연주는 음량 맞춘 샘플로, "기존"·"내 연주" 두 버스로 나눠 재생(슬라이더 즉시 반영)
     let mineBuf: AudioBuffer | null = null;
-    if (jamProject && layerTake) {
+    if (layerTake) {
       mineBuf = ctx.createBuffer(1, layerTake.samples.length, layerTake.sampleRate);
       mineBuf.getChannelData(0).set(layerTake.samples);
     }
@@ -387,8 +381,8 @@ export default function TrackUploadPanel({
       source = trimmed ?? file!;
       ext = trimmed ? 'wav' : file!.name.split('.').pop() ?? 'mp3';
       contentType = trimmed ? 'audio/wav' : file!.type;
-    } else if (jamProject && uploadMode === 'jam' && layerTake) {
-      // 백킹 잼 프로젝트 함께 녹음: 음량 맞춤 × (내 연주/기존) 비율을 곱한 16bit WAV — 미리듣기와 같은 균형
+    } else if (uploadMode === 'jam' && layerTake) {
+      // 함께 녹음: 음량 맞춤 × (내 연주/기존) 비율을 곱한 16bit WAV — 미리듣기와 같은 균형
       const { ratio } = layerMix(baseGain, mineGain, layerTake.peak);
       const out = new Float32Array(layerTake.samples.length);
       for (let i = 0; i < out.length; i++) out[i] = layerTake.samples[i] * ratio;
@@ -519,8 +513,8 @@ export default function TrackUploadPanel({
               </motion.button>
             )}
 
-            {/* 백킹 잼 프로젝트: 두 음량 — 듣는 중 바로 반영, 올리는 파일에도 같은 균형 */}
-            {jamProject && layerTake && (() => {
+            {/* 함께 녹음: 두 음량 — 듣는 중 바로 반영, 올리는 파일에도 같은 균형 */}
+            {layerTake && (() => {
               const mix = layerMix(baseGain, mineGain, layerTake.peak);
               const apply = (b: number, m: number) => {
                 setBaseGain(b);
@@ -580,12 +574,7 @@ export default function TrackUploadPanel({
             onRecorded={async (blob, m) => {
               setJamMode(m);
               setUploadError('');
-              if (!jamProject) {
-                setRecordedBlob(blob);
-                setPreview(URL.createObjectURL(blob));
-                return;
-              }
-              // 백킹 잼 프로젝트: 작게 녹음됐으면 −3dB까지 키우고, 거의 무음이면 다시 녹음하게
+              // 작게 녹음됐으면 −3dB까지 키우고, 거의 무음이면 다시 녹음하게
               try {
                 const lt = await decodeLayerTake(blob);
                 if (!lt) {

@@ -20,7 +20,7 @@
 - 바뀐 파일: `lib/jam/backing·take·takeStore·session.ts`·`hooks/useTakeRecorder.ts`·`app/jam/_components/TakePanel·JamTakesList·ui`·`lib/instruments.ts`·`supabase/19·20`·`tests/jam-take.cjs` 새 파일 + JamRecorder·TrackUploadPanel·ProjectDetailModal·ProjectCard·StemsClient·JamClient·engine·catalog·events·types·jam-ja · docs — 브랜치 `jam-take` PR
 - 확인한 것: 가짜 마이크로 녹음(카운트인→8마디 자동 정지)·미리듣기·싱크·비로그인 저장→복원, 기존 프로젝트 그대로, 이벤트 적재, tsc 0·114/114·build. 로그인 상태 올리기·실패 정리·쌓기는 아직
 - 11-16 추가(사용자 1차 확인 반영): DB 21 `jam_gain`(승인 후 운영 적용) · 반주 음량 슬라이더(기본 50%, `/jam` 연주 화면은 그대로) · 테이크 자동 음량 맞춤(−3dB, −50dB 미만은 다시 녹음 안내) · 슬라이더 즉시 반영 · 녹음 진단 이벤트. 117/117
-- 11-16 추가(2차): 8마디 "함께"(백킹 잼 프로젝트만) 자동 음량 맞춤 + 기존/내 연주 음량 조절(파일에 비율 반영, WAV) · `/jam` 싱크 반복 재생 중 즉시 반영·연타 버그 수정. 118/118. 사용자 QA 프로젝트 `d9466e33-c86b-49b7-8266-bacbd866b88a`(아이폰 올리기) — 삭제 여부 확인 필요
+- 11-16 추가(2차): 8마디 "함께"(모든 프로젝트 — 사용자 결정) 자동 음량 맞춤 + 기존/내 연주 음량 조절(파일에 비율 반영, WAV) · `/jam` 싱크 반복 재생 중 즉시 반영·연타 버그 수정. 118/118. 사용자 QA 프로젝트 `d9466e33-c86b-49b7-8266-bacbd866b88a`(아이폰 올리기) — 삭제 여부 확인 필요
 - 받는 쪽: 사용자
 - 요청: ① 아이폰 확인(PR 본문·보고의 번호 순서) 후 머지 ② QA로 만든 프로젝트·트랙 삭제 여부 ③ 로그인 QA 방법 결정
 - 상태: 열림
