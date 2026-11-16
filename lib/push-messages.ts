@@ -26,7 +26,7 @@ export function decidedEvent(studioId: string): string {
 }
 
 /** buildShareUrl의 절대 주소 → 경로+쿼리 (미리보기 배포에서도 같은 사이트로 열리게) */
-function pushPath(path: string, campaign: 'vote' | 'split' | 'ear', content: string): string {
+function pushPath(path: string, campaign: 'vote' | 'split' | 'ear' | 'stem', content: string): string {
   const u = new URL(buildShareUrl(path, 'push', campaign, content));
   return `${u.pathname}${u.search}`;
 }
@@ -108,5 +108,29 @@ export function earPayload(language: string): PushPayload {
     body: ja ? '5問・1分で終わります。連続記録をつなごう。' : '5문제, 1분이면 끝나요. 연속 기록을 이어 가세요.',
     url: pushPath('/ear', 'ear', 'daily'),
     tag: 'ear-daily',
+  };
+}
+
+// ─── 8마디 이어 치기 (2026-11-17, supabase/22_stem_loop.sql) ───────
+
+/** 같은 사람이 같은 프로젝트에 10분 안에 여러 번 올려도 1번 */
+export const TRACK_REPLY_WINDOW_MS = 10 * 60 * 1000;
+
+/** 올린 사람 + 10분 구간. 재시도해도 같은 키라 push_log가 막는다 */
+export function trackReplyEvent(uploaderId: string, now: Date): string {
+  return `reply:${uploaderId}:${Math.floor(now.getTime() / TRACK_REPLY_WINDOW_MS)}`;
+}
+
+/** 잠금화면에 뜨므로 이름은 넣지 않는다. 프로젝트 제목만(사용자가 공개로 올린 제목) */
+export function trackReplyPayload(projectId: string, projectTitle: string | null, language: string): PushPayload {
+  const ja = language === 'ja';
+  const title = (projectTitle ?? '').trim().slice(0, 40);
+  return {
+    title: ja ? '🎸 自分の8小節に誰かが続けて弾きました' : '🎸 누가 내 8마디에 이어 쳤어요',
+    body: ja
+      ? `${title ? `「${title}」` : '8小節'} — タップして一緒に聴いてみよう。`
+      : `${title ? `「${title}」` : '8마디'} — 눌러서 같이 들어 보세요.`,
+    url: pushPath(`/stems/${projectId}`, 'stem', 'reply'),
+    tag: `stem-${projectId}`,
   };
 }

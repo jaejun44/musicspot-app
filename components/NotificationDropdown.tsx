@@ -6,6 +6,7 @@ import { X, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
 import { useT, t as tGlobal } from '@/lib/i18n';
+import { track } from '@/lib/analytics';
 
 const TYPE_EMOJI: Record<Notification['type'], string> = {
   follow: '👤',
@@ -15,6 +16,7 @@ const TYPE_EMOJI: Record<Notification['type'], string> = {
   booking_confirmed: '📋',
   challenge_cta: '🎸',
   challenge_nudge: '🎵',
+  track_reply: '🎸',
 };
 
 function timeAgo(iso: string) {
@@ -105,7 +107,9 @@ export default function NotificationDropdown({ open, onClose }: Props) {
                   key={n.id}
                   onClick={async () => {
                     await markRead(n.id);
-                    const ctaUrl = (n.payload as Record<string, string> | null)?.cta_url;
+                    const payload = n.payload as Record<string, string> | null;
+                    if (n.type === 'track_reply' && payload?.project_id) track('stem_notify_open', { project_id: payload.project_id, channel: 'bell' });
+                    const ctaUrl = payload?.cta_url;
                     if (ctaUrl) { onClose(); router.push(ctaUrl); }
                   }}
                   whileHover={{ backgroundColor: '#FFF8F0' }}

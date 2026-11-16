@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
  * 구독은 기기 키(ms_vk)와 투표·정산 id에 묶인다. 어떤 대상을 켰는지는 이 브라우저 localStorage(ms_push_topics)에만 둔다(읽는 RPC 없음).
  */
 
-export type PushKind = 'vote' | 'split' | 'ear';
+export type PushKind = 'vote' | 'split' | 'ear' | 'stem';
 export type PushSupport = 'unsupported' | 'denied' | 'default' | 'granted';
 export type SubscribeResult = 'saved' | 'invalid' | 'not_found' | 'expired' | 'not_member' | 'limited';
 
@@ -129,14 +129,14 @@ export async function unsubscribeTopic(kind: PushKind, targetId: string): Promis
 }
 
 /**
- * 투표 응답·결정 직후 발송 서버에 알린다(app/api/push/notify). 서버가 DB를 다시 읽어 판단하므로 결과는 기다리지 않는다.
+ * 투표 응답·결정, 8마디 트랙 업로드 직후 발송 서버에 알린다(app/api/push/notify). 서버가 DB를 다시 읽어 판단하므로 결과는 기다리지 않는다.
  * keepalive: 결정 직후 상세 페이지로 이동해도 요청이 끊기지 않게
  */
-export function requestPushNotify(event: 'vote_response' | 'vote_decided', voteId: string): void {
+export function requestPushNotify(event: 'vote_response' | 'vote_decided' | 'track_reply', id: string): void {
   fetch('/api/push/notify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event, vote_id: voteId }),
+    body: JSON.stringify(event === 'track_reply' ? { event, track_id: id } : { event, vote_id: id }),
     keepalive: true,
   })
     .then((res) => {

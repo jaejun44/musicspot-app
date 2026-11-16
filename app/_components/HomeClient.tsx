@@ -14,6 +14,7 @@ import WelcomeSheet from '@/components/WelcomeSheet';
 import ReturnStrip from '@/components/ReturnStrip';
 import NewsLatest from '@/components/NewsLatest';
 import JamTodayCard from '@/components/JamTodayCard';
+import RecentTakes from '@/components/RecentTakes';
 import { useIsJapanMode } from '@/lib/i18n';
 
 export default function HomeClient() {
@@ -45,6 +46,8 @@ export default function HomeClient() {
       <div className="relative z-10 px-4 sm:px-6 py-6 max-w-5xl mx-auto space-y-6">
         {/* 매일 바뀌는 반주 — 뉴스 위 1장 */}
         <JamTodayCard />
+        {/* 방금 올라온 8마디 3개 — 0개면 안 보임 */}
+        <RecentTakes from="home" />
         <NewsLatest from="home" />
       </div>
       {!isJapanMode && (

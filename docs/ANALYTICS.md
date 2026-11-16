@@ -182,6 +182,11 @@ track('challenge_upload_complete', {
   - 2단계 반주 위 녹음 → 8마디(2026-11-16, `app/jam/_components/TakePanel.tsx`): `jam_record_start {slug, bpm}` · `jam_record_done {slug, 진단값}` · `jam_record_error {slug, reason: mic|decode|empty|silent, 진단값}`(진단값 = peak_db·boost_db·mime·track_muted·track_state·session·sess_mode — 소리 내용 없음, 11-16 추가) · `jam_take_preview {slug, offset_ms}`(미리듣기 재생, 그때 싱크 값) · `jam_upload_click {slug, logged_in}` · `jam_upload_done {slug, project_id}` · `jam_upload_error {slug, stage: project|storage|track|save_local, orphan_path?}`(orphan_path = 지우지 못하고 남은 저장소 파일) · `jam_resume {slug}`(로그인 후 임시 보관 테이크 복원)
   - 올리기 성공 때 기존 8마디 이벤트도 그대로: `challenge_create_complete`, `challenge_upload_start/complete {source: backing_jam}`(UploadSource에 `backing_jam` 추가), 유저 속성 `challenge_created_count`·`stem_track_count`, `increment_pass_count`
   - `jam_entry_click`에 `from: stems`(8마디 카드·상세의 "이 반주로 나도 치기") 추가
+- 8마디 "올린 뒤의 고리" (2026-11-17, `components/RecentTakes.tsx`·`PushOptIn`·`NotificationDropdown`·`StemsClient`):
+  - `stem_notify_optin {project_id, result: saved|denied|not_member|not_found|limited|invalid|expired|error}`: "누가 이어 치면 알림 받기" 결과. 같은 순간 `push_permission`·`push_subscribe {kind: stem}`도 남음(where `stem_upload` = 올린 직후, `stem_member` = 참여자의 상세)
+  - `stem_notify_open {project_id, channel: push|bell}`: 이어 치기 알림으로 들어옴. push = `/stems/<id>?utm_source=push&utm_campaign=stem` 착지, bell = 앱 안 알림(`track_reply`) 클릭
+  - `recent_take_view {from: home|jam, count}`: 최근 테이크 목록이 보임(0개·조회 실패면 섹션이 없어 안 남음)
+  - `recent_take_click {from, project_id, action: play|continue|jam}`: 재생 / [이어 치기](→ `/stems/<id>?take=jam`) / [이 반주로 나도 치기](→ `/jam/<slug>`)
 - `vote_admin_link_copy {vote_id, method: kakao|copy}` · `vote_admin_link_open {vote_id, valid}` (2026-11-06 추가): 만든 사람의 관리 링크(`/vote/<id>#k=…`, `VoteAdminLink.tsx`). open은 해시 토큰으로 들어온 첫 로드 1회, valid=false = 토큰 불일치(멤버 화면으로 표시). **토큰 값은 어떤 이벤트에도 담지 않는다**
 - `vote_create`에 `is_followup`(다음 합주 투표를 이전 투표에 이어 만듦), `return_strip_*`에 `kind: vote`(홈 "진행 중인 투표", click은 `vote_id`) 추가
 - `booking_start` · `payment_select` · `booking_complete`는 옛 목업(`/booking`·`/payment`·`/complete`)을 지우면서
@@ -382,6 +387,34 @@ select
 from e;
 ```
 - 로그인하러 갔다 오면 같은 브라우저라 anon_id가 같다(복원 `jam_resume`). 단계별 이탈 사유는 `jam_record_error.reason`·`jam_upload_error.stage`로
+
+### 8마디 올린 뒤의 고리 (2026-11-17 추가, 머지 2주 뒤 판정)
+① 서로 다른 날(KST) 2번 이상 올린 사람 ② 이어 치기 알림을 눌러 들어온 사람(푸시·벨) ③ [이어 치기]를 누르고 2시간 안에 같은 프로젝트에 올린 트랙.
+```sql
+with e as (
+  select event_type, props, props->>'anon_id' anon, props->>'project_id' pid, created_at,
+         (created_at at time zone 'Asia/Seoul')::date kst_day
+  from user_events
+  where event_type in ('challenge_upload_complete', 'stem_notify_open', 'recent_take_click', 'recent_take_view')
+    and created_at >= now() - interval '14 days'
+    and coalesce(props->>'utm_campaign', '') <> 'codex_qa'          -- QA 제외
+    and user_agent !~* '(bot|spider|crawler|headless|lighthouse)'  -- 봇 제외
+)
+select
+  (select count(*) from (select anon from e where event_type = 'challenge_upload_complete' and anon is not null
+                          group by anon having count(distinct kst_day) >= 2) t)                                   uploaders_2plus_days,
+  (select count(distinct anon) from e where event_type = 'stem_notify_open' and props->>'channel' = 'push')     opened_from_push,
+  (select count(distinct anon) from e where event_type = 'stem_notify_open' and props->>'channel' = 'bell')     opened_from_bell,
+  (select count(*) from e u where u.event_type = 'challenge_upload_complete'
+     and exists (select 1 from e c where c.event_type = 'recent_take_click' and c.props->>'action' = 'continue'
+                 and c.anon = u.anon and c.pid = u.pid
+                 and c.created_at between u.created_at - interval '2 hours' and u.created_at))                  uploads_via_continue,
+  (select count(distinct anon) from e where event_type = 'recent_take_view')                                   recent_viewers,
+  (select count(distinct anon) from e where event_type = 'recent_take_click')                                  recent_clickers;
+```
+- 로그인한 사람 기준(계정)으로 다시 올린 사람은 DB로도 본다: `select count(*) from (select user_id from stem_tracks where created_at >= now() - interval '14 days' group by user_id having count(distinct (created_at at time zone 'Asia/Seoul')::date) >= 2) t;`
+- 푸시 착지는 utm_campaign이 `stem`이라 QA 표시(`codex_qa`)를 붙일 수 없다 → QA는 헤드리스 브라우저(봇 필터에 걸림)로만 하고, 실기기 QA 이벤트는 보고서에 id를 적어 따로 지운다
+- 11-17 운영 기준 모두 0(배포 전)
 
 ### 밴드용 상세 조회 비율 · 세션당 상세 조회 (2026-11-12 추가, 연습실 종류 구분 전후 비교)
 배포일(KST)을 `:cut`에 넣는다. `band_rank`는 지금 `studios` 값을 붙여 배포 전 기간도 같은 기준으로 센다.

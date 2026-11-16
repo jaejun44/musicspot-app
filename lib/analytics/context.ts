@@ -143,7 +143,7 @@ export async function syncUserProperties(userId: string): Promise<void> {
 
   try {
     const [scoreRes, titleRes, bandRes, profileRes, trackRes] = await Promise.all([
-      supabase.from('user_challenge_score').select('score').eq('user_id', userId).maybeSingle(),
+      supabase.from('user_challenge_score').select('total_score').eq('user_id', userId).maybeSingle(),
       supabase.from('user_titles').select('id', { count: 'exact', head: true }).eq('user_id', userId),
       supabase.from('band_members').select('id', { count: 'exact', head: true }).eq('user_id', userId),
       supabase.from('user_profiles').select('created_at').eq('user_id', userId).maybeSingle(),
@@ -154,7 +154,9 @@ export async function syncUserProperties(userId: string): Promise<void> {
     identify.set('language', getClientLocale());
     const country = getClientCountry();
     if (country) identify.set('country', country);
-    identify.set('challenge_score', (scoreRes.data as { score?: number } | null)?.score ?? 0);
+    // 예전엔 없는 컬럼 score를 읽어 오류 → 늘 0이었다(11-15 발견). 실제 누적 점수는 total_score
+    if (scoreRes.error) console.warn('[analytics] 점수 조회 실패 — challenge_score 속성 생략', scoreRes.error.message);
+    else identify.set('challenge_score', (scoreRes.data as { total_score?: number | null } | null)?.total_score ?? 0);
     identify.set('title_count', titleRes.count ?? 0);
     identify.set('has_band', (bandRes.count ?? 0) > 0);
     identify.set('has_profile', profileRes.data != null);

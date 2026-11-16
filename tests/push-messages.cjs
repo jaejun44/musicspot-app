@@ -16,7 +16,7 @@ function loadLib(file, deps = {}) {
 }
 
 const shareUtm = loadLib('share-utm');
-const { responseEvent, decidedEvent, voteResponsePayload, voteDecidedPayload, RESPONSE_WINDOW_MS, kstTomorrow, reminderEvent, rehearsalReminderPayload, unpaidPayload, UNPAID_EVENT, kstDate, earEvent, earPayload, EAR_TARGET_ID } = loadLib('push-messages', {
+const { responseEvent, decidedEvent, voteResponsePayload, voteDecidedPayload, RESPONSE_WINDOW_MS, kstTomorrow, reminderEvent, rehearsalReminderPayload, unpaidPayload, UNPAID_EVENT, kstDate, earEvent, earPayload, EAR_TARGET_ID, trackReplyEvent, trackReplyPayload, TRACK_REPLY_WINDOW_MS } = loadLib('push-messages', {
   '@/lib/share-utm': shareUtm,
 });
 
@@ -72,4 +72,26 @@ test('오늘의 음감: KST 오늘 날짜로 하루 1건, /ear push UTM, 언어�
   assert.match(ko.title, /오늘의 음감/);
   assert.equal(ko.tag, 'ear-daily');
   assert.match(earPayload('ja').title, /今日の音感/);
+});
+
+test('이어 치기 알림 키: 같은 사람·같은 10분이면 같은 키(재시도 중복 없음), 사람·구간이 다르면 새 키', () => {
+  const t = Date.UTC(2026, 10, 17, 12, 0, 0);
+  const u = 'aaaaaaaa-0000-0000-0000-000000000001';
+  assert.equal(trackReplyEvent(u, new Date(t)), trackReplyEvent(u, new Date(t + TRACK_REPLY_WINDOW_MS - 1)));
+  assert.notEqual(trackReplyEvent(u, new Date(t)), trackReplyEvent(u, new Date(t + TRACK_REPLY_WINDOW_MS)));
+  assert.notEqual(trackReplyEvent(u, new Date(t)), trackReplyEvent('bbbbbbbb-0000-0000-0000-000000000002', new Date(t)));
+  // push_log.event CHECK: 1~80자
+  assert.ok(trackReplyEvent(u, new Date(t)).length <= 80);
+});
+
+test('이어 치기 알림 문구: 이름 없음, 제목만, push UTM, 프로젝트별 tag, ja', () => {
+  const r = trackReplyPayload('p1', '블루스 잼', 'ko');
+  assert.equal(r.url, '/stems/p1?utm_source=push&utm_medium=share&utm_campaign=stem&utm_content=reply');
+  assert.equal(r.tag, 'stem-p1');
+  assert.match(r.body, /「블루스 잼」/);
+  assert.match(r.title, /이어 쳤어요/);
+  const long = trackReplyPayload('p1', 'x'.repeat(100), 'ko');
+  assert.ok(long.body.length < 80);
+  assert.match(trackReplyPayload('p1', null, 'ko').body, /^8마디/);
+  assert.match(trackReplyPayload('p1', '', 'ja').title, /8小節/);
 });

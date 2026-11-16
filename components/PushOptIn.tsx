@@ -8,7 +8,9 @@ import { getVoterKey } from '@/lib/votes';
 import { useT, useIsJapanMode } from '@/lib/i18n';
 import { getPushSupport, isTopicOn, subscribeTopic, unsubscribeTopic, type PushKind, type PushSupport } from '@/lib/push';
 
-export type PushWhere = 'vote_creator' | 'vote_member' | 'split' | 'ear';
+import type { PushWhere } from '@/lib/analytics/events';
+
+export type { PushWhere };
 
 interface Props {
   kind: PushKind;
@@ -23,6 +25,8 @@ const COPY: Record<PushWhere, { title: string; desc: string }> = {
   vote_member: { title: '🔔 연습실이 정해지면 알려 드릴까요?', desc: '결정되면 이 브라우저로 알려 드려요. 합주 전날에도 한 번.' },
   split: { title: '🔔 [냈어요] 잊지 않게 알려 드릴까요?', desc: '아직 안 눌렀으면 하루 뒤에 나한테만 한 번 알려 드려요.' },
   ear: { title: '🔔 내일 문제 알림 받기', desc: '매일 저녁 8시쯤 이 브라우저로 한 번만 알려 드려요.' },
+  stem_upload: { title: '🔔 누가 이어 치면 알림 받기', desc: '이 8마디에 누가 연주를 올리면 이 브라우저로 알려 드려요.' },
+  stem_member: { title: '🔔 누가 이어 치면 알림 받기', desc: '이 8마디에 누가 연주를 올리면 이 브라우저로 알려 드려요.' },
 };
 
 const FAIL_MESSAGE: Record<string, string> = {
@@ -34,7 +38,7 @@ const FAIL_MESSAGE: Record<string, string> = {
   invalid: '이 브라우저는 알림 구독 정보를 보내지 못했어요.',
 };
 
-/** 행동 직후(투표함·투표 만듦·정산 열람·음감 다 풂)에만 보이는 "알림 받기" 카드. 지원하지 않는 브라우저(카톡 인앱, 홈 화면 밖 iOS 등)에서는 숨긴다 */
+/** 행동 직후(투표함·투표 만듦·정산 열람·음감 다 풂·8마디 올림)에만 보이는 "알림 받기" 카드. 지원하지 않는 브라우저(카톡 인앱, 홈 화면 밖 iOS 등)에서는 숨긴다 */
 export default function PushOptIn({ kind, targetId, where, creatorToken = null }: Props) {
   // 음감(/ear)은 일본어 모드에서도 열린다. 투표·정산은 ko 전용이라 t()가 원문 그대로 돌려준다
   const t = useT();
@@ -77,15 +81,18 @@ export default function PushOptIn({ kind, targetId, where, creatorToken = null }
         language: isJapanMode ? 'ja' : 'ko',
       });
       track('push_permission', { where, result: result === 'denied' ? 'denied' : 'granted' });
+      if (kind === 'stem') track('stem_notify_optin', { project_id: targetId, result });
       if (result === 'saved') {
         track('push_subscribe', { kind, where });
         setOn(true);
       } else {
         if (result === 'denied') setSupport('denied');
-        setNotice(t(FAIL_MESSAGE[result] ?? '알림을 켜지 못했어요.'));
+        const msg = kind === 'stem' && result === 'not_member' ? '이 8마디를 만들었거나 연주를 올린 사람만 알림을 받을 수 있어요.' : FAIL_MESSAGE[result];
+        setNotice(t(msg ?? '알림을 켜지 못했어요.'));
       }
     } catch (e) {
       console.error('[PushOptIn] 알림 켜기 실패', e);
+      if (kind === 'stem') track('stem_notify_optin', { project_id: targetId, result: 'error' });
       setNotice(e instanceof Error ? e.message : t('알림을 켜지 못했어요.'));
     } finally {
       setBusy(false);

@@ -15,6 +15,7 @@ import TrackUploadPanel, { extractYoutubeId } from './TrackUploadPanel';
 import { createAudioContext, resumeContext, loadTracksAligned, playSequence, type EnsembleHandle } from '@/lib/ensemble-audio';
 import { useT, useIsJapanMode } from '@/lib/i18n';
 import { hasJamBacking, renderProjectBacking, resolveJamBacking } from '@/lib/jam/backing';
+import PushOptIn from '@/components/PushOptIn';
 
 interface StemTrack {
   id: string;
@@ -39,9 +40,11 @@ interface Props {
   onDelete?: (id: string) => void;
   /** 백킹 잼에서 올리고 막 넘어왔을 때(?uploaded=1) — "내 마디 자랑하기"를 바로 보여 준다 */
   initialJustUploaded?: boolean;
+  /** 최근 테이크의 [이어 치기]로 들어옴(?take=jam) — 올리기 패널을 "함께"로 열고 스크롤 */
+  initialContinue?: boolean;
 }
 
-export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete, initialJustUploaded = false }: Props) {
+export default function ProjectDetailModal({ project, user, onClose, onUpdate, onEdit, onDelete, initialJustUploaded = false, initialContinue = false }: Props) {
   const t = useT();
   const isJapanMode = useIsJapanMode();
   const router = useRouter();
@@ -51,6 +54,9 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   const [loadingTracks, setLoadingTracks] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [justUploaded, setJustUploaded] = useState(initialJustUploaded);
+  const uploadSectionRef = useRef<HTMLDivElement>(null);
+  // 만든 사람이거나 트랙을 올린 사람 = 이어 치기 알림을 받을 수 있는 사람(supabase/22_stem_loop.sql subscribe_push)
+  const isParticipant = !!user && (isOwner || tracks.some((tr) => tr.user_id === user.id));
   // 백킹 잼 반주(jam_slug가 있는 프로젝트만). 음원이 아니라 재생할 때 합성한다
   const isJam = hasJamBacking(project);
   const jamResolved = isJam ? resolveJamBacking(project) : null;
@@ -100,6 +106,14 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
   useEffect(() => {
     fetchTracks();
   }, [project.id]);
+
+  // [이어 치기]로 들어왔으면 트랙을 읽은 뒤 올리기 패널로 한 번 내린다
+  const scrolledToUpload = useRef(false);
+  useEffect(() => {
+    if (!initialContinue || loadingTracks || scrolledToUpload.current) return;
+    scrolledToUpload.current = true;
+    uploadSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [initialContinue, loadingTracks]);
 
   useEffect(() => {
     return () => {
@@ -795,9 +809,14 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
               </motion.div>
             )}
 
+            {/* 이어 치기 알림 — 방금 올렸거나 이 8마디에 참여한 사람만 (지원 안 하는 브라우저면 안 보임) */}
+            {isParticipant && (
+              <PushOptIn key={justUploaded ? 'up' : 'member'} kind="stem" targetId={project.id} where={justUploaded ? 'stem_upload' : 'stem_member'} />
+            )}
+
             {/* Upload panel */}
             {localIsOpen && user && (
-              <div>
+              <div ref={uploadSectionRef}>
                 <h3
                   className="text-[15px] font-bold text-[#0A0A0A] mb-3"
                   style={{ fontFamily: 'Bungee, sans-serif' }}
@@ -813,6 +832,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   layerBackingUrls={layerBackingUrls}
                   orderedSectionUrls={orderedSectionUrls}
                   jamBacking={isJam && !backingMuted ? jamBacking : undefined}
+                  initialMode={initialContinue && audioTracks.length > 0 ? 'jam' : 'file'}
                   onUploaded={() => {
                     // 트랙 업로드 = 릴레이 패스 1회. pass_count 원자적 증가 (fire-and-forget)
                     void supabase.rpc('increment_pass_count', { p_project_id: project.id });
@@ -841,7 +861,7 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   onClick={() => {
                     // 공유로 들어온 비로그인 유저 → 가입 전환. 바이럴 루프의 병목 지점
                     track('challenge_login_cta_click', { project_id: project.id });
-                    router.push(`/login?returnTo=${encodeURIComponent(`/stems/${project.id}`)}`);
+                    router.push(`/login?returnTo=${encodeURIComponent(`/stems/${project.id}${initialContinue ? '?take=jam' : ''}`)}`);
                   }}
                   className="w-full py-3.5 bg-[#FF3D77] text-white rounded-[14px] border-[3px] border-[#0A0A0A] text-[14px] font-bold"
                   style={{ boxShadow: '4px 4px 0 #0A0A0A', fontFamily: 'Bungee, sans-serif' }}

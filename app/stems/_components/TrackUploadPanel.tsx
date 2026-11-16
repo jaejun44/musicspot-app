@@ -13,6 +13,8 @@ import { createAudioContext, resumeContext, loadTracks, loadTracksAligned, playE
 import { encodeWavMono16, layerMix, mixToMono, normalizeTake, peakLinear, LAYER_BASE_MIN } from '@/lib/jam/take';
 import { useT } from '@/lib/i18n';
 import { track, incrementUserProperty } from '@/lib/analytics';
+import { TRACK_UPLOAD_SCORE } from '@/lib/challenge-score';
+import { requestPushNotify } from '@/lib/push';
 
 /** Storage에 실제로 올라가는 파일(잘라낸 8마디 또는 녹음물)의 상한. */
 const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;
@@ -44,6 +46,8 @@ interface Props {
   orderedSectionUrls?: string[][];
   /** 백킹 잼 프로젝트의 반주 8마디(합성). 녹음·미리듣기에서 섹션마다 깐다. 없으면 기존과 같음 */
   jamBacking?: () => Promise<AudioBuffer | null>;
+  /** 처음 열 때 고를 방식. 최근 테이크의 [이어 치기]로 들어오면 'jam'(함께) */
+  initialMode?: UploadMode;
 }
 
 /** 함께 녹음 테이크: 음량 맞춘 모노 샘플(모든 8마디 프로젝트, 2026-11-16 사용자 결정) */
@@ -76,9 +80,14 @@ export default function TrackUploadPanel({
   layerBackingUrls = [],
   orderedSectionUrls = [],
   jamBacking,
+  initialMode = 'file',
 }: Props) {
   const t = useT();
-  const [uploadMode, setUploadMode] = useState<UploadMode>('file');
+  const [uploadMode, setUploadMode] = useState<UploadMode>(initialMode);
+  // 트랙 목록을 읽은 뒤에야 'jam'이 정해진다 — 그때 한 번 따라간다(사용자가 이미 고른 뒤엔 initialMode가 다시 안 바뀜)
+  useEffect(() => {
+    setUploadMode(initialMode);
+  }, [initialMode]);
   const [file, setFile] = useState<File | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   // 함께 녹음: 음량 맞춘 테이크 + 두 음량(기존 합주·내 연주)
@@ -342,7 +351,7 @@ export default function TrackUploadPanel({
     };
 
     if (uploadMode === 'youtube') {
-      const { error } = await supabase.from('stem_tracks').insert({
+      const { data: inserted, error } = await supabase.from('stem_tracks').insert({
         project_id: projectId,
         user_id: user.id,
         user_name: userName,
@@ -352,7 +361,8 @@ export default function TrackUploadPanel({
         instrument: instrument.trim() || null,
         track_order: trackOrder,
         section,
-      });
+        challenge_score: TRACK_UPLOAD_SCORE,
+      }).select('id').single();
 
       if (error) {
         track('challenge_upload_fail', { project_id: projectId, source: uploadMode, reason: 'insert_error' });
@@ -362,6 +372,7 @@ export default function TrackUploadPanel({
       }
 
       trackUploaded();
+      requestPushNotify('track_reply', inserted.id);
       setYoutubeUrl('');
       setInstrument('');
       setUploading(false);
@@ -417,7 +428,7 @@ export default function TrackUploadPanel({
 
     const { data: urlData } = supabase.storage.from('stems').getPublicUrl(path);
 
-    const { error: insertErr } = await supabase.from('stem_tracks').insert({
+    const { data: inserted, error: insertErr } = await supabase.from('stem_tracks').insert({
       project_id: projectId,
       user_id: user.id,
       user_name: userName,
@@ -427,7 +438,8 @@ export default function TrackUploadPanel({
       instrument: instrument.trim() || null,
       track_order: trackOrder,
       section,
-    });
+      challenge_score: TRACK_UPLOAD_SCORE,
+    }).select('id').single();
 
     if (insertErr) {
       track('challenge_upload_fail', { project_id: projectId, source: uploadMode, reason: 'insert_error' });
@@ -437,6 +449,7 @@ export default function TrackUploadPanel({
     }
 
     trackUploaded();
+    requestPushNotify('track_reply', inserted.id);
     setFile(null);
     setTrimUnavailable(false);
     setRecordedBlob(null);

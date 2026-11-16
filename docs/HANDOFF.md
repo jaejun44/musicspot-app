@@ -15,16 +15,21 @@
 
 ## 기록
 
-### 2026-11-16 — Claude Code — 백킹 잼 2단계: 반주 위 녹음 → 8마디로 올리기 (Cowork 11-15 2단계 처리)
-- 한 일: DB 19·20(`jam_slug·jam_bpm·jam_mutes·jam_prog`, 승인 후 운영 적용) + `/jam` 녹음·미리듣기·싱크·음량·올리기(로그인은 올릴 때만, IndexedDB 임시 보관·복원) + 8마디 카드·상세 표시·반주 재생·쌓기/이어붙이기에도 반주 + 이벤트 8종·깔때기 쿼리. 녹음 로직은 `hooks/useTakeRecorder.ts`로(JamRecorder 동작 그대로)
-- 바뀐 파일: `lib/jam/backing·take·takeStore·session.ts`·`hooks/useTakeRecorder.ts`·`app/jam/_components/TakePanel·JamTakesList·ui`·`lib/instruments.ts`·`supabase/19·20`·`tests/jam-take.cjs` 새 파일 + JamRecorder·TrackUploadPanel·ProjectDetailModal·ProjectCard·StemsClient·JamClient·engine·catalog·events·types·jam-ja · docs — 브랜치 `jam-take` PR
-- 확인한 것: 가짜 마이크로 녹음(카운트인→8마디 자동 정지)·미리듣기·싱크·비로그인 저장→복원, 기존 프로젝트 그대로, 이벤트 적재, tsc 0·114/114·build. 로그인 상태 올리기·실패 정리·쌓기는 아직
-- 11-16 추가(사용자 1차 확인 반영): DB 21 `jam_gain`(승인 후 운영 적용) · 반주 음량 슬라이더(기본 50%, `/jam` 연주 화면은 그대로) · 테이크 자동 음량 맞춤(−3dB, −50dB 미만은 다시 녹음 안내) · 슬라이더 즉시 반영 · 녹음 진단 이벤트. 117/117
-- 11-16 추가(2차): 8마디 "함께"(모든 프로젝트 — 사용자 결정) 자동 음량 맞춤 + 기존/내 연주 음량 조절(파일에 비율 반영, WAV) · `/jam` 싱크 반복 재생 중 즉시 반영·연타 버그 수정. 118/118. 사용자 QA 프로젝트 `d9466e33-c86b-49b7-8266-bacbd866b88a`(아이폰 올리기)
+### 2026-11-17 — Claude Code — 8마디 "올린 뒤의 고리": 점수 10점 · 이어 치기 알림(앱+푸시) · 최근 테이크
+- 한 일: 업로드 3곳 10점(`lib/challenge-score.ts`, DB CHECK 0/10) + Amplitude 점수 `total_score` · 트리거 `trg_notify_track_reply`(만든 사람·앞선 참여자, 본인 제외, 10분 1번) · 웹 푸시 `stem`(올린 직후·참여자 상세 "누가 이어 치면 알림 받기") · 홈 3개·`/jam` 5개 최근 테이크 · 이벤트 4종. DB `22_stem_loop.sql` 승인 후 운영 적용(11-17). 팔로우 알림 중복(브라우저 직접 insert) 제거. HANDOFF는 8개로 정리(11-08 항목 6개 등 — 남은 요청은 PHASES 다음 할 일로 옮김)
+- 바뀐 파일: `supabase/22_stem_loop.sql`·`23_notifications_insert_close.sql`·`lib/challenge-score.ts`·`components/RecentTakes.tsx`·`tests/challenge-score.cjs` 새 파일 + TrackUploadPanel·TakePanel·ProjectDetailModal·StemsClient·MusicianCard·BandMatchingClient·HomeClient·JamHubClient·PushOptIn·NotificationDropdown·useNotifications·push(-server·-messages)·api/push/notify·share-utm·analytics(context·events)·jam-ja·tests/push-messages · docs — 브랜치 `feat/stem-loop` PR
+- 확인한 것: 로컬 Postgres 22 = 26/26·23 = 15/15 각 2회, 운영 제약·트리거 적용 확인, 홈·`/jam` 최근 테이크(390/1440 넘침 없음·버튼 44px·0개면 숨김), 이벤트 anon_id 적재, 122/122·tsc 0·build. 로그인 2계정 실제 알림·푸시는 미확인. ⚠️ 유튜브 링크 업로드는 원래부터 실패(`file_url` NOT NULL)
 - 받는 쪽: 사용자
-- 11-16 아이폰 확인 완료(사용자 "다 ok") — 녹음·자동 음량·반주/테이크 음량·싱크 반복·올리기·로그인 복원·8마디 함께(반주 잼·일반). QA 프로젝트 `d9466e33…`·트랙 `257807dc…`·저장소 WAV 1개 사용자 승인 후 삭제(백업 `../backups/2026-11_jam_qa/`, 연결 행 0 — 상호 응답·알림 없음). 운영 stem_projects 5행 그대로
-- 요청: PR #51 머지(사용자가 직접)
+- 요청: ① PR 머지(사용자) ② **머지·운영 배포 확인 뒤에** `23_notifications_insert_close.sql` 적용 승인(먼저 닫으면 옛 코드 브라우저에서 팔로우 알림 insert 오류) ③ 계정 2개로 실기기 확인(B 업로드 → A 벨 1개·푸시 1개, B 없음, 10분 안 재업로드 중복 없음) ④ QA 이벤트 삭제 여부(아래 보고의 id) ⑤ 유튜브 링크 업로드 고칠지
 - 상태: 열림
+
+### 2026-11-16 — Cowork — HANDOFF 확인 + 다음 작업 프롬프트: 테이크 이후 고리(점수·응답 알림·최근 테이크)
+- 한 일: 기록 확인(백킹 잼 2단계 아이폰 확인 완료, PR #51 머지 대기). 다음 작업 제안: ① 업로드 점수 복구(업로드 1건 10점 — Cowork 제안값, 설계 문서 03에 점수 기준 없음) + `context.ts` 컬럼명 ② 내 8마디에 누가 이어 치면 알림(앱 알림 + 웹 푸시) ③ 홈·`/jam`에 최근 테이크
+- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
+- 확인한 것: HANDOFF·PHASES 현재 상태·프로젝트 문서 03 검색만. 구현·검증 안 함
+- 받는 쪽: 사용자
+- 요청: PR #51 머지 → 점수 값(10점) 확정 → 프롬프트를 Claude Code에 전달
+- 상태: 처리됨 (11-17, Claude Code — 사용자 10점 확정·#51 머지 후 프롬프트 받아 8마디 고리 PR)
 
 ### 2026-11-15 — Claude Code — 후속 과제: 8마디 업로드 점수가 오르지 않음 (백킹 잼 2단계 조사 중 발견)
 - 한 일: 운영 DB 읽기만. 트리거 `trg_update_challenge_score` → `update_challenge_score_on_track()`는 `NEW.challenge_score > 0`일 때만 `user_challenge_score`(total·weekly)를 올림. `stem_tracks.challenge_score` 기본값 0이고 `TrackUploadPanel` insert가 값을 안 넣음 → 모든 업로드 0점
@@ -32,15 +37,7 @@
 - 확인한 것: 값을 쓰는 곳 = Amplitude 유저 속성 `challenge_score`(`lib/analytics/context.ts`가 없는 컬럼 `score`를 읽어 항상 0 — 실제 컬럼 `total_score`), 관리자 점수 분포(`app/admin/actions.ts`가 `stem_tracks.challenge_score`)
 - 받는 쪽: 사용자
 - 요청: 업로드 때 점수를 줄지·몇 점인지 정책 결정 → 정하면 별도 PR(업로드 insert + context.ts 컬럼명)
-- 상태: 열림
-
-### 2026-11-15 — Cowork — PR #50 검토 + 백킹 잼 2단계(녹음 → 8마디) 프롬프트 전달
-- 한 일: PR #50 보고 검토 → 머지 권장. 2단계 설계: `/jam/[slug]`에서 반주 위에 녹음 → 미리듣기·싱크 조절 → 로그인 → 8마디 프로젝트로 올리기. 반주는 음원이 아니라 조합 정보(`jam_slug`·`jam_bpm`)로 저장하는 안을 권장(점수 트리거·저장소 영향 없음)
-- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: `JamRecorder` props·`TrackUploadPanel` 업로드 경로·`stem_projects` 컬럼·`lib/jam/engine.ts` export만 읽음. 구현·검증 안 함
-- 받는 쪽: 사용자
-- 요청: PR #50 머지 후 2단계 프롬프트를 Claude Code에 전달. 메탈·발라드·팝펑크 소리 직접 듣기
-- 상태: 처리됨 (11-16, Claude Code — #50 머지·2단계 PR. 소리 듣기는 1단계 항목 ②에 남음)
+- 상태: 처리됨 (11-17, Claude Code — 사용자 결정 10점·유튜브 포함·소급 없음, 8마디 고리 PR에서 업로드 3곳 + `context.ts` `total_score`)
 
 ### 2026-11-15 — Claude Code — 백킹 잼 `/jam` 1단계 (Cowork 11-15 제안 처리)
 - 한 일: Web Audio 반주 엔진(6스타일, 소리 시안 사용자 합격) + 키×스타일 조합 132페이지(정적·사이트맵) + 오늘의 잼(음감 5번과 같은 진행·조) + 입구 4곳(메뉴 "백킹 잼"·홈 카드·음감 결과·스트립) + 이벤트 5종·판정 쿼리. DB·의존성 변경 없음. Cowork 11-15 제안과 처리됨 2개(카드뉴스 11-13~15, 내용은 PHASES 날짜 로그)는 정리함
@@ -80,52 +77,4 @@
 - 확인한 것: 로컬→운영 DB 풀이·잠금·공유·스트립·이벤트 5종·Cron 2회(sent 1 → skipped 1). 후속(브랜치 `ear-ios-silent` PR): 사용자 실기기에서 무음 스위치면 소리 안 남 → `lib/ear/synth.ts` 듣기 탭에서 `navigator.audioSession.type='playback'`(iOS 17+), 없으면 무음 `<audio>` 1회 + iOS만 "무음 모드와 볼륨 확인" 안내. 데스크톱 크롬 소리 그대로·아이폰 UA 안내 확인, tsc 0·테스트 87/87·build 성공, 실기기 무음 스위치 미확인
 - 받는 쪽: 사용자
 - 요청: ① PR 머지 — 처리됨(11-12, 사용자 승인 → #45 머지, 운영 /ear 200 확인) ② 아이폰 무음 모드 소리 — 처리됨(11-12, #46 머지 후 사용자 실기기 확인) ③ 2주 뒤(11-26 무렵) `docs/ANALYTICS.md` "오늘의 음감 재방문" 쿼리의 3일 연속 완주자 수로 유지·중단 결정
-- 상태: 열림
-
-### 2026-11-08 — Claude Code — 재방문 ③ PR 3 전날·미납 알림 Cron
-- 한 일: 하루 1번(20:00~20:59 KST) 합주 전날 알림 + 정산 미납 본인 알림. DB 변경 없음
-- 바뀐 파일: `vercel.json`(새)·`app/api/cron/push-reminders/route.ts`(새) · `lib/push-server.ts`·`lib/push-messages.ts`·`tests/push-messages.cjs` · docs — 브랜치 `push-reminders`
-- 확인한 것: 전날 알림 실제 수신·재실행 중복 방지·인증 401. 미납 실제 발송은 미확인(24시간 지난 정산 없음)
-- 받는 쪽: 사용자
-- 요청: PR 머지 — 처리됨(#44) · Vercel `CRON_SECRET` 등록(Production, 값은 채팅에 쓰지 않기) · 원하면 내 크롬으로 QA 정산 `dfb7f039` 알림 받기 → 다음 날 20시대 미납 알림 확인
-- 상태: 열림
-
-### 2026-11-08 — Claude Code — 재방문 ③ PR 2 웹 푸시 즉시 발송
-- 한 일: 멤버 투표 → 만든 사람, 결정 → 멤버 알림. `supabase/15_push_log.sql`(승인 후 운영 적용) + `web-push@3.6.7`
-- 바뀐 파일: `app/api/push/notify/route.ts`·`lib/push-server.ts`·`lib/push-messages.ts`·`tests/push-messages.cjs`·`supabase/15_push_log.sql`(새) · `lib/push.ts`·`VoteClient`·`lib/share-utm.ts`·package.json · docs — 브랜치 `push-send`
-- 확인한 것: 실제 FCM 발송 2종·10분 중복 방지·결정 중복 방지·입력 검증(PHASES 11-08 PR 2 로그)
-- 받는 쪽: 사용자
-- 요청: PR 머지 — 처리됨(#43) · VAPID 키 3개 Vercel 등록 — 처리됨(11-08, PHASES)  · 휴대폰·카톡 인앱에서 "알림 받기" 확인
-- 상태: 열림
-
-### 2026-11-08 — Claude Code — 재방문 ② 합주비 N빵 정산 링크
-- 한 일: 결정된 투표·상세 요금 줄 "🧮 합주비 계산" → `/split/[id]` 정산 링크(1인당·[냈어요] 체크, 로그인·송금 없음) → "다음 합주 정하기"로 새 투표. DB `splits`·`split_payers` + RPC 3개(`supabase/13_splits.sql`, 승인받아 운영 적용 완료)
-- 바뀐 파일: `app/split/`·`lib/split.ts`·`tests/split.cjs`·`supabase/13_splits.sql`(새) · vote·room 화면 · `VoteCreatePanel`·`lib/{share-utm,i18n/locale}.ts`·`lib/analytics/events.ts` · docs — 브랜치 `split-link`
-- 확인한 것: 완료 조건 1~5 통과(PHASES 11-08 "재방문 ②" 로그). 카카오톡 실제 전송은 미확인
-- 받는 쪽: 사용자
-- 요청: PR 머지 — 처리됨(#41) · 머지 후 실제 밴드 단톡방에서 한 번 써 보기(정산 링크 카톡 공유 → 멤버 [냈어요] → 다음 합주 투표)
-- 상태: 열림
-
-### 2026-11-08 — Claude Code — 착지 페이지 스트립 + 캘린더에 추가
-- 한 일: `/region`·`/room`에 최근 본·찜·진행 중인 투표 스트립(상세는 현재 곳 제외), 결정된 투표·밴드 일정에 [구글 캘린더][.ics] (하루 전 알림 + 메모에 UTM 링크, 토큰 없음)
-- 바뀐 파일: `components/{ReturnStrip,AddToCalendar}.tsx` · `lib/calendar.ts`·`tests/calendar.cjs`(새) · region·room·vote·my-band 화면 · `lib/share-utm.ts`·`lib/analytics/events.ts`·`band-ja.ts` · docs — 브랜치 `landing-strip-calendar`
-- 확인한 것: 완료 조건 1·2·4·5·6 통과(PHASES 11-08 로그). 3은 .ics 구조만 검사, 실제 가져오기·`/my-band`(로그인)는 미확인
-- 받는 쪽: 사용자
-- 요청: 머지 — 처리됨(#40) · 휴대폰에서 결정된 투표의 .ics 열어 보기(아이폰 Safari) · 원하면 맥 캘린더 가져오기 확인
-- 상태: 열림
-
-### 2026-11-08 — Cowork — 유입자 → 유저 전환 전략 제안 (결정 대기)
-- 한 일: 5단계 사다리(방문→결정→재방문→가입→밴드) 정의. 우선순위: ① 문의 바 옆 "멤버한테 물어보기"(후보 자동 담기 → 투표 → 카톡 공유) ② 가입은 투표 생성·찜 3개·결정 시점에만 ③ 카카오톡 채널로 합주 전후 알림(초기 수동) ④ 실제 3팀 직접 시딩 ⑤ 네이버 색인 확인·ChatGPT 유입 지역 페이지 강화
-- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: 근거는 GA 보고서 개요(28일 활성 157·신규 155·체류 48초)와 PHASES "현재 상태" 수치. 구현·검증 안 함
-- 받는 쪽: 사용자
-- 요청: 우선순위 확정, 카카오톡 채널 보유 여부 알려주기 → ①은 Claude Code 프롬프트로 전달 예정
-- 상태: 열림
-
-### 2026-11-08 — Cowork — GA4 보고서 개요 점검 (지난 28일, 10/11~11/7)
-- 한 일: 사용자 Chrome으로 GA4 확인. 활성 157·신규 155 → 재방문 거의 없음. 유입 google 65·direct 50·chatgpt.com 10·bing 8·instagram 6·dcinside 3. 주요 이벤트(전환) 미설정
-- 바뀐 파일: `docs/HANDOFF.md`(이 항목 + 11-06 항목 처리됨 표시) — 커밋 안 함
-- 확인한 것: 보고서 개요 화면만. GA 수치는 `user_events`보다 적음(차단·동의 영향 추정, 미검증). 상세 보고서·기기별은 미확인
-- 받는 쪽: Cowork
-- 요청: (11-08 사용자 승인) `contact_click`·`booking_attempt` 주요 이벤트 지정 완료. `booking_realtime_click`·`vote_create`는 GA에 아직 수신 기록이 없어 지정 불가 → 첫 수신 후 별표 지정
 - 상태: 열림
