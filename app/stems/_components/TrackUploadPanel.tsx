@@ -24,6 +24,17 @@ const ALLOWED_EXTS = ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'];
 
 type UploadMode = 'file' | 'record' | 'youtube' | 'jam';
 
+/**
+ * 유튜브 링크로 올리기 표시 여부 (2026-11-17 숨김 — 사용자 결정).
+ * 운영 stem_tracks.file_url이 NOT NULL이라 링크 업로드(file_url: null)는 항상 실패한다.
+ * 되살리려면 스키마 변경(file_url NULL 허용)과 합주 재생에서 링크 트랙을 어떻게 다룰지 설계가 먼저 필요하다.
+ * 코드는 그대로 두고 이 값만 true로 바꾸면 다시 보인다. 이미 올라온 링크 트랙의 재생·표시는 이 값과 무관.
+ * 응답 5단계(docs/STRATEGY.md)의 녹음 응답은 파일·녹음·함께로 그대로 남는다.
+ */
+export const YOUTUBE_UPLOAD_ENABLED = false;
+
+const UPLOAD_MODES: UploadMode[] = YOUTUBE_UPLOAD_ENABLED ? ['jam', 'file', 'record', 'youtube'] : ['jam', 'file', 'record'];
+
 export function extractYoutubeId(url: string): string | null {
   const match = url.match(
     /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/
@@ -467,7 +478,7 @@ export default function TrackUploadPanel({
         className="flex rounded-[12px] border-[2px] border-[#0A0A0A] overflow-hidden"
         style={{ boxShadow: '2px 2px 0 #0A0A0A' }}
       >
-        {(['jam', 'file', 'record', 'youtube'] as UploadMode[]).map((mode) => (
+        {UPLOAD_MODES.map((mode) => (
           <button
             key={mode}
             onClick={() => switchMode(mode)}

@@ -21,3 +21,11 @@ test('업로드 경로 3곳(파일·녹음·함께 / 유튜브 / 백킹 잼)이 
   assert.equal((take.match(/from\('stem_tracks'\)\.insert/g) || []).length, 1);
   assert.equal(count(take), 1);
 });
+
+test('유튜브 링크 업로드는 한 곳의 플래그로 숨김(코드는 남김, 11-17)', () => {
+  const panel = fs.readFileSync('app/stems/_components/TrackUploadPanel.tsx', 'utf8');
+  assert.match(panel, /export const YOUTUBE_UPLOAD_ENABLED = false;/);
+  assert.match(panel, /UPLOAD_MODES\.map\(/);
+  assert.doesNotMatch(panel, /\['jam', 'file', 'record', 'youtube'\] as UploadMode\[\]\)\.map/);
+  assert.match(panel, /uploadMode === 'youtube'/); // 링크 업로드 코드 자체는 그대로
+});
