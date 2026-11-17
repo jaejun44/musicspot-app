@@ -16,6 +16,7 @@ import { createAudioContext, resumeContext, loadTracksAligned, playSequence, typ
 import { useT, useIsJapanMode } from '@/lib/i18n';
 import { hasJamBacking, renderProjectBacking, resolveJamBacking } from '@/lib/jam/backing';
 import PushOptIn from '@/components/PushOptIn';
+import TakeVideoMaker from './TakeVideoMaker';
 
 interface StemTrack {
   id: string;
@@ -99,6 +100,12 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
     audioTracks.filter((t) => (t.section ?? 1) === sn).map((t) => t.file_url as string)
   );
   const latestSection = sectionNums.length ? sectionNums[sectionNums.length - 1] : 0;
+  // 공유 영상은 첫 섹션(8마디 1개 + 같은 섹션에 쌓인 트랙)만
+  const firstSectionTracks = sectionNums.length
+    ? audioTracks
+        .filter((t) => (t.section ?? 1) === sectionNums[0])
+        .map((t) => ({ file_url: t.file_url as string, user_id: t.user_id, user_name: t.user_name, user_emoji: t.user_emoji, instrument: t.instrument }))
+    : [];
   const layerBackingUrls = latestSection
     ? audioTracks.filter((t) => (t.section ?? 1) === latestSection).map((t) => t.file_url as string)
     : [];
@@ -770,6 +777,8 @@ export default function ProjectDetailModal({ project, user, onClose, onUpdate, o
                   )}
                 </motion.button>
               )}
+              {/* 9:16 공유 영상 — mp4 녹화가 되는 기기만 보인다 */}
+              <TakeVideoMaker project={project} sectionTracks={firstSectionTracks} />
             </div>
 
             {/* 업로드 후 자랑 CTA — 방금 참여한 사람이 바로 재공유하도록 (루프 가속) */}
