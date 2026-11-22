@@ -3,7 +3,7 @@
 > **읽는 법 (사람·Claude Code·Cowork 공통)**: 작업 시작 땐 **맨 위부터 첫 `---` 줄까지("현재 상태", 약 30줄)만** 읽는다(전체 약 70KB — 통째 읽기 금지).
 > 할 일·보류 상세는 "## 진행 중 / 다음 작업", 과거 상세는 아래 날짜 로그를 필요할 때 grep으로. 에이전트 인수인계·규칙은 `docs/HANDOFF.md`.
 
-## 현재 상태 (최종 갱신 2026-11-17 저녁)
+## 현재 상태 (최종 갱신 2026-11-20)
 
 **운영**: https://www.musicspotfest.com — main 자동 배포(Vercel). 최신 머지 PR·열린 PR은 `git log --oneline -3`·`gh pr list`로 확인(번호를 여기 적지 않음 — 금방 낡는다)
 
@@ -13,7 +13,7 @@
 
 (11-12 출시, PR #45) **오늘의 음감 `/ear`** — 매일 같은 5문제(로그인 없음, 하루 1번) → 결과 공유(카톡·링크) → 연속 기록 → 다음 날 20시대 "아직 안 풀었어요" 푸시·홈 스트립 카드로 재방문. 합주실 찾기는 빈도가 낮아 "매일 올 이유"로 추가(Cowork 11-12 제안 ①). 하단 탭 커뮤니티 자리를 음감으로 바꿈
 
-(11-12 출시, PR #47) **밴드씬 뉴스 `/news`** — 인스타 카드뉴스(하루 2개)를 사이트에 쌓아 검색 유입·"매일 새로 볼 것"·인스타 프로필 링크 착지점으로. 76개 반영(이미지 380장 30.7MB), 홈 히어로 아래·지역 페이지·음감 결과·상단 메뉴 입구. 매일 반영은 `docs/NEWS_PUBLISH.md` 1줄(수동)
+(11-12 출시, PR #47) **밴드씬 뉴스 `/news`** — 인스타 카드뉴스(하루 2개)를 사이트에 쌓아 검색 유입·"매일 새로 볼 것"·인스타 프로필 링크 착지점으로. 76개 반영(이미지 380장 30.7MB), 홈 히어로 아래·지역 페이지·음감 결과·상단 메뉴 입구. 매일 반영은 **맥 launchd 30분마다 자동**(11-20~, `scripts/news_autoimport.sh` · `docs/NEWS_PUBLISH.md` "자동 반영") — 88개(11-20)
 
 (PR 열림, 11-13) **연습실 종류 구분** — 모든 목록에서 밴드 합주 가능한 곳이 먼저, 댄스 전용은 맨 뒤(지우지 않음)·검색 색인 제외. "🎸 밴드 합주" 칩·종류 배지·조합 페이지 `/rooms/seoul-band·seoul-drum·mapo-band`
 
@@ -34,7 +34,7 @@
 | 언제 | 무엇 | 누가 |
 |---|---|---|
 | 11-13 무렵 | 재방문 지표 확인(`docs/ANALYTICS.md` 재방문·투표 재진입 쿼리) + 실제 합주팀 3팀 투표 링크 사용 결과(`docs/GROWTH_CHECKPOINT_2026-09-09.md`) 함께 판단. **"멤버한테 물어보기"·착지 스트립·캘린더 배포일(11-08) 전·후로 나눠 본다**(`ask_members_*`, `vote_create.source`, `return_strip_view.placement`, `calendar_add`, `utm_source=calendar`, 머지되면 `split_*`) | 에이전트 쿼리 → 사용자 판단 |
-| 진행 중 | 밴드씬 뉴스: 인스타 프로필 링크를 `/news?utm_source=instagram&utm_medium=bio&utm_campaign=news`로 교체 · 카드뉴스 게시 작업 마지막 단계에 `--only … --apply` 1줄 추가(매일 운영 DB 쓰기) · 공식 자료 39개 공개 유지(요청 오면 SQL 1줄로 비공개) · 사이트맵 재시도가 반복되면 그때 분할 · 2주 뒤 "밴드씬 뉴스 재방문" 쿼리 | 사용자 |
+| 진행 중 | 밴드씬 뉴스: 인스타 프로필 링크를 `/news?utm_source=instagram&utm_medium=bio&utm_campaign=news`로 교체 · 공식 자료 39개 공개 유지(요청 오면 SQL 1줄로 비공개) · 사이트맵 재시도가 반복되면 그때 분할 · 2주 뒤 "밴드씬 뉴스 재방문" 쿼리 | 사용자 |
 | 머지 2주 뒤 | 연습실 종류 구분 판정: `docs/ANALYTICS.md` "밴드용 상세 조회 비율 · 세션당 상세 조회" 전후 비교 + `filter_apply(band)`. 지역 색인 기준(댄스 전용 포함 8곳)을 바꿀지도 이때 | 에이전트 쿼리 → 사용자 판단 |
 | 머지 2주 뒤 | 백킹 잼 판정: `docs/ANALYTICS.md` "백킹 잼 판정"(60초 이상 재생한 사람·다른 날 2회 이상 재생·검색 유입 세션) → 2단계(반주 위 녹음 → 8마디 업로드) 진행 여부 | 에이전트 쿼리 → 사용자 판단 |
 | 머지 2주 뒤 | 8마디 고리 판정: `docs/ANALYTICS.md` "8마디 올린 뒤의 고리"(다른 날 다시 올린 사람·알림 눌러 들어온 사람·[이어 치기]로 올라온 트랙) | 에이전트 쿼리 → 사용자 판단 |
@@ -1065,3 +1065,13 @@ PR #4(`e1d9ce6`), PR #5(`85ca2ac`) 머지·운영 배포. 작업 브랜치는 �
 - **링크 모드 숨김(운영에서 file_url 필수라 항상 실패, 되살리려면 스키마 변경과 재생 방식 설계 필요)** — 사용자 결정. `TrackUploadPanel.tsx`의 `YOUTUBE_UPLOAD_ENABLED = false` 한 곳으로 표시만 끔(링크 업로드 코드·점수 상수는 그대로, true로 바꾸면 다시 보임). 이미 올라온 링크 트랙의 재생·표시는 그대로(운영 링크 트랙 0개)
 - 응답 5단계(`docs/STRATEGY.md`)는 바꾸지 않음 — 녹음 응답은 파일·녹음·함께로 남음
 
+## 2026-11-20 — 카드뉴스 → /news 자동 반영을 맥에서 (운영 `news_posts`·Storage `news` 쓰기 — 사용자 지시)
+- 원인: 11-12에 카드뉴스 지침에 "게시 뒤 `import_cardnews.py --only … --apply`"를 넣었지만, 게시를 하는 Cowork 세션(원격)에는 `musicSpot_cardnews`(+`card news`·Downloads)만 연결돼 있어 `musicspot_app`·`.env.local`에 접근 불가 → 11-16·17·20 6개가 웹에 빠짐(11-18·20에 수동 반영, 총 88). Cowork `remote-session-spaces.json`의 세션 폴더 목록으로 확인
+- 해결: 맥 launchd `com.musicspot.news-import`가 30분마다(+로그인 때) `scripts/news_autoimport.sh` → `import_cardnews.py --new-only --apply`(새 옵션: DB에 없는 source_key만, 없으면 "새로 올릴 글 없음"으로 끝). 결과·실패는 맥 알림 + `~/Library/Logs/musicspot-news-import.log`
+- launchd가 바탕화면 폴더를 못 읽음(`Operation not permitted`, exit 126) → bash·python에 전체 디스크 권한 대신 전용 앱 `~/Applications/MusicSpotNewsImport.app`(osacompile, 이 스크립트만 실행)에 바탕화면 접근만 허용. 설치 `scripts/launchd/install_news_import.sh`
+- 카드뉴스 지침(`~/Desktop/musicSpot_cardnews/CLAUDE.md`, 레포 밖) 마지막 섹션을 "명령 실행" → "자동 반영, 슬롯만 갖춰 두기"로 교체
+- 확인: launchd 첫 실행 exit 0·"새 글 없음"(DB 조회까지 통과), `cardnews-parse` 테스트 통과, plist lint OK. 실제 새 게시물이 자동으로 올라가는 건 다음 게시(11-21) 때 확인
+- 한계: 맥이 꺼져 있거나 잠자는 동안은 안 돎(깨어난 뒤 다음 실행 때 반영). 이미 올라간 글의 캡션 수정은 자동 재반영 안 됨 → `--only`
+
+## 2026-11-22 — 뉴스 이미지 깨짐 수정 (DB 변경 없음)
+- 뉴스 카드(`components/NewsCard.tsx`)·상세(`app/news/_components/NewsDetailClient.tsx`) `next/image`에 `unoptimized` — 이미 WebP라 Vercel 이미지 최적화를 거치지 않고 Storage 원본을 바로 씀. PR #56 머지·배포, 사용자가 운영에서 사진 정상 표시 확인

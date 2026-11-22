@@ -15,6 +15,45 @@
 
 ## 기록
 
+### 2026-11-22 — Claude Code — 뉴스 이미지 깨짐 수정 (PR #56 머지·배포)
+- 한 일: 뉴스 카드·상세 `next/image`에 `unoptimized`(Vercel 이미지 최적화 우회, Storage WebP 원본 그대로) → 사용자 "머지해줘" → #56 squash 머지(`2a69a1d`), Vercel 운영 배포 success
+- 바뀐 파일: `components/NewsCard.tsx`·`app/news/_components/NewsDetailClient.tsx`(각 1줄) — PR #56
+- 확인한 것: tsc 0 · 사용자가 운영 /news에서 사진 정상 표시 확인(11-22)
+- 받는 쪽: 없음
+- 상태: 처리됨 (11-22, Claude Code)
+
+### 2026-11-20 — Claude Code — 카드뉴스 웹 자동 반영: 원인 찾고 맥에서 자동으로
+- 한 일: 원인 = 카드뉴스 Cowork 세션에 `musicspot_app` 폴더가 연결돼 있지 않아 반영 명령이 돌 수 없었음. 맥 launchd 30분마다 `--new-only --apply`(전용 앱 `MusicSpotNewsImport.app`에 바탕화면 접근만 허용). 카드뉴스 지침 마지막 섹션을 "자동 반영"으로 교체
+- 바뀐 파일: `scripts/import_cardnews.py`(`--new-only`)·`scripts/news_autoimport.sh`·`scripts/launchd/` 새 파일 · `docs/NEWS_PUBLISH.md`·PHASES · 레포 밖 `~/Desktop/musicSpot_cardnews/CLAUDE.md`·`~/Library/LaunchAgents/com.musicspot.news-import.plist`·`~/Applications/MusicSpotNewsImport.app` — 브랜치 `feat/news-autoimport`(11-22 takevideo에서 분리)
+- 확인한 것: launchd 실행 exit 0·로그 "새 글 없음". 새 게시물 자동 반영은 다음 게시 때 확인
+- 받는 쪽: Cowork · 사용자
+- 요청: (Cowork) 게시 후 명령을 돌리지 말고 슬롯(`published`·`post_url`·표기 줄·이미지)만 갖추고 보고에 "웹 반영: 30분 안에 자동" (사용자) 다음 게시 30분 뒤 맥 알림 "웹 반영 완료" 확인
+- 상태: 열림
+
+### 2026-11-18 — Claude Code — 카드뉴스 4개 웹 /news 반영 (11-16·11-17) (+11-20 2개)
+- 한 일: (11-20 추가) 11-20 a·b 반영(`psychogod`·`gta-the-chamber`, 총 88, 200 확인 — 이번에도 자동 반영 안 됨, 11-18·19 폴더는 없음). 미리보기로 운영과 비교(폴더 86 · DB 82 · DB에만 있음 0) → 사용자 승인 → `--only`로 11-16 a·b, 11-17 a·b 반영(각 5장, 출처 official). 11-18은 아직 게시 전이라 제외. HANDOFF 처리됨 2개 정리
+- 바뀐 파일: `docs/HANDOFF.md`만 — 운영 `news_posts` +4행(총 86), Storage `news` 20장
+- 확인한 것: 4행 is_published true, `/news/<slug>` 4개 200. ⚠️ 카드뉴스 세션의 자동 반영(11-12 Cowork 항목)은 이번 4개에서 안 돌았음 — 원인 미확인
+- 받는 쪽: 사용자
+- 요청: 카드뉴스 세션 게시 보고에 "웹 반영" 줄이 나왔는지 확인(11-12 Cowork 항목 요청과 같음)
+- 상태: 열림
+
+### 2026-11-17 — Cowork — 테이크 영상: 다음 세션이 이어받을 지점 (사용자 휴대폰 확인 대기)
+- 한 일: 1단계(가능 여부)·2단계(화면 시안) 검토·승인 의견 전달. 수정 시안 2장 직접 확인(워터마크·주소가 코드 카드 아래, 화면 아래 20% 비어 있음). 결정: 영상 상한 45초·8마디는 자르지 않음, 반주 없는 프로젝트 엔드 카드 "이 8마디에 나도 이어 치기" + `/stems`
+- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
+- 확인한 것: 시안 PNG만 봄. 영상 파일·휴대폰 동작은 확인 안 함. Draft PR #55, 미리보기 주소는 11-18 04:37에 만료(만료되면 Claude Code에 새 주소 요청)
+- 받는 쪽: 사용자
+- 요청: ① 휴대폰에서 영상 만들기 → 저장 → 인스타 릴스 업로드 → 워터마크 가려짐 확인(Claude Code 보고의 1)~8)) ② 통과하면 Claude Code에 나머지(공유·복사 문구·입구·이벤트) 진행 지시 ③ 별도 과제: 운영에서 사이트 글꼴(Bungee·Pretendard) 미로딩 — 영상 작업 뒤 전후 캡처와 함께 별도 PR
+- 상태: 열림
+
+### 2026-11-17 — Cowork — 제안: 테이크 → 9:16 공유 영상 자동 생성 (릴스·쇼츠용)
+- 한 일: 올린 8마디(반주+테이크)를 브라우저에서 9:16 영상으로 만들어 저장·공유하는 기능 제안. 근거: 설계 문서 `03_8마디_챌린지_설계.txt`의 "30초 영상 자동 생성(워터마크 포함)"이 Stage 1 항목인데 아직 없음(코드 검색으로 확인), 채널 1순위가 인스타 릴스·쇼츠(`01_린캔버스.txt`)
+- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
+- 확인한 것: 영상 생성 코드 없음(`captureStream`·`video/mp4` 검색 0건). 브라우저별 MP4 녹화 가능 여부는 미확인 — 프롬프트 1단계에서 확인 후 멈춤
+- 받는 쪽: 사용자
+- 요청: 프롬프트를 Claude Code에 전달할지 결정
+- 상태: 열림
+
 ### 2026-11-17 — Claude Code — 8마디 "올린 뒤의 고리": 점수 10점 · 이어 치기 알림(앱+푸시) · 최근 테이크
 - 한 일: 업로드 3곳 10점(`lib/challenge-score.ts`, DB CHECK 0/10) + Amplitude 점수 `total_score` · 트리거 `trg_notify_track_reply`(만든 사람·앞선 참여자, 본인 제외, 10분 1번) · 웹 푸시 `stem`(올린 직후·참여자 상세 "누가 이어 치면 알림 받기") · 홈 3개·`/jam` 5개 최근 테이크 · 이벤트 4종. DB `22_stem_loop.sql` 승인 후 운영 적용(11-17). 팔로우 알림 중복(브라우저 직접 insert) 제거. HANDOFF는 8개로 정리(11-08 항목 6개 등 — 남은 요청은 PHASES 다음 할 일로 옮김)
 - 바뀐 파일: `supabase/22_stem_loop.sql`·`23_notifications_insert_close.sql`·`lib/challenge-score.ts`·`components/RecentTakes.tsx`·`tests/challenge-score.cjs` 새 파일 + TrackUploadPanel·TakePanel·ProjectDetailModal·StemsClient·MusicianCard·BandMatchingClient·HomeClient·JamHubClient·PushOptIn·NotificationDropdown·useNotifications·push(-server·-messages)·api/push/notify·share-utm·analytics(context·events)·jam-ja·tests/push-messages · docs — 브랜치 `feat/stem-loop` PR
@@ -23,22 +62,6 @@
 - 요청: ① PR 머지 — 처리됨(11-17 #52) ② 23 적용 — 처리됨(11-17 배포 확인 뒤 승인·적용, 남 앞 insert 거부·팔로우 알림 1개 확인) ③ 계정 2개 실기기 확인(사용자, 아래 순서) ④ QA 이벤트 — 지우지 않음(8829·8830은 PHASES QA 데이터 줄) ⑤ 유튜브 링크 숨김 — 응답 5단계 해당 여부 답 대기
 - 실기기 확인 순서: 1) A로 로그인 → 내가 만든 8마디 상세(오디오 트랙 있는 것)에서 "🔔 누가 이어 치면 알림 받기" → 허용(아이폰은 홈 화면에 추가한 앱에서만 카드가 보임) 2) B(다른 폰·브라우저)로 로그인 → 홈 "방금 올라온 8마디"에서 A의 8마디 [이어 치기] → 상세가 "함께"로 열리는지 3) B가 녹음해서 올리기 4) A 폰에 푸시 1개("🎸 누가 내 8마디에 이어 쳤어요", 이름 없음) → 누르면 그 8마디 상세 5) A 벨에 알림 1개("B님이 내 8마디에 이어 쳤어요") → 누르면 상세, B 벨에는 없음 6) B가 10분 안에 한 번 더 올리기 → A에게 벨·푸시 추가 없음 7) 끝나면 QA로 만든 프로젝트·트랙을 알려 주기(점수 B +10씩·알림 행 확인 후 정리 여부 결정)
 - 상태: 열림
-
-### 2026-11-16 — Cowork — HANDOFF 확인 + 다음 작업 프롬프트: 테이크 이후 고리(점수·응답 알림·최근 테이크)
-- 한 일: 기록 확인(백킹 잼 2단계 아이폰 확인 완료, PR #51 머지 대기). 다음 작업 제안: ① 업로드 점수 복구(업로드 1건 10점 — Cowork 제안값, 설계 문서 03에 점수 기준 없음) + `context.ts` 컬럼명 ② 내 8마디에 누가 이어 치면 알림(앱 알림 + 웹 푸시) ③ 홈·`/jam`에 최근 테이크
-- 바뀐 파일: `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: HANDOFF·PHASES 현재 상태·프로젝트 문서 03 검색만. 구현·검증 안 함
-- 받는 쪽: 사용자
-- 요청: PR #51 머지 → 점수 값(10점) 확정 → 프롬프트를 Claude Code에 전달
-- 상태: 처리됨 (11-17, Claude Code — 사용자 10점 확정·#51 머지 후 프롬프트 받아 8마디 고리 PR)
-
-### 2026-11-15 — Claude Code — 후속 과제: 8마디 업로드 점수가 오르지 않음 (백킹 잼 2단계 조사 중 발견)
-- 한 일: 운영 DB 읽기만. 트리거 `trg_update_challenge_score` → `update_challenge_score_on_track()`는 `NEW.challenge_score > 0`일 때만 `user_challenge_score`(total·weekly)를 올림. `stem_tracks.challenge_score` 기본값 0이고 `TrackUploadPanel` insert가 값을 안 넣음 → 모든 업로드 0점
-- 바뀐 파일: `docs/PHASES.md` 다음 할 일 · 이 항목 — 코드·트리거는 안 건드림(사용자 결정 11-15: 백킹 잼 2단계는 (A) 그대로)
-- 확인한 것: 값을 쓰는 곳 = Amplitude 유저 속성 `challenge_score`(`lib/analytics/context.ts`가 없는 컬럼 `score`를 읽어 항상 0 — 실제 컬럼 `total_score`), 관리자 점수 분포(`app/admin/actions.ts`가 `stem_tracks.challenge_score`)
-- 받는 쪽: 사용자
-- 요청: 업로드 때 점수를 줄지·몇 점인지 정책 결정 → 정하면 별도 PR(업로드 insert + context.ts 컬럼명)
-- 상태: 처리됨 (11-17, Claude Code — 사용자 결정 10점·유튜브 포함·소급 없음, 8마디 고리 PR에서 업로드 3곳 + `context.ts` `total_score`)
 
 ### 2026-11-15 — Claude Code — 백킹 잼 `/jam` 1단계 (Cowork 11-15 제안 처리)
 - 한 일: Web Audio 반주 엔진(6스타일, 소리 시안 사용자 합격) + 키×스타일 조합 132페이지(정적·사이트맵) + 오늘의 잼(음감 5번과 같은 진행·조) + 입구 4곳(메뉴 "백킹 잼"·홈 카드·음감 결과·스트립) + 이벤트 5종·판정 쿼리. DB·의존성 변경 없음. Cowork 11-15 제안과 처리됨 2개(카드뉴스 11-13~15, 내용은 PHASES 날짜 로그)는 정리함
@@ -54,14 +77,6 @@
 - 확인한 것: 운영 분포 = 미리보기, 검색 구분선 171번째·가격순 댄스 끝·칩 동작, noindex·사이트맵, 390/1440 넘침 없음, tsc 0·테스트·build 성공. 배지에서 보컬은 표시 안 함(kinds 그대로). 지역 색인 기준은 사용자 결정으로 그대로(빼면 9개 빠짐)
 - 받는 쪽: 사용자
 - 요청: ① PR 머지 — 처리됨(#48) ② 머지 2주 뒤 `docs/ANALYTICS.md` "밴드용 상세 조회 비율 · 세션당 상세 조회" 전후 비교(배포일 기준) — 그때 지역 색인 기준을 바꿀지도
-- 상태: 열림
-
-### 2026-11-12 — Cowork — 카드뉴스 지침에 "게시 후 웹 뉴스 반영" 단계 추가
-- 한 일: 사용자 승인으로 `~/Desktop/musicSpot_cardnews/CLAUDE.md` 맨 아래에 섹션 추가(인스타 게시 뒤 `import_cardnews.py --only <날짜>/<슬롯> --apply`, 못 돌리면 보고에 "웹 반영 안 됨"). 막힘(blocked) 49개 슬롯 확인: 47개는 맥 잠금·크롬 미연결로 생긴 빈 기록, 카드가 있던 2개 중 1개(10-10 Fit For A King)만 미게시
-- 바뀐 파일: 레포 밖 `musicSpot_cardnews/CLAUDE.md`(git 아님) · `docs/HANDOFF.md`(이 항목) — 커밋 안 함
-- 확인한 것: 섹션이 1번만 들어감. 카드뉴스 프로젝트 세션에서 실제로 명령이 도는지는 미확인
-- 받는 쪽: 사용자
-- 요청: 다음 카드뉴스 업로드 때 게시 보고에 "웹 반영 완료"가 나오는지 확인. 안 되면 사유를 Cowork에 전달
 - 상태: 열림
 
 ### 2026-11-12 — Claude Code — 밴드씬 뉴스 `/news` (인스타 카드뉴스 웹 보관, Cowork 11-12 제안 ④)

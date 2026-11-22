@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 카드뉴스 → /news 자동 반영. 설치: docs/NEWS_PUBLISH.md "자동 반영" -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.musicspot.news-import</string>
+  <key>ProgramArguments</key>
+  <array>
+    <!-- 바탕화면 접근 권한은 이 앱이 받는다(install_news_import.sh가 만듦). -g: 백그라운드, -W: 끝날 때까지 기다림 -->
+    <string>/usr/bin/open</string>
+    <string>-g</string>
+    <string>-W</string>
+    <string>/Users/jaejunlee/Applications/MusicSpotNewsImport.app</string>
+  </array>
+  <key>StartInterval</key>
+  <integer>1800</integer>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardErrorPath</key>
+  <string>/Users/jaejunlee/Library/Logs/musicspot-news-import.err.log</string>
+</dict>
+</plist>
