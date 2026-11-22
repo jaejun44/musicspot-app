@@ -12,6 +12,7 @@ DB: public.news_posts, source_key(<날짜>/<슬롯>) 기준 upsert — 여러 �
   python3 scripts/import_cardnews.py --src <daily 폴더> --plan <경로>              # 미리보기만(DB·저장소 안 씀)
   python3 scripts/import_cardnews.py --src <daily 폴더> --apply                    # 전체 반영
   python3 scripts/import_cardnews.py --src <daily 폴더> --only 2026-11-12/slot-a --apply   # 한 슬롯만
+  python3 scripts/import_cardnews.py --src <daily 폴더> --new-only --apply         # DB에 없는 슬롯만(자동 반영용)
 서비스 키는 .env.local(SUPABASE_SERVICE_KEY)에서 읽고 출력하지 않는다.
 """
 
@@ -174,6 +175,8 @@ def main() -> None:
     ap.add_argument("--plan", help="미리보기 결과 JSON 저장 경로(이것만 주면 DB·저장소를 쓰지 않음)")
     ap.add_argument("--apply", action="store_true", help="DB·저장소에 반영")
     ap.add_argument("--only", help="한 슬롯만: <YYYY-MM-DD>/<slot>")
+    ap.add_argument("--new-only", action="store_true",
+                    help="DB에 source_key가 없는 슬롯만(이미 올린 글은 다시 올리지 않음). 캡션 수정 반영은 --only로")
     args = ap.parse_args()
     if not os.path.isdir(args.src):
         sys.exit(f"--src 폴더가 없습니다: {args.src}")
@@ -182,9 +185,19 @@ def main() -> None:
     if not args.plan and not args.apply:
         sys.exit("--plan <경로> 또는 --apply 중 하나는 필요합니다")
 
+    if args.new_only and not args.apply:
+        sys.exit("--new-only는 --apply와 함께 씁니다")
+
     picked, skipped = scan(args.src, args.only)
     client = make_client() if args.apply else None
-    resolve_slugs(picked, fetch_existing(client) if client else {})
+    existing = fetch_existing(client) if client else {}
+    if args.new_only:
+        done = set(existing.values())
+        picked = [p for p in picked if p["source_key"] not in done]
+        if not picked:
+            print("새로 올릴 글 없음")
+            return
+    resolve_slugs(picked, existing)
 
     total_bytes, total_images = 0, 0
     for p in picked:
