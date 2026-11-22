@@ -22,6 +22,7 @@ export default function NewsCard({ post, onClick }: { post: NewsSummary; onClick
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
             className="object-cover"
+            unoptimized
           />
         </div>
       )}
