@@ -88,6 +88,7 @@ export default function NewsDetailClient({ post, older, newer, latest }: Props) 
                 sizes="(max-width: 672px) 100vw, 672px"
                 priority={i === 0}
                 className="w-full h-auto"
+                unoptimized
               />
             </div>
           ))}
